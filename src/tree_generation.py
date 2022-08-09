@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 from anytree import LevelGroupOrderIter, Node
 from scipy.optimize import minimize
+from scipy.optimize import LinearConstraint
 
 
 def create_empty_tree(sub_tree_structure: List, parent: Node = None) -> Node:
@@ -65,37 +66,69 @@ def generate_scenario_level(
 ) -> Any:
     moments, r = get_tarmom_and_r_from_dataset_dict(dataset_dict)
     n_stocks = r.shape[0]  # number of stocks is the dimension of corr matrix
-    starting_values = np.random.random_sample(size=(n_stocks * number_of_nodes)) * 0.04 + 0.98
-    starting_values = np.reshape(starting_values, (-1, number_of_nodes))
+    #need number_of_nodes more values to calculate probabilities
+    num_variables = (n_stocks) * number_of_nodes + number_of_nodes
+    starting_values = np.random.random_sample(size=(num_variables)) * 0.04 + 0.98
+    linear_constraint_matrix = np.zeros((1+number_of_nodes,num_variables))
+    #first constraint - probabilities sum up to 1
+    #last row is assumed to be probability of each node
+    linear_constraint_matrix[0,-number_of_nodes:] = 1
+    for i in range(number_of_nodes):
+        linear_constraint_matrix[i+1,-number_of_nodes+i] = 1
+
+    tmp = np.reshape(linear_constraint_matrix, (-1, number_of_nodes))
+
+    linear_constraint = LinearConstraint(linear_constraint_matrix, [1] + [0]*number_of_nodes, [1] + [1]*number_of_nodes)
+
     result = minimize(
         weighted_loss_function_diag,
         starting_values,
+        method="trust-constr",
         args=(moments, r, number_of_nodes),
+        constraints=[linear_constraint],
         options={"disp": True},
     )
+    tmp = np.reshape(result.x, (-1, number_of_nodes))
+    x = tmp[:-1,:]
+    probs = tmp[-1,:]
+    #todo:
+    # return x, probs
+    # x contains values, probs contain probabilities for each node
     return result
 
-
+# https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.497.113&rep=rep1&type=pdf
+# Data-Driven Multi-Stage Scenario Tree Generation via Statistical Property and Distribution Matching
+# Bruno A. Calfa∗, Anshul Agarwal†, Ignacio E. Grossmann∗, John M. Wassick†
 def weighted_loss_function_diag(
     x: np.ndarray,
     TARMOM: np.ndarray,
     R: np.ndarray,
-    n_nodes: int,
+    number_of_nodes: int,
     weights: np.ndarray = np.ones(5),
 ) -> float:
-    mean = np.mean(x, axis=1)
-    variance = np.sum(np.power(x - np.tile(mean, (n_nodes, 1)).transpose(), 2), axis=1) / n_nodes
-    third = np.sum(np.power(x - np.tile(mean, (n_nodes, 1)).transpose(), 3), axis=1) / n_nodes
-    fourth = np.sum(np.power(x - np.tile(mean, (n_nodes, 1)).transpose(), 4), axis=1) / n_nodes
+    x = np.reshape(x, (-1, number_of_nodes))
+    probs = x[-1,:]
+    # probs[1]=0#first column is assumed to be probabilities
+    x = x[:-1,:]
+    mean = np.sum((x*probs), axis=1)
+    tiled_mean = np.tile(mean, (number_of_nodes, 1)).transpose()
+    variance = np.sum((np.power(x - tiled_mean, 2)*probs), axis=1)
+    third = np.sum((np.power(x - tiled_mean, 3)*probs), axis=1)
+    fourth = np.sum((np.power(x - tiled_mean, 4)*probs), axis=1)
 
-    R_discrete = np.corrcoef(x)
+    #TODO: use also correlation matrix
+    # R_discrete_manual = (x-tiled_mean).T*(x-tiled_mean)
+    # covariance = np.cov(x, ddof=0, aweights=probs)
+    # R_discrete = np.corrcoef(x)
 
+
+    #loss contains also the weights as presented in the given paper (L2 MMP formulation)
     loss = (
-        weights[0] * np.sum(np.power(mean - TARMOM[0, :], 2))
-        + weights[1] * np.sum(np.power(variance - TARMOM[1, :], 2))
-        + weights[2] * np.sum(np.power(third - TARMOM[2, :], 2))
-        + weights[3] * np.sum(np.power(fourth - TARMOM[3, :], 2))
-        + weights[4] * np.sum(np.power(np.triu(R_discrete - R, 1), 2))
+        weights[0] * np.sum((1/np.power(TARMOM[0, :], 2))*np.power(mean - TARMOM[0, :], 2))
+        + weights[1] * np.sum((1/np.power(TARMOM[1, :], 2))*np.power(variance - TARMOM[1, :], 2))
+        + weights[2] * np.sum((1/np.power(TARMOM[2, :], 2))*np.power(third - TARMOM[2, :], 2))
+        + weights[3] * np.sum((1/np.power(TARMOM[3, :], 2))*np.power(fourth - TARMOM[3, :], 2))
+        # + weights[4] * np.sum((1/np.power(R, 2))*np.power(np.triu(R_discrete - R, 1), 2))
     )
 
     return loss
