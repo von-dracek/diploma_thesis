@@ -67,10 +67,13 @@ dataclasses==0.6 \
     --hash=sha256:454a69d788c7fda44efd71e259be79577822f5e3f53f029a22d08004e951dc9f \
     --hash=sha256:6988bd2b895eef432d562370bb707d540f32f7360ab13da45340101bc2307d84
     # via mpire
-dill==0.3.4 \
-    --hash=sha256:7e40e4a70304fd9ceab3535d36e58791d9c4a776b38ec7f7ec9afc8d3dca4d4f \
-    --hash=sha256:9f9734205146b2b353ab3fec9af0070237b6ddae78452af83d2fca84d739e675
-    # via multiprocess
+dill==0.3.5.1 \
+    --hash=sha256:33501d03270bbe410c72639b350e941882a8b0fd55357580fbc873fba0c59302 \
+    --hash=sha256:d75e41f3eff1eee599d738e76ba8f4ad98ea229db8b085318aa2b3333a208c86
+    # via
+    #   klepto
+    #   multiprocess
+    #   mystic
 idna==3.3 \
     --hash=sha256:84d9dd047ffa80596e0f246e2eab0b391788b0503584e8945f2368256d2735ff \
     --hash=sha256:9d643ff0a55b762d5cdb124b8eaa99c66322e2157b69160bc32796e824360e6d
@@ -79,6 +82,10 @@ iniconfig==1.1.1 \
     --hash=sha256:011e24c64b7f47f6ebd835bb12a743f2fbe9a26d4cecaa7f53bc4f35ee9da8b3 \
     --hash=sha256:bc3af051d7d14b2ee5ef9969666def0cd1a000e121eaea580d4a313df4b37f32
     # via pytest
+klepto==0.2.2 \
+    --hash=sha256:37a8aed6bc63c06124ec7b2cdaf841eee7f7530079c5db0aaf4c26cda15f7d88 \
+    --hash=sha256:dd5dd6784ed6f42933520160c21ab3ad4d4c4a6ecb59a5478a788872a311e574
+    # via mystic
 lxml==4.9.1 \
     --hash=sha256:04da965dfebb5dac2619cb90fcf93efdb35b3c6994fea58a157a834f2f94b318 \
     --hash=sha256:0538747a9d7827ce3e16a8fdd201a99e661c7dee3c96c885d8ecba3c35d1032c \
@@ -155,6 +162,12 @@ mpire[dill]==2.3.3 \
     --hash=sha256:1e8db8d0dd487731aa8bab65f52299b1af128c9ca01bef172337a083aadb7733 \
     --hash=sha256:fe43fc00f5122a7fecc79753e94298e47f20dc246694b84f58bc9a67c2145f63
     # via -r src/requirements.in
+mpmath==1.2.1 \
+    --hash=sha256:604bc21bd22d2322a177c73bdb573994ef76e62edd595d17e00aff24b0667e5c \
+    --hash=sha256:79ffb45cf9f4b101a807595bcb3e72e0396202e0b1d25d689134b48c4216a81a
+    # via
+    #   mystic
+    #   sympy
 multiprocess==0.70.12.2 \
     --hash=sha256:0e0a5ae4bd84e4c22baddf824d3b8168214f8c1cce51e2cb080421cb1f7b04d1 \
     --hash=sha256:206bb9b97b73f87fec1ed15a19f8762950256aa84225450abc7150d02855a083 \
@@ -174,6 +187,10 @@ multitasking==0.0.11 \
     --hash=sha256:1e5b37a5f8fc1e6cfaafd1a82b6b1cc6d2ed20037d3b89c25a84f499bd7b3dd4 \
     --hash=sha256:4d6bc3cc65f9b2dca72fb5a787850a88dae8f620c2b36ae9b55248e51bcd6026
     # via yfinance
+mystic==0.3.9 \
+    --hash=sha256:aa41df5628eded6d39ab5f3893eec66d2d843cfe0471302a1882bbb3867f3bc7 \
+    --hash=sha256:b00764c7ea4bf187cfde9329d19333914e2c56af37cab490f0245bdee35c03fd
+    # via -r src/requirements.in
 numpy==1.23.1 \
     --hash=sha256:1408c3527a74a0209c781ac82bde2182b0f0bf54dea6e6a363fe0cc4488a7ce7 \
     --hash=sha256:173f28921b15d341afadf6c3898a34f20a0569e4ad5435297ba262ee8941e77b \
@@ -199,6 +216,7 @@ numpy==1.23.1 \
     --hash=sha256:e0d7447679ae9a7124385ccf0ea990bb85bb869cef217e2ea6c844b6a6855073
     # via
     #   -r src/requirements.in
+    #   mystic
     #   pandas
     #   scipy
     #   yfinance
@@ -239,6 +257,10 @@ pluggy==0.13.1 \
     --hash=sha256:15b2acde666561e1298d71b523007ed7364de07029219b604cf808bfa1c765b0 \
     --hash=sha256:966c145cd83c96502c3c3868f50408687b38434af77734af1e9ca461a4081d2d
     # via pytest
+pox==0.3.1 \
+    --hash=sha256:541b5c845aacb806c1364d4142003efb809d654c9ca8db82e650ee86c81e680b \
+    --hash=sha256:cbb0c0acd650c0ffb620999da611e93aae5105c46a084c4ceaf2f704ed708c1e
+    # via klepto
 pulp==2.6.0 \
     --hash=sha256:37ea19fde27c2a767989a40e945d7a44b8c9cf007bd433e2c0a73acbd5e92f0c \
     --hash=sha256:4b4f7e1e954453e1b233720be23aea2f10ff068a835ac10c090a93d8e2eb2e8d
@@ -305,6 +327,10 @@ six==1.16.0 \
     #   anytree
     #   plotly
     #   python-dateutil
+sympy==1.10.1 \
+    --hash=sha256:5939eeffdf9e152172601463626c022a2c27e75cf6278de8d401d50c9d58787b \
+    --hash=sha256:df75d738930f6fe9ebe7034e59d56698f29e85f443f743e51e47df0caccc2130
+    # via mystic
 tenacity==8.0.1 \
     --hash=sha256:43242a20e3e73291a28bcbcacfd6e000b02d3857a9a9fff56b297a27afdc932f \
     --hash=sha256:f78f4ea81b0fabc06728c11dc2a8c01277bfc5181b321a4770471902e3eb844a
