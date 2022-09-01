@@ -1,6 +1,7 @@
 import datetime
 import pickle
 from typing import Iterator, Tuple
+from dateutil.relativedelta import relativedelta
 
 import pandas as pd
 import yfinance as yf
@@ -18,7 +19,7 @@ def download_data(
         tickers=tickers,
         start=start,
         end=end,
-        interval="1wk",
+        interval="1d",
         group_by="ticker",
         auto_adjust=True,
         prepost=False,
@@ -30,12 +31,9 @@ def download_data(
     data = data.unstack(level=1)
     data = data.sort_index()
 
-    returns = data.pct_change() + 1
-
     save_data(data=data, filename=FILE.DATA_PRICES_CLOSE_FILE.value)
-    save_data(data=returns, filename=FILE.RETURNS_FILE.value)
 
-    return data, returns
+    return data
 
 
 def save_data(data: pd.DataFrame, filename: str) -> None:
@@ -56,5 +54,18 @@ def date_range(start: datetime.datetime, end: datetime.datetime, intv: int) -> I
     # end = datetime.datetime.strptime(end,"%Y%m%d")
     diff = (end - start) / intv
     for i in range(intv):
-        yield str(start + diff * i)
-    yield str(end)
+        yield start + diff * i
+    yield end
+
+def date_add(start: datetime.datetime, end: datetime.datetime, diff: relativedelta) -> Iterator[str]:
+    """intv - how many stages are there in the program (number of periods to create)"""
+    # start = datetime.datetime.strptime(start,"%Y%m%d")
+    # end = datetime.datetime.strptime(end,"%Y%m%d")
+    curr = start
+    while curr < end:
+        yield curr + diff
+        curr += diff
+
+
+def date_intv(start: datetime.datetime, end: datetime.datetime, intv: int) -> datetime.timedelta:
+    return (end - start) / intv

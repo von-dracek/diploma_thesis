@@ -7,6 +7,6 @@ mpire[dill]==2.3.3
 numpy==1.23.1
 scipy==1.8.1
 anytree==2.8.0
-pulp==2.6.0
 yfinance==0.1.74
-mystic==0.3.9
+pyomo==6.4.1
+pulp==2.6.0
