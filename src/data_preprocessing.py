@@ -1,13 +1,14 @@
-import datetime
 from typing import Dict, List, Union
 
 import numpy as np
 import pandas as pd
 from dateutil.relativedelta import relativedelta
+from scipy.stats import kurtosis, skew
+
 # TODO: maybe multiply moments by number of weeks in the given period (atleast mean)
 from src.configuration import FIRST_VALID_DATE, LAST_VALID_DATE
-from src.data_downloading import date_range, date_intv, date_add
-from scipy.stats import skew, kurtosis
+from src.data_downloading import date_add, date_intv, date_range
+
 
 def get_TARMOM_and_R(dataset: pd.DataFrame) -> Dict[str, np.array]:
     corr_matrix = dataset.corr(method="pearson").to_numpy()
@@ -18,26 +19,20 @@ def get_TARMOM_and_R(dataset: pd.DataFrame) -> Dict[str, np.array]:
     _dataset = dataset.to_numpy()
     mean = np.mean(_dataset, axis=0)
     variance = np.var(_dataset, axis=0)
-    skewness = skew(_dataset, axis=0) * variance**(3/2)
+    skewness = skew(_dataset, axis=0) * variance ** (3 / 2)
     kurt = kurtosis(_dataset, axis=0, fisher=False) * variance**2
 
     var_manual = np.sum(np.power(_dataset - mean, 2), axis=0) / _dataset.shape[0]
     skew_manual = np.sum(np.power(_dataset - mean, 3), axis=0) / _dataset.shape[0]
     kurt_manual = np.sum(np.power(_dataset - mean, 4), axis=0) / _dataset.shape[0]
 
-    moments = np.array(
-        (
-            mean,
-            var_manual,
-            skew_manual,
-            kurt_manual
-        )
-    )
-    assert np.all(abs(var_manual - variance)<1e-8)
-    assert np.all(abs(skew_manual - skewness)<1e-8)
-    assert np.all(abs(kurt_manual - kurt)<1e-8)
+    moments = np.array((mean, var_manual, skew_manual, kurt_manual))
+    assert np.all(abs(var_manual - variance) < 1e-8)
+    assert np.all(abs(skew_manual - skewness) < 1e-8)
+    assert np.all(abs(kurt_manual - kurt) < 1e-8)
 
     return moments, corr_matrix
+
 
 def data_to_returns_iid(data: pd.DataFrame, branching: List[int]):
     """Convert weekly data to returns according to specified branching.
@@ -52,11 +47,13 @@ def data_to_returns_iid(data: pd.DataFrame, branching: List[int]):
         nearest_date = _nearest_date(data.index, date)
         nearest_dates.append(nearest_date)
     data = data[data.index.isin(nearest_dates)]
-    returns = data.pct_change()+1
+    returns = data.pct_change() + 1
     return returns.dropna()
+
 
 def _nearest_date(items, pivot):
     return min(items, key=lambda x: abs(x - pivot))
+
 
 def preprocess_data(
     returns: pd.DataFrame, branching: List[int]
@@ -84,4 +81,3 @@ def preprocess_data(
         previous_timestamp = timestamp
 
     return data_obtained_between_timestamps
-

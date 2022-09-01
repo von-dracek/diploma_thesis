@@ -1,10 +1,10 @@
 import datetime
 import pickle
 from typing import Iterator, Tuple
-from dateutil.relativedelta import relativedelta
 
 import pandas as pd
 import yfinance as yf
+from dateutil.relativedelta import relativedelta
 
 from src.configuration import FILE
 
@@ -57,7 +57,10 @@ def date_range(start: datetime.datetime, end: datetime.datetime, intv: int) -> I
         yield start + diff * i
     yield end
 
-def date_add(start: datetime.datetime, end: datetime.datetime, diff: relativedelta) -> Iterator[str]:
+
+def date_add(
+    start: datetime.datetime, end: datetime.datetime, diff: relativedelta
+) -> Iterator[str]:
     """intv - how many stages are there in the program (number of periods to create)"""
     # start = datetime.datetime.strptime(start,"%Y%m%d")
     # end = datetime.datetime.strptime(end,"%Y%m%d")

@@ -1,5 +1,9 @@
 """DOCSTRING"""
 
+import random
+
+import numpy as np
+
 from src.configuration import (
     DOWNLOAD_DATA,
     FILE,
@@ -8,12 +12,11 @@ from src.configuration import (
     TICKERS,
 )
 from src.data_downloading import download_data, load_data
-from src.data_preprocessing import preprocess_data, data_to_returns_iid, get_TARMOM_and_R
+from src.data_preprocessing import data_to_returns_iid, get_TARMOM_and_R
 from src.log import configure
 from src.mean_cvar import calculate_mean_cvar_over_leaves
 from src.tree_generation import create_empty_tree, fill_empty_tree_with_scenario_data
-import random
-import numpy as np
+
 np.random.seed(1337)
 random.seed(1337)
 configure()
