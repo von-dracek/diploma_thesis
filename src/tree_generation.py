@@ -75,7 +75,8 @@ def generate_scenario_level_gekko_uniform_iid(
     TARMOM: np.ndarray, R: np.ndarray, proba: np.ndarray, number_of_nodes: int
 ) -> Tuple[Any, np.ndarray]:
     n_stocks = R.shape[0]
-    m = GEKKO(remote=True)
+    # tried also with remote=False and all available solvers (IPOPT, APOPT, BPOPT)
+    m = GEKKO(remote=False)
     m.options.MAX_MEMORY = 8
     m.options.SOLVER = 3
     m.options.MAX_ITER = 100000
@@ -88,14 +89,17 @@ def generate_scenario_level_gekko_uniform_iid(
     normal_initialiastion = np.random.multivariate_normal(
         TARMOM[0, :], R, size=(number_of_nodes)
     ).T
-    # array of node probabilities of each node - just initialise it
-    p = m.Array(m.Var, (number_of_nodes), lb=0.0001, ub=1)
-    # fill array of probabilities with values
-    for j in range(number_of_nodes):
-        p[j] = m.Var(value=proba[j], lb=0.0001, ub=1)
 
+    # here I was trying to also use different probs for each child - didnt help
+    # # array of node probabilities of each node - just initialise it
+    # p = m.Array(m.Var, (number_of_nodes), lb=0.0001, ub=1)
+    # # fill array of probabilities with values
+    # for j in range(number_of_nodes):
+    #     p[j] = m.Var(value=proba[j], lb=0.0001, ub=1)
+    p = proba
     # node probabilities must sum to 1
-    m.Equation(m.sum(p) == 1)
+    # m.Equation(m.sum(p) == 1)
+
     # fill the decision variables with initial values
     for i in range(n_stocks):
         for j in range(number_of_nodes):
@@ -122,7 +126,7 @@ def generate_scenario_level_gekko_uniform_iid(
     res = m.Minimize(loss)  # noqa: F841
     m.solve(disp=True)
     x = np.array([[__x.value for __x in _x] for _x in x]).reshape(x.shape)
-    p = np.array([_p.value for _p in p]).reshape(-1)
+    # p = np.array([_p.value for _p in p]).reshape(-1)
     first_moments = (x * p).sum(axis=1).reshape((-1, 1))
     variance = np.sum((((x - first_moments) ** 2) * p).T, axis=0)
     third = np.sum(((((x - first_moments) ** 3) * p)).T, axis=0)
