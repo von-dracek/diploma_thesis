@@ -31,7 +31,7 @@ def main() -> None:
     else:
         data = load_data(FILE.DATA_PRICES_CLOSE_FILE.value)
 
-    branching = [5]
+    branching = [9, 8, 7, 6, 5]
     iid_returns = data_to_returns_iid(data, branching)
 
     TARMOM, R = get_TARMOM_and_R(iid_returns)
