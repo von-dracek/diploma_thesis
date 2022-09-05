@@ -5,10 +5,11 @@ from anytree import Node
 from src.configuration import CVAR_ALPHA, TICKERS
 
 
+# todo: return objective value and penalisation for tree size
 def calculate_mean_cvar_over_leaves(root: Node) -> float:
     leaves = root.leaves
     S = len(leaves)
-    R_0 = 3
+    R_0 = 1
     means = np.stack([leaf.cumulative_returns for leaf in leaves])
     means = means.mean(axis=0)
     cvar = pulp.LpProblem("Mean_Cvar_problem", pulp.LpMinimize)

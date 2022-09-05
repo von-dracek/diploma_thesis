@@ -10,3 +10,4 @@ anytree==2.8.0
 yfinance==0.1.74
 pyomo==6.4.1
 pulp==2.6.0
+tensorflow==2.9.2

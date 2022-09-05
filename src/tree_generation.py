@@ -1,7 +1,6 @@
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, List, Tuple
 
 import numpy as np
-import pandas as pd
 from anytree import LevelOrderGroupIter, Node
 from gekko import GEKKO
 
@@ -23,7 +22,6 @@ def create_empty_tree(sub_tree_structure: List, parent: Node = None) -> Node:
 
 def fill_empty_tree_with_probabilities(root: Node):
     for child in root.children:
-        # child.probability = child.parent.probability / len(root.children)
         child.probability = 1 / len(root.children)
         child.path_probability = root.path_probability * child.probability
         fill_empty_tree_with_probabilities(child)
@@ -31,7 +29,7 @@ def fill_empty_tree_with_probabilities(root: Node):
 
 
 def fill_empty_tree_with_scenario_data(
-    TARMOM: pd.DataFrame, R: pd.DataFrame, root: Node, branching: int
+    TARMOM: np.ndarray, R: np.ndarray, root: Node, branching: List[int]
 ) -> Node:
     tree_levels = list(LevelOrderGroupIter(root))
     root.probability = 1
@@ -40,19 +38,25 @@ def fill_empty_tree_with_scenario_data(
     tree_level_zip_branching = list(
         zip(tree_levels, branching)
     )  # purposely zipping n levels with n-1 branching - last level is not iterated over
+    # looping over each tree level
     for level, current_branching in tree_level_zip_branching:
+        # generating children from one node of current level and then copying these children
+        # to other nodes on the current level
         probability = np.unique([child.probability for node in level for child in node.children])
         probabilities = np.ones(current_branching) * probability
+        # generate children
         (
             generated_returns,
             generated_probs,  # pylint: disable=W0612
         ) = generate_scenario_level_gekko_uniform_iid(TARMOM, R, probabilities, current_branching)
+        # set values to children
         for current_node in level:
             children = current_node.children
             for idx, child in enumerate(children):
-                child.returns = generated_returns[:, idx % 7]
+                child.returns = generated_returns[:, idx % current_branching]
 
     assert abs(sum(node.path_probability for node in tree_levels[-1]) - 1) < 1e-4
+    # calculate cumulative returns
     for level, current_branching in tree_level_zip_branching:
         for current_node in level:
             if not current_node.is_root:
@@ -63,86 +67,75 @@ def fill_empty_tree_with_scenario_data(
     return root
 
 
-def get_tarmom_and_r_from_dataset_dict(
-    dataset_dict: Dict[str, Union[pd.DataFrame, np.ndarray]]
-) -> Tuple[np.ndarray, np.ndarray]:
-    return dataset_dict["moments"], dataset_dict["R"]
-
-
 # https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.497.113&rep=rep1&type=pdf
 # Data-Driven Multi-Stage Scenario Tree Generation via Statistical Property
 # and Distribution Matching
 # Bruno A. Calfa∗, Anshul Agarwal†, Ignacio E. Grossmann∗, John M. Wassick†
-def weighted_loss_function_diag(
-    x: np.ndarray,
-    probabilities: np.ndarray,
-    TARMOM: np.ndarray,
-    R: np.ndarray,  # pylint: disable=W0613
-    number_of_nodes: int,  # pylint: disable=W0613
-    m: GEKKO,
-    weights: np.ndarray = np.ones(5),
-) -> float:
-    mean = m.sum((x * probabilities).T).reshape((-1, 1))
-    variance = m.sum((((x - mean) ** 2) * probabilities).T)
-    third = m.sum(((((x - mean) ** 3) * probabilities)).T)
-    fourth = m.sum((((x - mean) ** 4) * probabilities).T)
-
-    # TODO: use also correlation matrix
-    # R_discrete_manual = (x-tiled_mean)@((x-tiled_mean)*probs).T
-    # covariance = np.cov(x, ddof=0, aweights=probs)
-    # R_discrete = np.corrcoef(x)
-    cov_discrete = (x - mean) * probabilities @ (x - mean).T
-    diag_var = np.diag(variance ** (-1 / 2))
-    corr_discrete = (diag_var) @ cov_discrete @ (diag_var)
-    print(corr_discrete)
-
-    loss = m.sum(
-        [
-            weights[0] * m.sum((mean.reshape(-1) - TARMOM[0, :]) ** 2),
-            5 * weights[1] * m.sum((variance - TARMOM[1, :]) ** 2),
-            5 * weights[2] * m.sum((third - TARMOM[2, :]) ** 2),
-            5 * weights[3] * m.sum((fourth - TARMOM[3, :]) ** 2)
-            # ,50000* m.sum((corr_discrete - R)**2)
-        ]
-    )
-
-    return loss
-
-
 def generate_scenario_level_gekko_uniform_iid(
-    TARMOM: np.ndarray, R: np.ndarray, probabilities: np.ndarray, number_of_nodes_in_level: int
+    TARMOM: np.ndarray, R: np.ndarray, proba: np.ndarray, number_of_nodes: int
 ) -> Tuple[Any, np.ndarray]:
     n_stocks = R.shape[0]
+    # tried also with remote=False and all available solvers (IPOPT, APOPT, BPOPT)
     m = GEKKO(remote=False)
     m.options.MAX_MEMORY = 8
     m.options.SOLVER = 3
-    m.options.MAX_ITER = 5000
-    # m.options.RTOL = 1.0e-7
-    x = m.Array(
-        m.Var, (n_stocks, number_of_nodes_in_level), value=1, lb=0, ub=7
-    )  # return scenarios
-    for i in range(n_stocks):
-        for j in range(number_of_nodes_in_level):
-            x[i, j] = m.Var(value=np.random.random_sample() * 0.04 + 1, lb=0, ub=6)
+    m.options.MAX_ITER = 100000
+    np.random.seed(1337)
+    # x - array of decision variables of dimension (n_stocks, n_nodes)
+    x = m.Array(m.Var, (n_stocks, number_of_nodes), lb=0.0001)
 
-    p = probabilities
-    res = m.Minimize(  # noqa: F841 # pylint: disable=W0612
-        weighted_loss_function_diag(x, p, TARMOM, R, number_of_nodes_in_level, m)
+    # normal initialisation - initial guess using sampling from normal distribution with given
+    # mean and correlation matrix
+    normal_initialiastion = np.random.multivariate_normal(
+        TARMOM[0, :], R, size=(number_of_nodes)
+    ).T
+
+    # here I was trying to also use different probs for each child - didnt help
+    # # array of node probabilities of each node - just initialise it
+    # p = m.Array(m.Var, (number_of_nodes), lb=0.0001, ub=1)
+    # # fill array of probabilities with values
+    # for j in range(number_of_nodes):
+    #     p[j] = m.Var(value=proba[j], lb=0.0001, ub=1)
+    p = proba
+    # node probabilities must sum to 1
+    # m.Equation(m.sum(p) == 1)
+
+    # fill the decision variables with initial values
+    for i in range(n_stocks):
+        for j in range(number_of_nodes):
+            x[i, j] = m.Var(value=normal_initialiastion[i, j], lb=0.0001)
+
+    # calculate first four moments from the values of decision variables
+
+    means = [m.sum(x[i, :] * p) for i in range(x.shape[0])]
+    variances = [m.sum(((x[i, :] - means[i]) ** 2) * p) for i in range(x.shape[0])]
+    third = [m.sum(((x[i, :] - means[i]) ** 3) * p) for i in range(x.shape[0])]
+    fourth = [m.sum(((x[i, :] - means[i]) ** 4) * p) for i in range(x.shape[0])]
+
+    # compute loss
+    loss = m.sum(
+        [
+            m.sum(([(means[i] - TARMOM[0, i]) ** 2 for i in range(x.shape[0])])),
+            m.sum(([(variances[i] - TARMOM[1, i]) ** 2 for i in range(x.shape[0])])),
+            # m.sum(([(third[i] - TARMOM[2, i]) ** 2 for i in range(x.shape[0])])),
+            # m.sum(([(fourth[i] - TARMOM[3, i]) ** 2 for i in range(x.shape[0])])),
+            # m.sum((corr_discrete - R) ** 2)
+        ]
     )
+
+    res = m.Minimize(loss)  # noqa: F841
     m.solve(disp=True)
     x = np.array([[__x.value for __x in _x] for _x in x]).reshape(x.shape)
+    # p = np.array([_p.value for _p in p]).reshape(-1)
     first_moments = (x * p).sum(axis=1).reshape((-1, 1))
     variance = np.sum((((x - first_moments) ** 2) * p).T, axis=0)
     third = np.sum(((((x - first_moments) ** 3) * p)).T, axis=0)
     fourth = np.sum((((x - first_moments) ** 4) * p).T, axis=0)
     moments_from_tree = np.stack([first_moments.reshape(-1), variance, third, fourth])
-    temp = TARMOM - moments_from_tree
-    # TODO: computation of correlation matrix is not working properly,
-    #  not here, not in loss function
-    cov_discrete = (x - first_moments) * probabilities @ (x - first_moments).T
-    diag_var = np.diag(variance ** (-1 / 2))
-    corr_discrete = (diag_var) @ cov_discrete @ (diag_var)
-    print(corr_discrete)
-    print(temp)
+    diff_in_moments = TARMOM - moments_from_tree  # noqa: F841  # just for visual inspection
+    # cov_discrete = (x - first_moments) * p @ (x - first_moments).T
+    # diag_var = np.diag(variance ** (-1 / 2))
+    # corr_discrete = (diag_var) @ cov_discrete @ (diag_var)
+    # diff_in_corr = corr_discrete - R
 
     return x, p

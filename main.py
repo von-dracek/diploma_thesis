@@ -31,21 +31,14 @@ def main() -> None:
     else:
         data = load_data(FILE.DATA_PRICES_CLOSE_FILE.value)
 
-    branching = [7, 8, 5, 3]
+    branching = [9, 8, 7, 6, 5]
     iid_returns = data_to_returns_iid(data, branching)
 
-    # preprocessed data contains data obtained from the
-    # previous timestamp up until the current timestamp
-    # preprocessed_data = preprocess_data(returns, branching)
-    # preprocessed_data_iid = preprocess_data_iid_stages(iid_returns, branching)
     TARMOM, R = get_TARMOM_and_R(iid_returns)
     # create scenario tree
     tree_root = create_empty_tree(branching)
     root = fill_empty_tree_with_scenario_data(TARMOM, R, tree_root, branching)
     calculate_mean_cvar_over_leaves(root)
-    # fill_empty_tree_with_scenario_data(preprocessed_data_iid, tree_root)
-    # fill_empty_tree_with_scenario_data(preprocessed_data, tree_root)
-    print("")
 
 
 if __name__ == "__main__":
