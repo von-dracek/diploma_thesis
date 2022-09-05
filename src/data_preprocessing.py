@@ -1,16 +1,15 @@
-from typing import Dict, List, Union
+from typing import Any, List, Tuple
 
 import numpy as np
 import pandas as pd
 from dateutil.relativedelta import relativedelta
 from scipy.stats import kurtosis, skew
 
-# TODO: maybe multiply moments by number of weeks in the given period (atleast mean)
 from src.configuration import FIRST_VALID_DATE, LAST_VALID_DATE
-from src.data_downloading import date_add, date_intv, date_range
+from src.data_downloading import date_add, date_intv
 
 
-def get_TARMOM_and_R(dataset: pd.DataFrame) -> Dict[str, np.array]:
+def get_TARMOM_and_R(dataset: pd.DataFrame) -> Tuple[Any, np.array]:
     corr_matrix = dataset.corr(method="pearson").to_numpy()
     assert np.all(
         np.linalg.eigvals(corr_matrix) > -1e-10
@@ -19,6 +18,7 @@ def get_TARMOM_and_R(dataset: pd.DataFrame) -> Dict[str, np.array]:
     _dataset = dataset.to_numpy()
     mean = np.mean(_dataset, axis=0)
     variance = np.var(_dataset, axis=0)
+    # skewness and kurtosis must be denormalised
     skewness = skew(_dataset, axis=0) * variance ** (3 / 2)
     kurt = kurtosis(_dataset, axis=0, fisher=False) * variance**2
 
@@ -55,29 +55,29 @@ def _nearest_date(items, pivot):
     return min(items, key=lambda x: abs(x - pivot))
 
 
-def preprocess_data(
-    returns: pd.DataFrame, branching: List[int]
-) -> Dict[str, Dict[str, Union[pd.DataFrame, np.array]]]:
-    n_stages = len(branching)
-    equidistant_timestamps = list(date_range(FIRST_VALID_DATE, LAST_VALID_DATE, n_stages))
-    available_data_up_to_timestamps = {
-        timestamp: returns[:timestamp] for timestamp in equidistant_timestamps
-    }
-
-    # this dictionary holds data from previous timestamp up to the current timestamp
-    # where the dictionary key corresponds to current timestamp
-    data_obtained_between_timestamps = {}
-    previous_timestamp = None
-    for timestamp, df in available_data_up_to_timestamps.items():
-        if previous_timestamp is None:
-            previous_timestamp = FIRST_VALID_DATE
-        data_obtained_between_timestamps[timestamp] = {"df": df[previous_timestamp:]}
-        if not data_obtained_between_timestamps[timestamp]["df"].empty:
-            data_obtained_between_timestamps[timestamp].update(
-                get_TARMOM_and_R(data_obtained_between_timestamps[timestamp]["df"])
-            )
-        else:
-            data_obtained_between_timestamps.pop(timestamp)
-        previous_timestamp = timestamp
-
-    return data_obtained_between_timestamps
+# def preprocess_data(
+#     returns: pd.DataFrame, branching: List[int]
+# ) -> Dict[str, Dict[str, Union[pd.DataFrame, np.array]]]:
+#     n_stages = len(branching)
+#     equidistant_timestamps = list(date_range(FIRST_VALID_DATE, LAST_VALID_DATE, n_stages))
+#     available_data_up_to_timestamps = {
+#         timestamp: returns[:timestamp] for timestamp in equidistant_timestamps
+#     }
+#
+#     # this dictionary holds data from previous timestamp up to the current timestamp
+#     # where the dictionary key corresponds to current timestamp
+#     data_obtained_between_timestamps = {}
+#     previous_timestamp = None
+#     for timestamp, df in available_data_up_to_timestamps.items():
+#         if previous_timestamp is None:
+#             previous_timestamp = FIRST_VALID_DATE
+#         data_obtained_between_timestamps[timestamp] = {"df": df[previous_timestamp:]}
+#         if not data_obtained_between_timestamps[timestamp]["df"].empty:
+#             data_obtained_between_timestamps[timestamp].update(
+#                 get_TARMOM_and_R(data_obtained_between_timestamps[timestamp]["df"])
+#             )
+#         else:
+#             data_obtained_between_timestamps.pop(timestamp)
+#         previous_timestamp = timestamp
+#
+#     return data_obtained_between_timestamps

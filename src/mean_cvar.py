@@ -5,6 +5,7 @@ from anytree import Node
 from src.configuration import CVAR_ALPHA, TICKERS
 
 
+# todo: return objective value and penalisation for tree size
 def calculate_mean_cvar_over_leaves(root: Node) -> float:
     leaves = root.leaves
     S = len(leaves)

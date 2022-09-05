@@ -5,10 +5,13 @@ FIRST_VALID_DATE = datetime.datetime(2000, 1, 1, 1, 1)
 LAST_VALID_DATE = datetime.datetime(2020, 12, 31, 23, 59)
 DOWNLOAD_DATA = True
 RETURNS_FILE = "returns"
-TICKERS = tuple(sorted(["VRTX", "ASML", "AMD", "SBUX", "QCOM", "DLTR", "MTCH"]))
+TICKERS = tuple(sorted(["VRTX", "ASML", "SBUX", "QCOM", "DLTR", "MTCH"]))
 # TICKERS = tuple(["AMD", "SBUX"])
 N_STOCKS = len(TICKERS)
 CVAR_ALPHA = 0.95
+
+# AGENT
+EPSILON_FOR_EPSILON_GREEDY_ACTION = 0.05  # 5%
 
 
 class FILE(enum.Enum):
