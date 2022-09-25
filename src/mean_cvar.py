@@ -35,4 +35,5 @@ def calculate_mean_cvar_over_leaves(root: Node) -> float:
     optimal_x = {}
     for v in x:
         optimal_x[v.name] = v.varValue
-    print(optimality)
+    return cvar.objective.value(), optimal_x
+
