@@ -38,9 +38,9 @@ def get_cvar_value(braching: List[int]) -> None:
     # create scenario tree
     tree_root = create_empty_tree(branching)
     root = fill_empty_tree_with_scenario_data(TARMOM, R, tree_root, branching)
-    # return calculate_mean_cvar_over_leaves(root)
+    return calculate_mean_cvar_over_leaves(root)
 
 
 if __name__ == "__main__":
-    branching = [2,2,2,2,2]
+    branching = [2, 2, 2, 2, 2]
     print(get_cvar_value(branching))
