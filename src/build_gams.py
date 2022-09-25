@@ -1,18 +1,21 @@
-import pandas as pd
-from tabulate import tabulate
-import sys
 import io
-import pandas as pd
-sys.path.append("/opt/gams/gams40.2_linux_x64_64_sfx/apifiles/Python/api_38")
-sys.path.append("/opt/gams/gams40.2_linux_x64_64_sfx/apifiles/Python/gams")
 
+import pandas as pd
 from gams import GamsWorkspace
+from tabulate import tabulate
+
+#
+# sys.path.append("/opt/gams/gams40.2_linux_x64_64_sfx/apifiles/Python/api_38")
+# sys.path.append("/opt/gams/gams40.2_linux_x64_64_sfx/apifiles/Python/gams")
+
 
 def prepare_moment_matching_model_str(n_nodes, TARMOM, R):
     n_stocks = R.shape[0]
     headers = [f"stock{n+1}" for n in range(n_stocks)]
     rowIDs = ["1", "2", "3", "4"]
-    TARMOM = tabulate(TARMOM,showindex=rowIDs, headers=headers, tablefmt="plain", numalign="right")
+    TARMOM = tabulate(
+        TARMOM, showindex=rowIDs, headers=headers, tablefmt="plain", numalign="right"
+    )
     R = tabulate(R, showindex=headers, headers=headers, tablefmt="plain", numalign="right")
     return f"""Option NLP=CONOPT;
 Option Seed=1337;
@@ -28,7 +31,7 @@ Positive Variables p(j);
 
 
 Table     TARMOM(k,i)
-{TARMOM}   
+{TARMOM}
 ;
 
 Table TARCORR(i,s)
@@ -56,7 +59,8 @@ sumuptoone..     1 =e= sum(j, p(j));
 Model problem / objective, sumuptoone, m1, m2, m3, m4, correl_eq /;
 
 solve problem using NLP minimising loss;
-        """
+        """  # noqa: E501
+
 
 def build_mm_model(n_nodes, TARMOM, R):
     gms = GamsWorkspace(system_directory="/opt/gams/gams40.2_linux_x64_64_sfx")
@@ -71,9 +75,10 @@ def build_mm_model(n_nodes, TARMOM, R):
     for rec in job.out_db["x"]:
         x[rec.keys[0]][rec.keys[1]] = rec.level
     for rec in job.out_db["p"]:
-        p[rec.keys[0]]=rec.level
+        p[rec.keys[0]] = rec.level
     for rec in job.out_db["loss"]:
         loss = rec.level
+    print(loss)
     output = output_stream.getvalue()
     assert "** Optimal solution" in output or "** Feasible solution" in output
     assert "*** Status: Normal completion" in output

@@ -15,6 +15,7 @@ MAX_NUMBER_LEAVES_IN_SCENARIO_TREE = 3000
 # AGENT
 EPSILON_FOR_EPSILON_GREEDY_ACTION = 0.05  # 5%
 
+
 class FILE(enum.Enum):
     RETURNS_FILE = "returns"
     DATA_PRICES_CLOSE_FILE = "Downloaded_Adjusted_Close_prices"
