@@ -23,7 +23,7 @@ random.seed(1337)
 configure()
 
 
-def get_cvar_value(braching: List[int]) -> None:
+def get_cvar_value(braching: List[int]) -> float:
     """Start here."""
 
     # Downloading or loading data, based on DOWNLOAD_DATA flag defined in configuration.py
@@ -42,5 +42,5 @@ def get_cvar_value(braching: List[int]) -> None:
 
 
 if __name__ == "__main__":
-    branching = [2, 2, 2, 2, 2]
+    branching = [2] * 2
     print(get_cvar_value(branching))
