@@ -39,41 +39,62 @@ def create_cvar_gams_model_str(root):
     siblings = pd.DataFrame(ssiblings)
     sib = siblings["node1"].astype(str) + "." + siblings["node2"].astype(str) + ".T" + siblings["time"].astype(str)
     sib = sib.to_list()
+
     _str = f"""
 Option LP=CPLEX;
 
 
 Set       s        / {", ".join([leaf.name for leaf in leaves])} / ;
-Set       i        / {', '.join([f'stock{n+1}' for n in range(len(node.returns))])} / ;
+Set       i        / {', '.join([f'stock{n + 1}' for n in range(len(node.returns))])} / ;
 Set       t        / {', '.join([f'T{n}' for n in range((root.height + 1))])} / ;
-    
+
 Alias (s, ss);
 Set siblings /{', '.join(sib)}/
 ;
 
 Table
 AssetYields(i, t, s)
-{tabulate(scenario_df,headers="keys", tablefmt="plain", numalign="right", showindex=True, floatfmt=".4f")}
+{tabulate(scenario_df, headers="keys", tablefmt="plain", numalign="right", showindex=True, floatfmt=".4f")}
 ;
 
 Parameter
 ScenarioProbabilities(s)
-/{', '.join([str(k) + " " + "{:.7f}".format(v) for k,v in scenario_probabilities.items()])}/
+/{', '.join([str(k) + " " + "{:.7f}".format(v) for k, v in scenario_probabilities.items()])}/
 ;
 Parameter
 InitialWealth /1/;
+Parameter
+MinimumExpectedReturn /0.5/;
+Parameter
+alpha /0.95/;
 
 Positive Variables x(i,s,t);
 x.l(i,s,t)=1/card(i);
 Variable loss;
+Positive Variables y(s);
+Variable wealth(s,t);
+Variable z;
+Variable v;
+Variable TotalExcessScenarioReturns(s);
+Variable TotalScenarioLoss(s);
 
-Equations          rootvariablessumuptoinitialwealth, nonanticipativityofx, xlessthanone, objective;
+Equations          rootvariablessumuptoinitialwealth, nonanticipativityofx, eqwealth, eqinitialwealth, eqassetyields, objective, yconstrs, ExcessScenarioReturns(s,t), EqTotalScenarioLoss(s), benchmark;
 
 rootvariablessumuptoinitialwealth(s).. InitialWealth=e=sum(i,x(i,s,"T0"));
+eqinitialwealth(s).. wealth(s,"T0") =e= InitialWealth;
+
+eqwealth(s, t).. wealth(s,t) =e= sum(i,x(i,s,t));
+eqassetyields(s,t)$(ord(t)>1).. wealth(s,t) =e= sum(i, x(i,s,t-1)*AssetYields(i,t,s));
+
+ExcessScenarioReturns(s,t)$(ord(t)=card(t)).. TotalExcessScenarioReturns(s)=e=wealth(s,t)-1;
+**Previous row has assumption.. wealth(s,"T0")=1!
+EqTotalScenarioLoss(s)..TotalScenarioLoss(s) =e= -TotalExcessScenarioReturns(s);
+yconstrs(s).. y(s)=g=TotalScenarioLoss(s)-z;
 
 nonanticipativityofx(i,s,ss,t)$(siblings(s,ss,t))..  x(i,s,t) =e= x(i,ss,t);
-objective.. loss=e= sum(i,(sum(s,sum(t,x(i,s,t)))));
-xlessthanone(i,s,t).. x(i,s,t) =l= 1
+benchmark.. sum(s,ScenarioProbabilities(s)*TotalExcessScenarioReturns(s)) =g= MinimumExpectedReturn;
+
+objective.. loss=e=z+(1/(1-alpha))*sum(s,ScenarioProbabilities(s)*y(s));
 
 Model problem / ALL /;
 
@@ -99,3 +120,63 @@ def calculate_mean_cvar_over_leaves(root: Node) -> float:
     assert "Optimal solution found" in output or "** Feasible solution" in output
     assert "*** Status: Normal completion" in output
 
+
+
+
+#Old way of generating model string - using L shaped algorithm
+#     _str = f"""
+# Option LP=CPLEX;
+#
+#
+# Set       s        / {", ".join([leaf.name for leaf in leaves])} / ;
+# Set       i        / {', '.join([f'stock{n+1}' for n in range(len(node.returns))])} / ;
+# Set       t        / {', '.join([f'T{n}' for n in range((root.height + 1))])} / ;
+#
+# Alias (s, ss);
+# Set siblings /{', '.join(sib)}/
+# ;
+#
+# Table
+# AssetYields(i, t, s)
+# {tabulate(scenario_df,headers="keys", tablefmt="plain", numalign="right", showindex=True, floatfmt=".4f")}
+# ;
+#
+# Parameter
+# ScenarioProbabilities(s)
+# /{', '.join([str(k) + " " + "{:.7f}".format(v) for k,v in scenario_probabilities.items()])}/
+# ;
+# Parameter
+# InitialWealth /1/;
+# Parameter
+# lambda /1/;
+# Parameter
+# alpha /0.05/;
+# Parameter
+# benchmarkwealth /2/;
+#
+# Positive Variables x(i,s,t);
+# x.l(i,s,t)=1/card(i);
+# Variable loss;
+# Variable wealth(s,t);
+# Variable z;
+# Variable v;
+#
+# Equations          rootvariablessumuptoinitialwealth, nonanticipativityofx, eqwealth, eqinitialwealth, eqassetyields, benchmark, objective;
+#
+# rootvariablessumuptoinitialwealth(s).. InitialWealth=e=sum(i,x(i,s,"T0"));
+# eqinitialwealth(s).. wealth(s,"T0") =e= InitialWealth;
+#
+# eqwealth(s, t).. wealth(s,t) =e= sum(i,x(i,s,t));
+# eqassetyields(s,t)$(ord(t)>1).. wealth(s,t) =e= sum(i, x(i,s,t-1)*AssetYields(i,t,s));
+# benchmark(t)$(ord(t)=card(t))..sum(s,ScenarioProbabilities(s)*(benchmarkwealth-wealth(s,t) - z)) =l= v;
+#
+#
+# nonanticipativityofx(i,s,ss,t)$(siblings(s,ss,t))..  x(i,s,t) =e= x(i,ss,t);
+#
+#
+# objective(t)$(ord(t)=card(t)).. loss=e= -(1/lambda)*sum(s, ScenarioProbabilities(s)*(wealth(s,t))) + z +(1/(1-alpha))*v;
+#
+# Model problem / ALL /;
+#
+# solve problem using LP minimising loss;
+# """
