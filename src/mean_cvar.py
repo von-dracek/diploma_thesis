@@ -6,7 +6,7 @@ import io
 
 from mpire import WorkerPool
 import pandas as pd
-from gams import GamsWorkspace
+from gams import GamsWorkspace, DebugLevel
 from tabulate import tabulate
 from src.configuration import CVAR_ALPHA, TICKERS
 import sys
@@ -15,7 +15,6 @@ def create_cvar_gams_model_str(root):
     leaves = root.leaves
     specified_row_name_length = 20
     scenarios = []
-    print(pd.to_datetime("now"))
     for leaf in leaves:
         scenario_series = []
         for node in (leaf.ancestors + (leaf,)):
@@ -28,7 +27,6 @@ def create_cvar_gams_model_str(root):
     scenario_df = pd.concat(scenarios, axis=1)
     scenario_probabilities = {leaf.name:float(np.prod([node.probability for node in (leaf,) + leaf.ancestors ])) for leaf in leaves}
     assert abs(sum(scenario_probabilities.values()) - 1) < 1e-4
-    print(pd.to_datetime("now"))
     def get_siblings(root):
         siblings = [(a.name,root.depth, b.name) for a in root.leaves for b in root.leaves]
         for node in root.children:
@@ -101,8 +99,6 @@ Model problem / ALL /;
 solve problem using LP minimising loss;
 """
 
-    print(pd.to_datetime("now"))
-    # print(_str)
     return _str
 
 def calculate_mean_cvar_over_leaves(root: Node) -> float:
@@ -119,6 +115,7 @@ def calculate_mean_cvar_over_leaves(root: Node) -> float:
         loss = rec.level
     assert "Optimal solution found" in output or "** Feasible solution" in output
     assert "*** Status: Normal completion" in output
+    return loss
 
 
 
