@@ -76,9 +76,6 @@ def build_mm_model(n_nodes, TARMOM, R):
         x[rec.keys[0]][rec.keys[1]] = rec.level
     for rec in job.out_db["p"]:
         p[rec.keys[0]] = rec.level
-    for rec in job.out_db["loss"]:
-        loss = rec.level
-    print(loss)
     output = output_stream.getvalue()
     assert "** Optimal solution" in output or "** Feasible solution" in output
     assert "*** Status: Normal completion" in output

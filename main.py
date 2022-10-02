@@ -2,6 +2,7 @@
 
 import random
 from typing import List
+import logging
 
 import numpy as np
 
@@ -23,7 +24,7 @@ random.seed(1337)
 configure()
 
 
-def get_cvar_value(braching: List[int]) -> float:
+def get_cvar_value(branching: List[int]) -> float:
     """Start here."""
 
     # Downloading or loading data, based on DOWNLOAD_DATA flag defined in configuration.py
@@ -32,6 +33,7 @@ def get_cvar_value(braching: List[int]) -> float:
     else:
         data = load_data(FILE.DATA_PRICES_CLOSE_FILE.value)
 
+    logging.info(f"Generating cvar value for branching {branching}")
     iid_returns = data_to_returns_iid(data, branching)
 
     TARMOM, R = get_TARMOM_and_R(iid_returns)
@@ -42,5 +44,5 @@ def get_cvar_value(braching: List[int]) -> float:
 
 
 if __name__ == "__main__":
-    branching = [5, 3]
+    branching = [3, 3, 3]
     print(get_cvar_value(branching))
