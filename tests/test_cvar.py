@@ -1,6 +1,14 @@
+import pytest
+
+from src.mean_cvar import calculate_mean_cvar_over_leaves
+import pickle
+from anytree import PreOrderIter
+import pandas as pd
+import numpy as np
+import tabulate
 from copy import deepcopy
 from typing import Callable
-
+import pytest
 import numpy as np
 from anytree import Node, PreOrderIter, LevelOrderGroupIter
 import io
@@ -13,7 +21,8 @@ from src.configuration import CVAR_ALPHA, TICKERS
 import sys
 import pickle
 
-def create_cvar_gams_model_str(root):
+
+def _create_cvar_gams_model_str_for_test(root):
     leaves = root.leaves
     specified_row_name_length = 20
     scenarios = []
@@ -40,7 +49,7 @@ def create_cvar_gams_model_str(root):
     sib = siblings["node1"].astype(str) + "." + siblings["node2"].astype(str) + ".T" + siblings["time"].astype(str)
     sib = sib.to_list()
 
-    min_expected_return = 0.5
+    min_expected_return = 0
     _str = f"""
 Option LP=CPLEX;
 
@@ -104,82 +113,12 @@ solve problem using LP minimising loss;
 
     return _str
 
-def calculate_mean_cvar_over_leaves(root: Node, create_model_str_func: Callable = create_cvar_gams_model_str) -> float:
-    gms = GamsWorkspace(system_directory="/opt/gams/gams40.2_linux_x64_64_sfx")
-    # with open('root.pickle', 'wb') as handle:
-    #     pickle.dump(root, handle, protocol=pickle.HIGHEST_PROTOCOL)
-
-    cvar_model_str = create_model_str_func(root)
-    output_stream = io.StringIO()
-    job = gms.add_job_from_string(cvar_model_str)
-    job.run(output=output_stream)
-    x = {}
-    p = {}
-    output = output_stream.getvalue()
-
-    for rec in job.out_db["loss"]:
-        loss = rec.level
-    assert "Optimal solution found" in output or "** Feasible solution" in output
-    assert "*** Status: Normal completion" in output
-    return loss
-
-
-
-
-#Old way of generating model string - using L shaped algorithm
-#     _str = f"""
-# Option LP=CPLEX;
-#
-#
-# Set       s        / {", ".join([leaf.name for leaf in leaves])} / ;
-# Set       i        / {', '.join([f'stock{n+1}' for n in range(len(node.returns))])} / ;
-# Set       t        / {', '.join([f'T{n}' for n in range((root.height + 1))])} / ;
-#
-# Alias (s, ss);
-# Set siblings /{', '.join(sib)}/
-# ;
-#
-# Table
-# AssetYields(i, t, s)
-# {tabulate(scenario_df,headers="keys", tablefmt="plain", numalign="right", showindex=True, floatfmt=".4f")}
-# ;
-#
-# Parameter
-# ScenarioProbabilities(s)
-# /{', '.join([str(k) + " " + "{:.7f}".format(v) for k,v in scenario_probabilities.items()])}/
-# ;
-# Parameter
-# InitialWealth /1/;
-# Parameter
-# lambda /1/;
-# Parameter
-# alpha /0.05/;
-# Parameter
-# benchmarkwealth /2/;
-#
-# Positive Variables x(i,s,t);
-# x.l(i,s,t)=1/card(i);
-# Variable loss;
-# Variable wealth(s,t);
-# Variable z;
-# Variable v;
-#
-# Equations          rootvariablessumuptoinitialwealth, nonanticipativityofx, eqwealth, eqinitialwealth, eqassetyields, benchmark, objective;
-#
-# rootvariablessumuptoinitialwealth(s).. InitialWealth=e=sum(i,x(i,s,"T0"));
-# eqinitialwealth(s).. wealth(s,"T0") =e= InitialWealth;
-#
-# eqwealth(s, t).. wealth(s,t) =e= sum(i,x(i,s,t));
-# eqassetyields(s,t)$(ord(t)>1).. wealth(s,t) =e= sum(i, x(i,s,t-1)*AssetYields(i,t,s));
-# benchmark(t)$(ord(t)=card(t))..sum(s,ScenarioProbabilities(s)*(benchmarkwealth-wealth(s,t) - z)) =l= v;
-#
-#
-# nonanticipativityofx(i,s,ss,t)$(siblings(s,ss,t))..  x(i,s,t) =e= x(i,ss,t);
-#
-#
-# objective(t)$(ord(t)=card(t)).. loss=e= -(1/lambda)*sum(s, ScenarioProbabilities(s)*(wealth(s,t))) + z +(1/(1-alpha))*v;
-#
-# Model problem / ALL /;
-#
-# solve problem using LP minimising loss;
-# """
+def test_mean_cvar():
+    """If all scenarios return nothing (i.e. not investing and holding cash (while not accounting for inflation)) the loss value should be 0."""
+    with open('./tests/root.pickle', 'rb') as handle:
+        root = pickle.load(handle)
+    for node in PreOrderIter(root):
+        if hasattr(node,"returns"):
+            node.returns = node.returns*0 + 1
+    loss = calculate_mean_cvar_over_leaves(root, _create_cvar_gams_model_str_for_test)
+    assert loss == pytest.approx(0)
