@@ -44,5 +44,5 @@ def get_cvar_value(branching: List[int]) -> float:
 
 
 if __name__ == "__main__":
-    branching = [3, 3, 3]
+    branching = [3, 3]
     print(get_cvar_value(branching))
