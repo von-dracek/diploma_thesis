@@ -1,6 +1,8 @@
 """DOCSTRING"""
 
 import random
+from typing import List
+import logging
 
 import numpy as np
 
@@ -22,7 +24,7 @@ random.seed(1337)
 configure()
 
 
-def main() -> None:
+def get_cvar_value(branching: List[int]) -> float:
     """Start here."""
 
     # Downloading or loading data, based on DOWNLOAD_DATA flag defined in configuration.py
@@ -31,15 +33,16 @@ def main() -> None:
     else:
         data = load_data(FILE.DATA_PRICES_CLOSE_FILE.value)
 
-    branching = [9, 8, 7, 6, 5]
+    logging.info(f"Generating cvar value for branching {branching}")
     iid_returns = data_to_returns_iid(data, branching)
 
     TARMOM, R = get_TARMOM_and_R(iid_returns)
     # create scenario tree
     tree_root = create_empty_tree(branching)
     root = fill_empty_tree_with_scenario_data(TARMOM, R, tree_root, branching)
-    calculate_mean_cvar_over_leaves(root)
+    return calculate_mean_cvar_over_leaves(root)
 
 
 if __name__ == "__main__":
-    main()
+    branching = [3, 3]
+    print(get_cvar_value(branching))

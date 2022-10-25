@@ -93,6 +93,10 @@ gast==0.4.0 \
     --hash=sha256:40feb7b8b8434785585ab224d1568b857edb18297e5a3047f1ba012bc83b42c1 \
     --hash=sha256:b7adcdd5adbebf1adf17378da5ba3f543684dbec47b1cda1f3997e573cd542c4
     # via tensorflow
+gekko==1.0.5 \
+    --hash=sha256:8036d87a7822b0ed59fe0d586513ffd3cff3ec654bc8268b0377836ae2391547 \
+    --hash=sha256:f3c173085e4c2edf223ab2c4c7569d97c13aa21907128fffe910c4335ade65bc
+    # via -r src/requirements.in
 google-auth==2.11.0 \
     --hash=sha256:be62acaae38d0049c21ca90f27a23847245c9f161ff54ede13af2cb6afecbac9 \
     --hash=sha256:ed65ecf9f681832298e29328e1ef0a3676e3732b2e56f41532d45f70a22de0fb
@@ -373,6 +377,7 @@ numpy==1.23.1 \
     --hash=sha256:e0d7447679ae9a7124385ccf0ea990bb85bb869cef217e2ea6c844b6a6855073
     # via
     #   -r src/requirements.in
+    #   gekko
     #   h5py
     #   keras-preprocessing
     #   opt-einsum

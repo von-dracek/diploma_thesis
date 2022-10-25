@@ -4,6 +4,8 @@ import numpy as np
 from anytree import LevelOrderGroupIter, Node
 from gekko import GEKKO
 
+from src.build_gams import build_mm_model
+
 
 def create_empty_tree(sub_tree_structure: List, parent: Node = None) -> Node:
     """Recursively generates empty scenario tree based on branching structure"""
@@ -42,18 +44,22 @@ def fill_empty_tree_with_scenario_data(
     for level, current_branching in tree_level_zip_branching:
         # generating children from one node of current level and then copying these children
         # to other nodes on the current level
-        probability = np.unique([child.probability for node in level for child in node.children])
-        probabilities = np.ones(current_branching) * probability
+        # probability = np.unique([child.probability for node in level for child in node.children])
+        # probabilities = np.ones(current_branching) * probability
         # generate children
-        (
-            generated_returns,
-            generated_probs,  # pylint: disable=W0612
-        ) = generate_scenario_level_gekko_uniform_iid(TARMOM, R, probabilities, current_branching)
+        # s = prepare_moment_matching_model_str(current_branching,TARMOM, R)
+        generated_returns, generated_probs = build_mm_model(current_branching, TARMOM, R)
+        # (
+        #     generated_returns,
+        #     generated_probs,  # pylint: disable=W0612
+        # ) = generate_scenario_level_gekko_uniform_iid
+        # (TARMOM, R, probabilities, current_branching)
         # set values to children
         for current_node in level:
             children = current_node.children
             for idx, child in enumerate(children):
                 child.returns = generated_returns[:, idx % current_branching]
+                child.probability = generated_probs[idx % current_branching]
 
     assert abs(sum(node.path_probability for node in tree_levels[-1]) - 1) < 1e-4
     # calculate cumulative returns
