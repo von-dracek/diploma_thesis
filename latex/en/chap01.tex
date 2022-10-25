@@ -1,31 +1,44 @@
-\chapter{Title of the first chapter}
+\chapter{Stochastic programming}
 
-An~example citation: \cite{Andel07}
-
-%
-Structure of thesis:
-Introduction
-Multistage stochastic programming problems
--multistage idea, nonanticipativity constraints, deterministic equivalent
--curse of dimensionality
--scenario trees 
-    -moment matching, geometric brownian motion + clustering
-Risk measures
--VaR, CVaR, minimisation, L shaped method, reformulating as a multistage program
-Reinforcement learning
--introduction, comparison to other types (supervised etc), no loss function - inspiration from learning of animals and men
--Basic idea
--Multiarmed bandits
-Study
--Formulation of the whole problem (idea of thesis)
-    -Idea how to evaluate
-    -Penalisation of result using complexity of tree with a hyperparameter - explain reasoning why we should penalise the result - why are complex scenario trees bad (long computation time, ...)?
--Data
--Computational problems, complexity, how long does solving each small problem take
--Results of the study
 
 %
+%Structure of thesis:
+%Introduction
+%Multistage stochastic programming problems
+%-multistage idea, nonanticipativity constraints, deterministic equivalent
+%-curse of dimensionality
+%-scenario trees 
+%    -moment matching, geometric brownian motion + clustering
+%Risk measures
+%-VaR, CVaR, minimisation, L shaped method, reformulating as a multistage program
+%Reinforcement learning
+%-introduction, comparison to other types (supervised etc), no loss function - inspiration from learning of animals and men
+%-Basic idea
+%-Multiarmed bandits
+%Study
+%-Formulation of the whole problem (idea of thesis)
+%    -Idea how to evaluate
+%    -Penalisation of result using complexity of tree with a hyperparameter - explain reasoning why we should penalise the result - why are complex scenario trees bad (long computation time, ...)?
+%-Data
+%-Computational problems, complexity, how long does solving each small problem take
+%-Results of the study
+%
 
-\section{Title of the first subchapter of the first chapter}
+%Stochastic programming 
+%-Framework to model problems which involve uncertainty
+%-Optimization problem where some or all parameters are uncertain in contrast to deterministic optimization
+%-the goal is to find a solution which is feasible for all such data and optimal in some sense
+%-Stochastic programming models are similar in style but take advantage of the fact that probability distributions governing the data are known or can be estimated
+%-The goal is to find some policy that is feasible for all (or almost all) the possible parameter realizations
+%and optimizes the expectation of some function of the decisions and the random variables
+%-Areas where stochastic programming is used
+%	-financial planning, airline scheduling, transportation (truck routes, daily milk delivery with random demand), management of power systems
+	
+In this chapter, we give an introduction to the theory of stochastic programming with particular focus on multistage programs. Most of the content in this chapter is based on the material covered in \cite[Chapter 1]{stochasticprogrammingbible} and \cite[Chapters 1-3]{stochasticprogrammingbible2009}.
+\todo{Add more meat here}
 
-\section{Title of the second subchapter of the first chapter}
+\section{Stochastic programming}
+
+\section{Multistage stochastic programming}
+\subsection{Scenario trees}
+\subsubsection{Methods for generation of scenario trees}
