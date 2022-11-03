@@ -1,1 +1,122 @@
-\chapter{Reinforcement learning}
+\chapter{Risk measures}
+Risk is a notion that affects everyone and everyone intuituitively understands it, yet defining it in a precise way would be very hard, at least in the common sense. In the area of financial mathematics, the definition, or maybe should we say the quantification of risk has evolved over time. In the following, we will follow mainly \cite{leoppold_risk_measures} and \cite[p. 275-278]{cornuejols_tutuncu_2006} if not specified otherwise.
+
+\section{Risk measures	}
+Let $\mathcal{R}$ be a random variable representing returns of a portfolio. In the last century, one of the most popular risk measures was the variance of returns of an asset, used famously in the Nobel Prize winning model in \cite{markowitz}, where a porfolio selection model was formulated that maximised the expected return while minimising the variance in returns. To be precise, variance in returns is defined as
+\begin{equation*}
+\sigma^2=E(\mathcal{R} - \mathbb{E}\mathcal{R} )^2.
+\end{equation*}
+Although at the time the achievement of the Markowitz model was groundbreaking, the use of variance as a risk measure has been a subject of debate. The problem is that variance is symmetric and does not take into account the tails of the distribution of $\mathcal{R}$. To handle the symmetry problem, Markowitz further proposed the semivariance defined as 
+\begin{equation*}
+\gamma=\mathbb{E}(max(\mathcal{R} - \mathbb{E}\mathcal{R},0))^2.
+\end{equation*}
+The problem is that the formula for semivariance is much more complex and does not simplify so easily. Another risk measure is the mean absolute deviation, defined as 
+\begin{equation*}
+\mathrm{MAD}=\mathbb{E}\abs{\mathcal{R} - \mathbb{E}\mathcal{R}}.
+\end{equation*}
+Let us now introduce the notion of \textit{coherent measure} of risk, which was developed in \cite[Defintion 2.4.]{coherent_measures_of_risk} and aimed to provide a set of properties that a “nice” risk measure should satistfy.
+\begin{defn}{Coherent measure of risk} \\
+Let $\mathcal{V}$ be the set of real random variables. We say that a risk measure $\rho: \mathcal{V} \rightarrow \R$ is coherent if it satisfies the following properties:
+\begin{enumerate}
+	\item Monotony: $X, Y \in \mathcal{V}, X(\omega) \leq Y(\omega) \, \forall \omega \in \Omega \implies \rho(X) \geq \rho(Y)$.
+	\item Subadditivity: $X, Y, X+Y \in \mathcal{V} \implies \rho(X+	Y) \leq \rho(X) + \rho(Y)$.
+	\item Positive homogenity: $X \in \mathcal{V}, h \geq 0, hX \in \mathcal{V} \implies \rho(hX)=h\rho(X)$.
+	\item Translation equivariance: $X \in \mathcal{V}, a \in \R \implies \rho(X+a)=\rho(X)-a$.
+\end{enumerate}
+\end{defn}
+The properties have a quite nice interpretation. The monotony property implies that a portfolio $Y$ that is more favourable in all possible scenarios should have smaller risk compared to the less favourable portfolio $X$. The subadditivity property pertains to the notion of diversification, as it says that if we combine two portfolios $X$ and $Y$, the resulting combined portfolio should not be riskier than the portfolios separately. The positive homogenity property pertains to the notion of leverage -- if we leverage our portfolio by some factor $h\geq0$, the risk should change proportionally to $h$. Last is the property of translation equivariance, which says that increasing the value of portfolio by risk free $a$, the risk profile is decreased by $a$. \todo{is this translation equivariance property ok?}
+
+Let us now introduce another risk measure, the \textit{value at risk}.
+Using the notation developed in \cite{cornuejols_tutuncu_2006}, let $f(x,\Upsilon)$ be a loss function of a vector $x$ which may be considered as a portfolio and a random vector $\Upsilon$ which represents the unknown returns or other random aspects influencing the distribution of loss and define the random variable $\mathcal{L}(x,\Upsilon)=f(x,\Upsilon)$. We assume that the probability distribution of $\Upsilon$ is known and for simplicity that $\Upsilon$ has a probability density $p(y)$. The cumulative distribution function of $\mathcal{L}(x,\Upsilon)$ is then defined as 
+\begin{equation*}
+\Psi(x,y)=\int_{f(x,\gamma) \leq y} p(\gamma) \, \mathrm{d}\gamma.
+\end{equation*}
+
+\begin{defn}{Value at risk \cite[p. 275]{cornuejols_tutuncu_2006}.}  \\
+Let $\alpha$ be the chosen confidence level and let $\mathcal{L}(x,\Upsilon)$ have the meaning of loss distribution as defined above. Then the value at risk $VaR_{\alpha}(x)$ is defined as
+\begin{equation*}
+VaR_{\alpha}(x)=q_{\alpha}(x)
+\end{equation*}
+where $q_{\alpha}(x)=\mathrm{min}\{\gamma \in \R: \Psi(x,\gamma) \geq \alpha \}$ is the lower $\alpha$ quantile of distribution of $\mathcal{L}(x,\Upsilon)$. $\alpha$ is usually chosen as $0.95$ or $0.99$.
+\end{defn}
+
+\begin{figure}
+  \includegraphics[width=\linewidth]{../img/VaR_CVaR_graph_theory.png}
+  \caption{Illustration of $VaR_{0.95}$ and $CVaR_{0.95}$ (where $CVaR_{0.95}$ is labeled as ES). Image sourced from \cite[Figure 2.2.]{mcneil2015quantitative}.}
+  \label{fig:VaR_CVaR_graph_theory}
+\end{figure}
+
+Unfortunately, value at risk also comes with several advantages and disadvantages. While it is simple to understand and globally accepted by regulators, it is not coherent in general (the subadditivity requirement is not fulfilled), it doesn't quantify the losses exceeding $VaR_{\alpha}(\mathcal{L})$ and it is not convex (it is hard to optimize a portfolio with regard to value at risk). 
+
+Due to the aforementioned disadvantages of value at risk, another risk measure was considered.
+Considering the expected loss exceeding the $VaR_{\alpha}(\mathcal{L})$ level leads to the notion of \textit{Conditional value at risk}. \todo{Add conditional value at risk.}
+
+\begin{defn}{Conditional value at risk \cite[p. 275]{cornuejols_tutuncu_2006}}
+Let $\alpha$ be the chosen confidence level and let $\mathcal{L}(x,\Upsilon)$ have the meaning of loss distribution as defined above and assume that $\mathbb{E}(\abs{\mathcal{L}(x,\Upsilon)})<\infty$. Then the conditional value at risk or expected shortfall $CVaR_{\alpha}(x)$ is defined as
+\begin{equation}
+CVaR_{\alpha}(x)=\frac{1}{1-\alpha}\int_{f(x,y) \geq VaR_{\alpha}(x)} f(x,y)p(y) \, \mathrm{d} y.
+\end{equation} 
+\end{defn}
+Compared to value at risk, conditional value at risk is a coherent risk measure (for the proof, see \cite[Example 2.26.]{mcneil2015quantitative}), but since value at risk is present in its definition, and thus optimizing a portfolio with regard to value at risk according to this definition suffers from many of the same problems as optimizing a portfolio with regard to value at risk. Therefore, a new method has been developed in \cite{Rockafellar2000OptimizationOC} that allows optimization of conditional value at risk without computing value at risk using linear programming.
+
+\section{Minimising CVaR using scenarios}
+In this section, we closely follow the exposition provided in \cite[p. 275-278]{cornuejols_tutuncu_2006}. 
+Let 
+\begin{equation}
+\label{eq:cvar_approx}
+F_{\alpha}(x,y)=y + \frac{1}{1-\alpha} \int_{f(x,\gamma) \geq y} (f(x,\gamma)-y)p(\gamma) \, \mathrm{d}\gamma.
+\end{equation}
+The function $F_{\alpha}(x,y)$ has three important properties:
+\begin{lemma}{Properties of $F_{\alpha}(x,y)$ \cite[p. 276]{cornuejols_tutuncu_2006}.} \\
+\label{lemma:properties_of_cvar_approx}
+The following three properties hold for $F_{\alpha}(x,y)$:
+\begin{enumerate}
+	\item It is a convex function of $y$.
+	\item $VaR_{\alpha}(x)=\underset{y}{\mathrm{argmin}} \, F_{\alpha}(x,y)$.
+	\item $\underset{y}{\mathrm{min}} \, F_{\alpha}(x,y) = CVaR_{\alpha}(x)$.
+\end{enumerate}
+\end{lemma}
+\begin{proof}
+For the proof, see \cite[Theorems 1 and 2]{Rockafellar2000OptimizationOC}
+\end{proof}
+\subsection{CVaR formulation}
+If we want to choose a portfolio $x$ that minimises $CVaR_{\alpha}(x)$, we can now do so by minimising $F_{\alpha}(x,y)$ over $x \in \mathcal{X}$ and $y$ (where $\mathcal{X}$ is some set of portfolios) thanks to the third property in Lemma \ref{lemma:properties_of_cvar_approx}. Of course, Equation \ref{eq:cvar_approx} is not particularly suitable for numerical computations. In practice, as was explained in detail in Chapter \ref{chap1}, the distribution of $\Upsilon$ is approximated using scenarios $\gamma_s, s=1,\dots,S$. 
+
+We can then calculate an approximation of $F_{\alpha}(x,y)$ as 
+\begin{equation}
+\label{eq:cvar_approx_approx}
+\hat{F}_{\alpha}(x,y)=y + \frac{1}{1-\alpha} \sum_{s=1}^S  \max (f(x,\gamma_s)-y,0).
+\end{equation}
+We have arrived at the optimization problem 
+\begin{equation}
+\label{eq:cvar_optim_first}
+\underset{x \in \mathcal{X}, y}{\min} \hat{F}_{\alpha}(x,y)= \underset{x \in \mathcal{X}, y}{\min} y + \frac{1}{(1-\alpha)S} \sum_{s=1}^S  \max (f(x,\gamma_s)-y,0).
+\end{equation}
+A trick can be used to turn Equation \ref{eq:cvar_optim_first} into a linear programming problem. If we create new variables $z_s \geq 0$ such that $z_s \geq f(x,\gamma_s)-y$, we can write:
+\begin{alignat}{10}
+& \underset{x \in \mathcal{X}, z_s \geq 0, y}{\min}  \, \, \, && y + \frac{1}{(1-\alpha)S} \sum_{s=1}^S z_s \\
+&s.t. && \, z_s \geq f(x,\gamma_s)-y, s=1,\dots,S
+\end{alignat}
+which is a linear programming problem. 
+\subsection{Mean-CVaR formulation}
+In this section, we present a more precise formulation for practical use adopted from \cite{cvar_robust_mean_cvar_portfolio_optimization}, particularly when we want to choose a portfolio that minimises CVaR and also allows for controlling the expected return or setting the degree of risk aversion.
+\subsubsection*{Formulation with minimum expected return}
+Let $x=(x_1,\dots,x_n)$ be a vector denoting of weights of each of $n$ assets in a portfolio and consider that $\mu=(\mu_1,\dots,\mu_n)$ is a random vector representing the returns of the assets. Consider $S$ scenarios, each with probability $p_s$ and let $r_s = (r_{1,s},\dots,r_{n,s})$ be the particular realisation of $\mu$ in scenario $s$ and let $r_0$ be the minimum required expected return. For simplicity, we do not allow short selling (condition $x_i \geq 0, i=1,\dots,n$). Then we can write
+\begin{alignat}{10}
+\label{eq:cvar_minimum_expected_return}
+& \underset{x_i \geq 0 , z_s \geq 0, y}{\min}  \, \, \, && y + \frac{1}{(1-\alpha)} \sum_{s=1}^S p_s z_s, \nonumber \\
+&s.t. && \, z_s \geq  -\sum_{i=1}^{n} x_i r_{i,s} -y, s=1,\dots,S, \nonumber \\
+&  && \sum_{i=1}^{n} x_i \bar{R_i} \geq r_0, \nonumber \\
+&  && \sum_{i=1}^{n} x_i = 1, \nonumber
+\end{alignat}
+where $\bar{R_i}=\sum_{s=1}^{S}p_s r_{i,s}$, which is still a linear programming problem.
+\subsubsection*{Formulation using risk aversion}
+Another equivalent formulation might be useful when the decision maker does not require a minimum expected return explicitly, but rather wants to set his risk aversion expectations. This can be achieved by introducing a risk aversion parameter $\lambda \geq 0$ and writing
+\begin{alignat}{10}
+\label{eq:cvar_risk_aversion}
+& \underset{x_i \geq 0 , z_s \geq 0, y}{\min}  \, \, \, && \sum_{i=1}^{n} x_i \bar{R_i} + \lambda \left( y + \frac{1}{(1-\alpha)} \sum_{s=1}^S p_s z_s \right), \nonumber \\
+&s.t. && \, z_s \geq  -\sum_{i=1}^{n} x_i r_{i,s} -y, s=1,\dots,S, \nonumber \\
+&  && \sum_{i=1}^{n} x_i = 1. \nonumber
+\end{alignat}
+\section{Minimising CVaR using scenarios in multistage setting}
+\todo{exposition on different approaches (link dissertation thesis of Vaclav Kozmik), using end of horizon cvar + link thesis where i got the program from}

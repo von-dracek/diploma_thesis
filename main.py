@@ -38,11 +38,11 @@ def get_cvar_value(branching: List[int]) -> float:
     iid_returns = data_to_returns_iid(data, branching)
 
     TARMOM, R = get_TARMOM_and_R(iid_returns)
-    get_gbm_scenarios_from_TARMOM_and_R_recursive(TARMOM, R, branching)
+    # get_gbm_scenarios_from_TARMOM_and_R_recursive(TARMOM, R, branching)
     # create scenario tree
-    # tree_root = create_empty_tree(branching)
-    # root = fill_empty_tree_with_scenario_data(TARMOM, R, tree_root, branching)
-    # return calculate_mean_cvar_over_leaves(root)
+    tree_root = create_empty_tree(branching)
+    root = fill_empty_tree_with_scenario_data(TARMOM, R, tree_root, branching)
+    return calculate_mean_cvar_over_leaves(root)
 
 
 if __name__ == "__main__":
