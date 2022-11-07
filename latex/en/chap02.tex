@@ -103,8 +103,7 @@ In this section, we present a more precise formulation for practical use adopted
 \subsubsection*{Formulation with minimum expected return}
 Let $x=(x_1,\dots,x_n)$ be a vector denoting of weights of each of $n$ assets in a portfolio and consider that $\mu=(\mu_1,\dots,\mu_n)$ is a random vector representing the returns of the assets. Consider $S$ scenarios, each with probability $p_s$ and let $r_s = (r_{1,s},\dots,r_{n,s})$ be the particular realisation of $\mu$ in scenario $s$ and let $r_0$ be the minimum required expected return. For simplicity, we do not allow short selling (condition $x_i \geq 0, i=1,\dots,n$). Then we can write
 \begin{alignat}{10}
-\label{eq:cvar_minimum_expected_return}
-& \underset{x_i \geq 0 , z_s \geq 0, y}{\min}  \, \, \, && y + \frac{1}{(1-\alpha)} \sum_{s=1}^S p_s z_s, \nonumber \\
+& \underset{x_i \geq 0 , z_s \geq 0, y}{\min}  \, \, \, && y + \frac{1}{(1-\alpha)} \sum_{s=1}^S p_s z_s, \nonumber \\ 
 &s.t. && \, z_s \geq  -\sum_{i=1}^{n} x_i r_{i,s} -y, s=1,\dots,S, \nonumber \\
 &  && \sum_{i=1}^{n} x_i \bar{R_i} \geq r_0, \nonumber \\
 &  && \sum_{i=1}^{n} x_i = 1, \nonumber
