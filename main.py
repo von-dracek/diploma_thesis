@@ -1,12 +1,11 @@
 """DOCSTRING"""
 
+import logging
 import random
 from typing import List
-import logging
 
 import numpy as np
 
-from gbm_generator import get_gbm_scenarios_from_TARMOM_and_R, get_gbm_scenarios_from_TARMOM_and_R_recursive
 from src.configuration import (
     DOWNLOAD_DATA,
     FILE,

@@ -1,25 +1,12 @@
+import pickle
+
+import numpy as np
+import pandas as pd
 import pytest
+from anytree import PreOrderIter
+from tabulate import tabulate
 
 from src.mean_cvar import calculate_mean_cvar_over_leaves
-import pickle
-from anytree import PreOrderIter
-import pandas as pd
-import numpy as np
-import tabulate
-from copy import deepcopy
-from typing import Callable
-import pytest
-import numpy as np
-from anytree import Node, PreOrderIter, LevelOrderGroupIter
-import io
-
-from mpire import WorkerPool
-import pandas as pd
-from gams import GamsWorkspace, DebugLevel
-from tabulate import tabulate
-from src.configuration import CVAR_ALPHA, TICKERS
-import sys
-import pickle
 
 
 def _create_cvar_gams_model_str_for_test(root):
@@ -28,25 +15,49 @@ def _create_cvar_gams_model_str_for_test(root):
     scenarios = []
     for leaf in leaves:
         scenario_series = []
-        for node in (leaf.ancestors + (leaf,)):
-            if node.depth>0:
-                ser = pd.Series(node.returns, index=[f"stock{n+1}"+" "*(specified_row_name_length-len(f"stock{n+1}")-len(f".T{node.depth}"))+f".T{node.depth}" for n in range(len(node.returns))])
+        for node in leaf.ancestors + (leaf,):
+            if node.depth > 0:
+                ser = pd.Series(
+                    node.returns,
+                    index=[
+                        f"stock{n+1}"
+                        + " "
+                        * (specified_row_name_length - len(f"stock{n+1}") - len(f".T{node.depth}"))
+                        + f".T{node.depth}"
+                        for n in range(len(node.returns))
+                    ],
+                )
                 scenario_series.append(ser)
         scenario = pd.concat(scenario_series)
         scenario.name = leaf.name
         scenarios.append(scenario)
     scenario_df = pd.concat(scenarios, axis=1)
-    scenario_probabilities = {leaf.name:float(np.prod([node.probability for node in (leaf,) + leaf.ancestors ])) for leaf in leaves}
+    scenario_probabilities = {
+        leaf.name: float(np.prod([node.probability for node in (leaf,) + leaf.ancestors]))
+        for leaf in leaves
+    }
     assert abs(sum(scenario_probabilities.values()) - 1) < 1e-4
+
     def get_siblings(root):
-        siblings = [(a.name,root.depth, b.name) for a in root.leaves for b in root.leaves]
+        siblings = [(a.name, root.depth, b.name) for a in root.leaves for b in root.leaves]
         for node in root.children:
             siblings += get_siblings(node)
         return siblings
+
     siblings = get_siblings(root)
-    ssiblings = [{"node1":sibling[0], "time":sibling[1], "node2":sibling[2]} for sibling in siblings if sibling[0]!=sibling[2]]
+    ssiblings = [
+        {"node1": sibling[0], "time": sibling[1], "node2": sibling[2]}
+        for sibling in siblings
+        if sibling[0] != sibling[2]
+    ]
     siblings = pd.DataFrame(ssiblings)
-    sib = siblings["node1"].astype(str) + "." + siblings["node2"].astype(str) + ".T" + siblings["time"].astype(str)
+    sib = (
+        siblings["node1"].astype(str)
+        + "."
+        + siblings["node2"].astype(str)
+        + ".T"
+        + siblings["time"].astype(str)
+    )
     sib = sib.to_list()
 
     min_expected_return = 0
@@ -113,12 +124,13 @@ solve problem using LP minimising loss;
 
     return _str
 
+
 def test_mean_cvar():
     """If all scenarios return nothing (i.e. not investing and holding cash (while not accounting for inflation)) the loss value should be 0."""
-    with open('./tests/root.pickle', 'rb') as handle:
+    with open("./tests/root.pickle", "rb") as handle:
         root = pickle.load(handle)
     for node in PreOrderIter(root):
-        if hasattr(node,"returns"):
-            node.returns = node.returns*0 + 1
+        if hasattr(node, "returns"):
+            node.returns = node.returns * 0 + 1
     loss = calculate_mean_cvar_over_leaves(root, _create_cvar_gams_model_str_for_test)
     assert loss == pytest.approx(0)

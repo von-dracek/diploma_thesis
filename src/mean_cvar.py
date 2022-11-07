@@ -1,17 +1,12 @@
-from copy import deepcopy
+import io
 from typing import Callable
 
 import numpy as np
-from anytree import Node, PreOrderIter, LevelOrderGroupIter
-import io
-
-from mpire import WorkerPool
 import pandas as pd
-from gams import GamsWorkspace, DebugLevel
+from anytree import Node
+from gams import GamsWorkspace
 from tabulate import tabulate
-from src.configuration import CVAR_ALPHA, TICKERS
-import sys
-import pickle
+
 
 def create_cvar_gams_model_str(root):
     leaves = root.leaves
@@ -19,25 +14,49 @@ def create_cvar_gams_model_str(root):
     scenarios = []
     for leaf in leaves:
         scenario_series = []
-        for node in (leaf.ancestors + (leaf,)):
-            if node.depth>0:
-                ser = pd.Series(node.returns, index=[f"stock{n+1}"+" "*(specified_row_name_length-len(f"stock{n+1}")-len(f".T{node.depth}"))+f".T{node.depth}" for n in range(len(node.returns))])
+        for node in leaf.ancestors + (leaf,):
+            if node.depth > 0:
+                ser = pd.Series(
+                    node.returns,
+                    index=[
+                        f"stock{n+1}"
+                        + " "
+                        * (specified_row_name_length - len(f"stock{n+1}") - len(f".T{node.depth}"))
+                        + f".T{node.depth}"
+                        for n in range(len(node.returns))
+                    ],
+                )
                 scenario_series.append(ser)
         scenario = pd.concat(scenario_series)
         scenario.name = leaf.name
         scenarios.append(scenario)
     scenario_df = pd.concat(scenarios, axis=1)
-    scenario_probabilities = {leaf.name:float(np.prod([node.probability for node in (leaf,) + leaf.ancestors ])) for leaf in leaves}
+    scenario_probabilities = {
+        leaf.name: float(np.prod([node.probability for node in (leaf,) + leaf.ancestors]))
+        for leaf in leaves
+    }
     assert abs(sum(scenario_probabilities.values()) - 1) < 1e-4
+
     def get_siblings(root):
-        siblings = [(a.name,root.depth, b.name) for a in root.leaves for b in root.leaves]
+        siblings = [(a.name, root.depth, b.name) for a in root.leaves for b in root.leaves]
         for node in root.children:
             siblings += get_siblings(node)
         return siblings
+
     siblings = get_siblings(root)
-    ssiblings = [{"node1":sibling[0], "time":sibling[1], "node2":sibling[2]} for sibling in siblings if sibling[0]!=sibling[2]]
+    ssiblings = [
+        {"node1": sibling[0], "time": sibling[1], "node2": sibling[2]}
+        for sibling in siblings
+        if sibling[0] != sibling[2]
+    ]
     siblings = pd.DataFrame(ssiblings)
-    sib = siblings["node1"].astype(str) + "." + siblings["node2"].astype(str) + ".T" + siblings["time"].astype(str)
+    sib = (
+        siblings["node1"].astype(str)
+        + "."
+        + siblings["node2"].astype(str)
+        + ".T"
+        + siblings["time"].astype(str)
+    )
     sib = sib.to_list()
 
     min_expected_return = 0.5
@@ -104,7 +123,10 @@ solve problem using LP minimising loss;
 
     return _str
 
-def calculate_mean_cvar_over_leaves(root: Node, create_model_str_func: Callable = create_cvar_gams_model_str) -> float:
+
+def calculate_mean_cvar_over_leaves(
+    root: Node, create_model_str_func: Callable = create_cvar_gams_model_str
+) -> float:
     gms = GamsWorkspace(system_directory="/opt/gams/gams40.2_linux_x64_64_sfx")
     # with open('root.pickle', 'wb') as handle:
     #     pickle.dump(root, handle, protocol=pickle.HIGHEST_PROTOCOL)
@@ -124,9 +146,7 @@ def calculate_mean_cvar_over_leaves(root: Node, create_model_str_func: Callable 
     return loss
 
 
-
-
-#Old way of generating model string - using L shaped algorithm
+# Old way of generating model string - using L shaped algorithm
 #     _str = f"""
 # Option LP=CPLEX;
 #
