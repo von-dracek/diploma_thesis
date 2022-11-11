@@ -5,20 +5,22 @@ from tensorflow import keras
 
 from collections import deque
 import random
+import logging
 
+from log import configure
 from reinforcement_environment import TreeBuildingEnv
 
 RANDOM_SEED = 5
 tf.random.set_seed(RANDOM_SEED)
-
+configure()
 env = TreeBuildingEnv()
 np.random.seed(RANDOM_SEED)
-
-print("Action Space: {}".format(env.action_space))
-print("State space: {}".format(env.observation_space))
+logger = logging.getLogger("LOGGER")
+logger.info("Action Space: {}".format(env.action_space))
+logger.info("State space: {}".format(env.observation_space))
 
 # An episode a full game
-train_episodes = 10000
+train_episodes = 10**6
 test_episodes = 100
 
 #reference implementation: https://github.com/mswang12/minDQN/blob/main/minDQN.py
@@ -31,10 +33,10 @@ def agent(state_shape, action_shape):
     The index of the highest action (0.7) is action #1.
     """
     learning_rate = 0.001
-    init = tf.keras.initializers.HeUniform()
+    init = tf.keras.initializers.zeros()
     model = keras.Sequential()
-    model.add(keras.layers.Dense(24, input_shape=state_shape, activation='linear', kernel_initializer=init))
-    # model.add(keras.layers.Dense(24, activation='relu', kernel_initializer=init))
+    model.add(keras.layers.Dense(48, input_shape=state_shape, activation='relu', kernel_initializer=init))
+    model.add(keras.layers.Dense(24, activation='relu', kernel_initializer=init))
     model.add(keras.layers.Dense(12, activation='linear', kernel_initializer=init))
     model.add(keras.layers.Dense(action_shape, activation='linear', kernel_initializer=init))
     model.compile(loss=tf.keras.losses.Huber(), optimizer=tf.keras.optimizers.Adam(lr=learning_rate),
@@ -42,24 +44,22 @@ def agent(state_shape, action_shape):
     return model
 
 
-def get_qs(model, state, step):
-    return model.predict(state.reshape([1, state.shape[0]]))[0]
-
 
 def train(replay_memory, model, target_model):
-    learning_rate = 0.05  # Learning rate
-    discount_factor = 0.05
+    learning_rate = 0.5  # Learning rate
+    discount_factor = 0.99
 
-    MIN_REPLAY_SIZE = 250
+    MIN_REPLAY_SIZE = 64*4
     if len(replay_memory) < MIN_REPLAY_SIZE:
         return
+    logger.debug("Training the model")
 
-    batch_size = 64 * 2
+    batch_size = 64*4
     mini_batch = random.sample(replay_memory, batch_size)
     current_states = np.array([transition[0].flatten() for transition in mini_batch])
-    current_qs_list = model.predict(current_states)
+    current_qs_list = model.predict(current_states, verbose=0)
     new_current_states = np.array([transition[3].flatten() for transition in mini_batch])
-    future_qs_list = target_model.predict(new_current_states)
+    future_qs_list = target_model.predict(new_current_states, verbose=0)
 
     X = []
     Y = []
@@ -87,7 +87,7 @@ def main():
     epsilon = 1  # Epsilon-greedy algorithm in initialized at 1 meaning every step is random at the start
     max_epsilon = 1  # You can't explore more than 100% of the time
     min_epsilon = 0.01  # At a minimum, we'll always explore 1% of the time
-    decay = 0.005
+    decay = 0.0005
 
     # 1. Initialize the Target and Main models
     # Main Model (updated every 4 steps)
@@ -101,7 +101,7 @@ def main():
     steps_to_update_target_model = 0
     total_training_rewards = 0
     for episode in range(train_episodes):
-
+        logger.debug(f"Starting episode {episode}")
         observation, _ = env.reset()
         done = False
         while not done:
@@ -123,19 +123,22 @@ def main():
 
             observation = new_observation
             total_training_rewards += reward
-
+        logger.debug(f"Finished episode {episode}")
         # 3. Update the Main Network using the Bellman Equation
-        # if steps_to_update_target_model >= 100:
-        #     train(replay_memory, model, target_model)
-        if episode % 5 == 0:
+        if steps_to_update_target_model >= 50:
+            logger.debug(f"Training model in episode {episode}")
             train(replay_memory, model, target_model)
+            logger.debug(f"Finished training model in episode {episode}")
+        # if episode % 5 == 0:
+        #     train(replay_memory, model, target_model)
 
-        if episode % 100 == 0:
-            print('Total training rewards: {} after {} episodes with latest reward = {}, epsilon = {}'.format(
-                total_training_rewards, episode, reward, epsilon))
-            print('Copying main network weights to the target network weights')
+            logger.debug('Copying main network weights to the target network weights')
             target_model.set_weights(model.get_weights())
             steps_to_update_target_model = 0
+            logger.debug(f"Finished copying main network weights to the target network weights in episode {episode}")
+        if episode % 30 == 0:
+            logger.info('Total training rewards: {} after {} episodes with latest reward = {}, epsilon = {}'.format(
+                total_training_rewards, episode, reward, epsilon))
             total_training_rewards = 0
 
         epsilon = min_epsilon + (max_epsilon - min_epsilon) * np.exp(-decay * episode)
