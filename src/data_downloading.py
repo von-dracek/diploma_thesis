@@ -37,8 +37,8 @@ def download_data(
 
 
 def save_data(data: pd.DataFrame, filename: str) -> None:
-    with open(f"./data/{filename}_{datetime.datetime.now()}.pckl", "wb") as f:
-        pickle.dump(data, f)
+    # with open(f"./data/{filename}_{datetime.datetime.now()}.pckl", "wb") as f:
+    #     pickle.dump(data, f)
     with open(f"./data/{filename}_latest.pckl", "wb") as f:
         pickle.dump(data, f)
 

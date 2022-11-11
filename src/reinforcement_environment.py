@@ -1,11 +1,13 @@
 import gym
 import numpy as np
 from gym import spaces
-import tensorflow as tf
 # gridworld
 # possible branching - width - 3 - 8
 # depth - 2 - 8
 from random import random
+
+from main import get_cvar_value
+import logging
 
 minimum_branching = 3
 # maximum branching = 8
@@ -14,15 +16,8 @@ reward = 0  # TODO calculate reward
 valid_action_reward = 0.001
 invalid_action_reward = -1
 
-def _reward_func(input):
-    # if input == 5:
-    #     return 10
-    # else:
-    #     return -1
-    # else:
-    #     return 0
-    # return np.random.normal(input*10, scale=0.001)
-    return np.random.normal(input, scale=2)
+def _reward_func(branching):
+    return get_cvar_value(branching)
 
 
 
@@ -62,7 +57,7 @@ class TreeBuildingEnv_v2(gym.Env):
         self.S[y, x] = 1
         if self.current_y == np.argmax(self.S[0, :]) + 1:
             self.done = True
-            return self.S.reshape(-1), _reward_func(np.prod(self.get_branching())), self.done, {}
+            return self.S.reshape(-1), _reward_func(self.get_branching()), self.done, {}
         return self.S.reshape(-1), valid_action_reward if not invalid_action else invalid_action_reward, self.done, {}
 
     @property
@@ -116,7 +111,7 @@ class TreeBuildingEnv_v2(gym.Env):
     def get_branching(self):
         assert self.done
         br = np.argmax(self.S[1:, :], axis=1)
-        return br[br > 0]
+        return br[br > 0].tolist()
 
 
 

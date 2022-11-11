@@ -79,7 +79,7 @@ if __name__ == '__main__':
     # env = Monitor(env, log_dir)
     env = SubprocVecEnv(env_fns=[env]*6)
     env = VecMonitor(env, log_dir)
-    current_time = datetime.now()
+    current_time = datetime.now().strftime("%Y-%m-%d %H,%M,%S")
 
     # wrap it
 
