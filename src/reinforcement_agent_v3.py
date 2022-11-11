@@ -71,7 +71,7 @@ class SaveOnBestTrainingRewardCallback(BaseCallback):
 
 if __name__ == '__main__':
 
-    log_dir = "/tmp/gym/"
+    log_dir = "./tensorboard_logging/gym/"
     os.makedirs(log_dir, exist_ok=True)
 
     # Instantiate the env
