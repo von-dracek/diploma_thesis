@@ -2,3 +2,5 @@
 /.pre-commit-config.yaml
 /Makefile
 /furst
+/src/tensorboard_logging/
+/tensorboard_logging/
