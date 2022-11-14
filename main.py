@@ -7,13 +7,9 @@ from typing import List
 import numpy as np
 
 from src.configuration import (
-    DOWNLOAD_DATA,
     FILE,
-    FIRST_VALID_DATE,
-    LAST_VALID_DATE,
-    TICKERS,
 )
-from src.data_downloading import download_data, load_data
+from src.data_downloading import DataGetter
 from src.data_preprocessing import data_to_returns_iid, get_TARMOM_and_R
 from src.log import configure
 from src.mean_cvar import calculate_mean_cvar_over_leaves
@@ -23,28 +19,26 @@ np.random.seed(1337)
 random.seed(1337)
 configure()
 
-loaded_data = load_data(FILE.DATA_PRICES_CLOSE_FILE.value)
+datagetter = DataGetter()
 
-def get_cvar_value(branching: List[int]) -> float:
-    """Start here."""
+def get_necessary_data(train_or_test:str = "train"):
+    data = datagetter.randomly_sample_data(train_or_test)
+    return data
 
-    # Downloading or loading data, based on DOWNLOAD_DATA flag defined in configuration.py
-    if DOWNLOAD_DATA:
-        data = download_data(start=FIRST_VALID_DATE, end=LAST_VALID_DATE, tickers=TICKERS)
-    else:
-        data = loaded_data
-
-    logging.info(f"Generating cvar value for branching {branching}")
+def get_cvar_value(branching: List[int], data, alpha: float = 0.95, train_or_test:str = "train") -> float:
     iid_returns = data_to_returns_iid(data, branching)
 
     TARMOM, R = get_TARMOM_and_R(iid_returns)
-    # get_gbm_scenarios_from_TARMOM_and_R_recursive(TARMOM, R, branching)
+    # data, iid_returns, TARMOM, R = get_necessary_data(train_or_test)
     # create scenario tree
+    logging.info(f"Generating tree for branching {branching}")
     tree_root = create_empty_tree(branching)
     root = fill_empty_tree_with_scenario_data_moment_matching(TARMOM, R, tree_root, branching)
-    return calculate_mean_cvar_over_leaves(root)
+    logging.info(f"Calculating cvar value for branching {branching}")
+    return calculate_mean_cvar_over_leaves(root, alpha)
 
 
 if __name__ == "__main__":
-    branching = [4] * 2
+    """Start here."""
+    branching = [3] * 8
     print(get_cvar_value(branching))

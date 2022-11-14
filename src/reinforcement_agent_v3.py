@@ -1,24 +1,16 @@
 import os
-import time
-
-import gym
-from matplotlib import pyplot as plt
 from stable_baselines3.common.callbacks import BaseCallback
-from stable_baselines3.common.monitor import Monitor, load_results
+from stable_baselines3.common.monitor import load_results
 from stable_baselines3.common.results_plotter import ts2xy
-from stable_baselines3.common.sb2_compat.rmsprop_tf_like import RMSpropTFLike
 
 from stable_baselines3.common.vec_env import SubprocVecEnv
-from reinforcement_environment import TreeBuildingEnv_v2
-from stable_baselines3.common.vec_env import VecMonitor
-from stable_baselines3 import PPO, A2C, DQN
+from reinforcement_environment import TreeBuildingEnv_v4
+from stable_baselines3 import A2C
 
-from stable_baselines3.common.env_util import make_vec_env
-from stable_baselines3.common.env_checker import check_env
-from stable_baselines3.common import results_plotter
-import torch as th
 from datetime import datetime
 import numpy as np
+
+from src.CustomVecMonitor import CustomVecMonitor
 
 
 class SaveOnBestTrainingRewardCallback(BaseCallback):
@@ -54,6 +46,7 @@ class SaveOnBestTrainingRewardCallback(BaseCallback):
               if self.verbose > 0:
                 print(f"Num timesteps: {self.num_timesteps}")
                 print(f"Best mean reward: {self.best_mean_reward:.2f} - Last mean reward per episode: {mean_reward:.2f}")
+              self.logger.record(f"Mean reward over last {self.check_freq} episodes", mean_reward)
 
               # New best model, you could save the agent here
               if mean_reward > self.best_mean_reward:
@@ -64,7 +57,7 @@ class SaveOnBestTrainingRewardCallback(BaseCallback):
                     print(f"Saving new best model after {self.n_calls} calls to {self.save_path}_{self.n_calls}, {current_time}.zip")
                   self.model.save(self.save_path + f"_{self.n_calls}, {current_time}")
               # print("Logging mean reward to tensorboard")
-              self.logger.record("Mean reward over last 100 episodes", mean_reward)
+
 
         return True
 
@@ -75,18 +68,19 @@ if __name__ == '__main__':
     os.makedirs(log_dir, exist_ok=True)
 
     # Instantiate the env
-    env = TreeBuildingEnv_v2
-    # env = Monitor(env, log_dir)
+    env = TreeBuildingEnv_v4
     env = SubprocVecEnv(env_fns=[env]*6)
-    env = VecMonitor(env, log_dir)
+    env.seed(1337)
+    env = CustomVecMonitor(env, log_dir, info_keywords=("num_scen",))
     current_time = datetime.now().strftime("%Y-%m-%d %H,%M,%S")
 
-    # wrap it
-
-    # If the environment don't follow the interface, an error will be thrown
-    # while True:
-    #     ret = check_env(env, warn=True)
     tensorboard_log=log_dir
+
+    a2c_model = A2C(policy="MultiInputPolicy", learning_rate=4e-4, use_rms_prop=True, normalize_advantage=True, env=env, n_steps=4, policy_kwargs=dict(net_arch=[48, 24, 12]), tensorboard_log=tensorboard_log)
+    a2c_model.learn(10**9, callback=SaveOnBestTrainingRewardCallback(check_freq=5, log_dir=log_dir, model_name="A2C"), progress_bar=True)
+
+
+
     # dqn_model = DQN("MlpPolicy",
     #             env,
     #             verbose=1,
@@ -124,13 +118,3 @@ if __name__ == '__main__':
     #
     # ddqn_model.learn(100000, callback=callback,log_interval=100)
 
-
-    a2c_model = A2C(policy="MlpPolicy", learning_rate=4e-4, use_rms_prop=True, normalize_advantage=True, env=env, n_steps=100, policy_kwargs=dict(net_arch=[48, 24, 12]), tensorboard_log=tensorboard_log)
-    a2c_model.learn(10**9, callback=SaveOnBestTrainingRewardCallback(check_freq=5, log_dir=log_dir, model_name="A2C"), progress_bar=True, log_interval=5)
-
-
-    # ppo_model = PPO(policy="MlpPolicy", env=env, tensorboard_log=tensorboard_log)
-    # ppo_model.learn(100000, callback=callback, progress_bar=True, log_interval=100)
-
-
-    pass
