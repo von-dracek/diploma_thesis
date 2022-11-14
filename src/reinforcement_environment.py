@@ -11,8 +11,8 @@ import logging
 
 from src.configuration import MAX_NUMBER_LEAVES_IN_SCENARIO_TREE
 
-valid_action_reward = 0.001
-invalid_action_reward = -1
+valid_action_reward = 0.1
+invalid_action_reward = -valid_action_reward
 
 def _get_predictors_from_data(data):
     """

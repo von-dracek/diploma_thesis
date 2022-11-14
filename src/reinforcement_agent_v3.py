@@ -46,7 +46,7 @@ class SaveOnBestTrainingRewardCallback(BaseCallback):
               if self.verbose > 0:
                 print(f"Num timesteps: {self.num_timesteps}")
                 print(f"Best mean reward: {self.best_mean_reward:.2f} - Last mean reward per episode: {mean_reward:.2f}")
-              self.logger.record(f"Mean reward over last {self.check_freq} episodes", mean_reward)
+              self.logger.record(f"Mean reward over last 100 episodes", mean_reward)
 
               # New best model, you could save the agent here
               if mean_reward > self.best_mean_reward:
@@ -69,15 +69,15 @@ if __name__ == '__main__':
 
     # Instantiate the env
     env = TreeBuildingEnv_v4
-    env = SubprocVecEnv(env_fns=[env]*1)
+    env = SubprocVecEnv(env_fns=[env]*6)
     env.seed(1337)
     env = CustomVecMonitor(env, log_dir, info_keywords=("num_scen",))
     current_time = datetime.now().strftime("%Y-%m-%d %H,%M,%S")
 
     tensorboard_log=log_dir
 
-    a2c_model = A2C(policy="MultiInputPolicy", learning_rate=4e-4, use_rms_prop=True, normalize_advantage=True, env=env, n_steps=4, policy_kwargs=dict(net_arch=[48, 24, 12]), tensorboard_log=tensorboard_log)
-    a2c_model.learn(10**9, callback=SaveOnBestTrainingRewardCallback(check_freq=5, log_dir=log_dir, model_name="A2C"), progress_bar=True)
+    a2c_model = A2C(policy="MultiInputPolicy", learning_rate=4e-4, use_rms_prop=True, normalize_advantage=True, env=env, n_steps=5, policy_kwargs=dict(net_arch=[2048, 1024, 512]), tensorboard_log=tensorboard_log)
+    a2c_model.learn(10**9, callback=SaveOnBestTrainingRewardCallback(check_freq=20, log_dir=log_dir, model_name="A2C"), progress_bar=True, log_interval=4)
 
 
 

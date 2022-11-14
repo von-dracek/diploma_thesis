@@ -6,7 +6,7 @@ LAST_VALID_DATE = datetime.datetime(2020, 12, 31, 23, 59)
 DOWNLOAD_DATA = False
 RETURNS_FILE = "returns"
 
-MAX_NUMBER_LEAVES_IN_SCENARIO_TREE = 2000
+MAX_NUMBER_LEAVES_IN_SCENARIO_TREE = 5000
 
 TICKERS = ['ACGL', 'AFL', 'AIG', 'AJG', 'ALL', 'AON', 'AXP', 'BAC', 'BEN', 'BK', 'BLK', 'BRO', 'C', 'CB', 'CINF', 'CMA', 'COF', 'FDS', 'FITB', 'GL', 'GS', 'HBAN', 'HIG', 'IVZ', 'JPM', 'KEY', 'L', 'LNC', 'MCO', 'MMC', 'MS', 'MTB', 'NTRS', 'PGR', 'PNC', 'RE', 'RF', 'RJF', 'SCHW', 'SIVB', 'SPGI', 'STT', 'TFC', 'TROW', 'TRV', 'USB', 'WFC', 'WRB', 'ZION']
 #randomly samples train and test tickers
