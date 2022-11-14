@@ -37,7 +37,16 @@ def _get_predictors_from_data(data):
 
 def _reward_func_v2(branching, data, alpha, train_or_test):
     """Calculates reward from chosen branching."""
-    return get_cvar_value(branching, data, alpha, train_or_test)
+    #the minus sign before the cvar value has to be added, since we
+    #calculate cvar-alpha of the loss distribution - thus the smaller the
+    #cvar value the better. But the reinforcement agent in fact maximises
+    #rewards - thus we need to give it a positive reward such that
+    #higher value -> better reward and that is exactly what the
+    #minus sign does here
+    num_scenarios = np.prod(branching)
+    coef_minus_reward_scenario_tree_complexity = 1/1000
+    penalty_for_complexity = coef_minus_reward_scenario_tree_complexity*num_scenarios
+    return -get_cvar_value(branching, data, alpha, train_or_test) - penalty_for_complexity
 
 class TreeBuildingEnv_v4(gym.Env):
     """
