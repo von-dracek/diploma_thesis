@@ -69,7 +69,7 @@ if __name__ == '__main__':
 
     # Instantiate the env
     env = TreeBuildingEnv_v4
-    env = SubprocVecEnv(env_fns=[env]*6)
+    env = SubprocVecEnv(env_fns=[env]*1)
     env.seed(1337)
     env = CustomVecMonitor(env, log_dir, info_keywords=("num_scen",))
     current_time = datetime.now().strftime("%Y-%m-%d %H,%M,%S")
