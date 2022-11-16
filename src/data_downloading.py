@@ -1,13 +1,12 @@
 import datetime
 import pickle
-from typing import Iterator, Tuple
-
+from typing import Iterator, Tuple, List
+from random import randint, sample, seed
 import pandas as pd
 import yfinance as yf
 from dateutil.relativedelta import relativedelta
 
-from src.configuration import FILE
-
+from src.configuration import FILE, train_tickers, test_tickers
 
 def download_data(
     start: datetime.datetime,
@@ -37,8 +36,8 @@ def download_data(
 
 
 def save_data(data: pd.DataFrame, filename: str) -> None:
-    with open(f"./data/{filename}_{datetime.datetime.now()}.pckl", "wb") as f:
-        pickle.dump(data, f)
+    # with open(f"./data/{filename}_{datetime.datetime.now()}.pckl", "wb") as f:
+    #     pickle.dump(data, f)
     with open(f"./data/{filename}_latest.pckl", "wb") as f:
         pickle.dump(data, f)
 
@@ -72,3 +71,17 @@ def date_add(
 
 def date_intv(start: datetime.datetime, end: datetime.datetime, intv: int) -> datetime.timedelta:
     return (end - start) / intv
+
+class DataGetter:
+    def __init__(self):
+        self.loaded_data = load_data(FILE.DATA_PRICES_CLOSE_FILE.value)
+
+    def randomly_sample_data(self, train_or_test: str):
+        tickers = train_tickers if train_or_test == "train" else (test_tickers if train_or_test=="test" else None)
+        n_stocks = randint(4,10)
+        assert isinstance(tickers, List)
+        chosen_tickers = sample(tickers, n_stocks)
+        assert isinstance(chosen_tickers, List)
+        chosen_tickers = [("Close", x) for x in chosen_tickers]
+        return self.loaded_data[chosen_tickers]
+

@@ -62,8 +62,14 @@ solve problem using NLP minimising loss;
         """  # noqa: E501
 
 
+
+# https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.497.113&rep=rep1&type=pdf
+# Data-Driven Multi-Stage Scenario Tree Generation via Statistical Property
+# and Distribution Matching
+# Bruno A. Calfa∗, Anshul Agarwal†, Ignacio E. Grossmann∗, John M. Wassick†
+
 def build_mm_model(n_nodes, TARMOM, R):
-    gms = GamsWorkspace(system_directory="/opt/gams/gams40.2_linux_x64_64_sfx")
+    gms = GamsWorkspace(system_directory=r"C:\GAMS\40")
     model_str = prepare_moment_matching_model_str(n_nodes, TARMOM, R)
     output_stream = io.StringIO()
     job = gms.add_job_from_string(model_str)
