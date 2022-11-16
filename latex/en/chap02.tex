@@ -52,6 +52,7 @@ Due to the aforementioned disadvantages of value at risk, another risk measure w
 Considering the expected loss exceeding the $VaR_{\alpha}(\mathcal{L})$ level leads to the notion of \textit{Conditional value at risk}. \todo{Add conditional value at risk.}
 
 \begin{defn}{Conditional value at risk \cite[p. 275]{cornuejols_tutuncu_2006}}
+\label{cvar_definition}
 Let $\alpha$ be the chosen confidence level and let $\mathcal{L}(x,\Upsilon)$ have the meaning of loss distribution as defined above and assume that $\mathbb{E}(\abs{\mathcal{L}(x,\Upsilon)})<\infty$. Then the conditional value at risk or expected shortfall $CVaR_{\alpha}(x)$ is defined as
 \begin{equation}
 CVaR_{\alpha}(x)=\frac{1}{1-\alpha}\int_{f(x,y) \geq VaR_{\alpha}(x)} f(x,y)p(y) \, \mathrm{d} y.
@@ -103,7 +104,7 @@ In this section, we present a more precise formulation for practical use adopted
 \subsubsection*{Formulation with minimum expected return}
 Let $x=(x_1,\dots,x_n)$ be a vector denoting of weights of each of $n$ assets in a portfolio and consider that $\mu=(\mu_1,\dots,\mu_n)$ is a random vector representing the returns of the assets. Consider $S$ scenarios, each with probability $p_s$ and let $r_s = (r_{1,s},\dots,r_{n,s})$ be the particular realisation of $\mu$ in scenario $s$ and let $r_0$ be the minimum required expected return. For simplicity, we do not allow short selling (condition $x_i \geq 0, i=1,\dots,n$). Then we can write
 \begin{alignat}{10}
-& \underset{x_i \geq 0 , z_s \geq 0, y}{\min}  \, \, \, && y + \frac{1}{(1-\alpha)} \sum_{s=1}^S p_s z_s, \nonumber \\
+& \underset{x_i \geq 0 , z_s \geq 0, y}{\min}  \, \, \, && y + \frac{1}{(1-\alpha)} \sum_{s=1}^S p_s z_s, \label{cvar_expected_return}  \\
 &s.t. && \, z_s \geq  -\sum_{i=1}^{n} x_i r_{i,s} -y, s=1,\dots,S, \nonumber \\
 &  && \sum_{i=1}^{n} x_i \bar{R_i} \geq r_0, \nonumber \\
 &  && \sum_{i=1}^{n} x_i = 1, \nonumber
@@ -112,10 +113,61 @@ where $\bar{R_i}=\sum_{s=1}^{S}p_s r_{i,s}$, which is still a linear programming
 \subsubsection*{Formulation using risk aversion}
 Another equivalent formulation might be useful when the decision maker does not require a minimum expected return explicitly, but rather wants to set his risk aversion expectations. This can be achieved by introducing a risk aversion parameter $\lambda \geq 0$ and writing
 \begin{alignat}{10}
-\label{eq:cvar_risk_aversion}
-& \underset{x_i \geq 0 , z_s \geq 0, y}{\min}  \, \, \, && \sum_{i=1}^{n} x_i \bar{R_i} + \lambda \left( y + \frac{1}{(1-\alpha)} \sum_{s=1}^S p_s z_s \right), \nonumber \\
+& \underset{x_i \geq 0 , z_s \geq 0, y}{\min}  \, \, \, && \sum_{i=1}^{n} x_i \bar{R_i} + \lambda \left( y + \frac{1}{(1-\alpha)} \sum_{s=1}^S p_s z_s \right), \label{eq:cvar_risk_aversion} \\
 &s.t. && \, z_s \geq  -\sum_{i=1}^{n} x_i r_{i,s} -y, s=1,\dots,S, \nonumber \\
 &  && \sum_{i=1}^{n} x_i = 1. \nonumber
 \end{alignat}
 \section{Minimising CVaR using scenarios in multistage setting}
-\todo{exposition on different approaches (link dissertation thesis of Vaclav Kozmik), using end of horizon cvar + link thesis where i got the program from}
+In the multistage setting, the problem is a bit more complicated. Since the returns now do not occur at one single time but rather it is a sequence of returns, the notion of a risk measure must be extended accordingly. For the purposes of this thesis, we focus on the \textit{end of horizon $CVaR$}, for more advanced topics such as \textit{Nested $CVaR$ model} or \textit{Sum of $CVaR$ model}, see the summary in \cite[Section 1.4.]{kozmikv_phdthesis}.
+
+\subsection{End of horizon CVaR}
+
+\begin{defn}{End of horizon $CVaR$.}
+
+Consider Definition \ref{cvar_definition}. If we consider the loss distribution $\mathcal{L}(x,\Upsilon)$ to have the meaning of the distribution of cumulative loss over all stages, we call this the end of horizon $CVaR$.
+\end{defn}
+The definition of \textit{end of horizon $CVaR$} is the same as of regular $CVaR$, with the small difference that we now allow the decision maker to reallocate funds in each stage. 
+
+\subsubsection{End of horizon CVaR - scenario formulation}
+We now extend Formulations \ref{cvar_expected_return} and \ref{eq:cvar_risk_aversion} to the multistage case. Consider we want to optimise a portfolio consisting of $n$ stocks over $T$ stages and consider a scenario tree with $S$ leaves. The problem \ref{cvar_expected_return} can then be reformulated as Equation \ref{eq:cvar_multistage_expected_return}:
+
+\begin{alignat}{10}
+& \min \, \, \, && y + \frac{1}{(1-\alpha)} \sum_{s=1}^S p_s z_s, \label{eq:cvar_multistage_expected_return}  \\
+&s.t. && \, z_s \geq  -tot_s -y, s=1,\dots,S, \nonumber \\
+&  && \sum_{s=1}^{S} p_s tot_s \geq r_0, \nonumber \\
+&  && \sum_{i=1}^{n} x_{i,t,s} = 1, \nonumber \\
+& && w_{0,s}=1, s=1,\dots,S, \nonumber \\
+& && w_{t,s}=\sum_{i=1}^{n} x_{i,t,s}, s=1,\dots,S, \label{eq:cvar_multistage_expected_return:wealth_distribution} \\
+& && w_{t+1,s}=\sum_{i=1}^{n} r_{i,t,s} x_{i,t,s}, s=1,\dots,S, \label{eq:cvar_multistage_expected_return:wealth_increases} \\
+& && tot_s = \frac{w_{s,T}}{w_{s,0}}, s=1,\dots,S, \nonumber \\
+& && z_s \geq 0, s=1,\dots,S, \nonumber \\
+& && x_{i,t,s} \geq 0, \forall s, \forall i, \forall t, \nonumber \\
+& && y \in \R ,\nonumber \\
+& && + \mathrm{nonanticipativity \, constraints}, \nonumber
+\end{alignat}
+where $w_{t,s}$ represents the wealth in scenario $s$ at time $t$ and $tot_s$ is the total return in scenario $s$. The initial wealth $w_{0,s}$ is set to 1 and at each stage, the wealth increases by the returns obtained in the current stage (Equation \ref{eq:cvar_multistage_expected_return:wealth_increases}) and is distributed again (Equation \ref{eq:cvar_multistage_expected_return:wealth_distribution}). $r_{i,t,s}$ is the return obtained from stock $i$ at stage $t$ in scenario $s$ (we consider returns indexed by $t$ to occur after the portfolio allocations $x_{i,t,s}$ are set, so that Equation \ref{eq:cvar_multistage_expected_return:wealth_increases} makes sense). 
+
+\begin{rem}
+We do not include the nonanticipativity constraints in the above formulation, since they must be specified explicitly according to the structure of the scenario tree. To illustrate the explicit formulation of nonanticipativity constraints, consider Figure \ref{fig:balanced_scenario_tree}. In the context of the above problem, there are 6 scenarios ($111, 112, 113, 121, 122, 123$). For this illustration, let $\mathbf{x}_{t,s}$ be the vector of allocations to each assets at time $t$ and in scenario $s$. The nonanticipativity constraints now read:
+\begin{alignat}{10}
+& && \mathbf{x}_{t1,111}=\mathbf{x}_{t1,112}=\mathbf{x}_{t1,113}=\mathbf{x}_{t1,121}=\mathbf{x}_{t1,122}=\mathbf{x}_{t1,123} \nonumber \\
+& && \mathbf{x}_{t2,111}=\mathbf{x}_{t2,112}=\mathbf{x}_{t2,113},\mathbf{x}_{t2,121}=\mathbf{x}_{t2,122}=\mathbf{x}_{t2,123}. \nonumber
+\end{alignat}
+\end{rem}
+
+Similarly, the problem \ref{eq:cvar_risk_aversion} can then be reformulated as Equation \ref{eq:cvar_multistage_risk_aversion}:
+
+\begin{alignat}{10}
+& \min  \, \, \, &&\sum_{s=1}^{S} p_s tot_s + \lambda \left( y + \frac{1}{(1-\alpha)} \sum_{s=1}^S p_s z_s \right), \label{eq:cvar_multistage_risk_aversion}  \\
+&s.t. && \, z_s \geq  -tot_s -y, s=1,\dots,S, \nonumber \\
+&  && \sum_{i=1}^{n} x_{i,t,s} = 1, \nonumber \\
+& && w_{0,s}=1, s=1,\dots,S, \nonumber \\
+& && w_{t,s}=\sum_{i=1}^{n} x_{i,t,s}, s=1,\dots,S, \label{eq:cvar_multistage_expected_return:wealth_distribution} \\
+& && w_{t+1,s}=\sum_{i=1}^{n} r_{i,t,s} x_{i,t,s}, s=1,\dots,S, \label{eq:cvar_multistage_expected_return:wealth_increases} \\
+& && tot_s = \frac{w_{s,T}}{w_{s,0}}, s=1,\dots,S, \nonumber \\
+& && z_s \geq 0, s=1,\dots,S, \nonumber \\
+& && x_{i,t,s} \geq 0, \forall s, \forall i, \forall t, \nonumber \\
+& && y \in \R ,\nonumber \\
+& && + \mathrm{nonanticipativity \, constraints}, \nonumber
+\end{alignat}
+where $\lambda \geq 0$ is a risk aversion parameter and the nonanticipativity constraints would again need to be provided explicitly according to the structure of the scenario tree.
