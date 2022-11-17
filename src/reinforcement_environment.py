@@ -23,7 +23,7 @@ def _get_predictors_from_data(data):
         statistics of returns over whole period.
     """
     predictors = np.zeros(9)
-    predictors[0] = uniform(0.9, 0.99) # alpha
+    predictors[0] = uniform(0.9, 0.95) # alpha
     predictors[1] = len(data.columns)  # n_stocks
     returns = data.iloc[[0,-1],:].pct_change().iloc[-1] + 1
     predictors[2] = max(returns) #maximal return over whole period

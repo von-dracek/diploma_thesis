@@ -6,7 +6,7 @@ from stable_baselines3.common.results_plotter import ts2xy
 from stable_baselines3.common.vec_env import SubprocVecEnv
 from reinforcement_environment import TreeBuildingEnv_v4
 from stable_baselines3 import A2C
-
+import torch as th
 from datetime import datetime
 import numpy as np
 
@@ -76,8 +76,16 @@ if __name__ == '__main__':
 
     tensorboard_log=log_dir
 
-    a2c_model = A2C(policy="MultiInputPolicy", learning_rate=4e-4, use_rms_prop=True, normalize_advantage=True, env=env, n_steps=5, policy_kwargs=dict(net_arch=[2048, 1024, 512]), tensorboard_log=tensorboard_log)
-    a2c_model.learn(10**9, callback=SaveOnBestTrainingRewardCallback(check_freq=20, log_dir=log_dir, model_name="A2C"), progress_bar=True, log_interval=4)
+    # for i in range(7):
+    #     num_neurons = 2**(i+1)
+    #     a2c_model = A2C(policy="MultiInputPolicy", learning_rate=4e-4, use_rms_prop=True, normalize_advantage=True, env=env, n_steps=5, policy_kwargs=dict(activation_fn=th.nn.ReLU, net_arch=[num_neurons*2, dict(vf=[num_neurons], pi=[num_neurons])]), tensorboard_log=tensorboard_log, seed=1337)
+    #     a2c_model.learn(100000, callback=SaveOnBestTrainingRewardCallback(check_freq=20, log_dir=log_dir, model_name=f"A2C_{num_neurons*2}_{num_neurons}_neurons"), progress_bar=True, tb_log_name=f"A2C_random_normal_{num_neurons*2}_{num_neurons}_neurons", log_interval=4)
+    #     del a2c_model
+    num_neurons=64
+    #not normalising advantage - should have no effect, see https://github.com/DLR-RM/stable-baselines3/issues/485
+    a2c_model = A2C(policy="MultiInputPolicy", learning_rate=4e-4, use_rms_prop=True, env=env, n_steps=5, policy_kwargs=dict(activation_fn=th.nn.ReLU, net_arch=[num_neurons*2, dict(vf=[num_neurons], pi=[num_neurons])]), tensorboard_log=tensorboard_log, seed=1337)
+    a2c_model.learn(10**9, callback=SaveOnBestTrainingRewardCallback(check_freq=20, log_dir=log_dir, model_name=f"A2C_{num_neurons*2}_{num_neurons}_neurons"), progress_bar=True, tb_log_name=f"A2C_random_normal_{num_neurons*2}_{num_neurons}_neurons", log_interval=4)
+
 
 
 

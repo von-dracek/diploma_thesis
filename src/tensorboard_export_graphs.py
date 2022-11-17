@@ -86,6 +86,9 @@ if __name__ == "__main__":
         sorting = (list(group["run"].unique()))
         sorting.sort(key=natural_keys)
         fig = px.line(group, x="step", y="value", color="run", title=idx, template="simple_white", category_orders={"run":sorting})
+        fig.update_layout(
+            xaxis_title="# timesteps", yaxis_title="Value"
+        )
         full_path = f"./tensorboard_logging/graphs/{idx}.html"
         if not os.path.exists(full_path):
             index = full_path.rfind("/")
