@@ -39,6 +39,7 @@ Table TARCORR(i,s)
 ;
 x.l(i,j)=1*uniform(0,2);
 p.l(j)=1/card(j);
+p.lo(j)=0.01;
 variance.l(i)=0.01;
 
 Equations          objective, sumuptoone, m1, m2, m3, m4, correl_eq;

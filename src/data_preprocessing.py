@@ -45,9 +45,16 @@ def data_to_returns_iid(data: pd.DataFrame, branching: List[int]):
     nearest_dates = []
     for date in timestamps:
         nearest_date = _nearest_date(data.index, date)
-        nearest_dates.append(nearest_date)
+        if nearest_date != data.index[-1]:
+            # the last interval has to be cut off, since it happens that the last interval would be too short
+            # we have investment horizon of 10 years and got data for the last 20 years. According to the specified branching,
+            # we partition the 20years of data into intervals of length 10years/len(branching). This means that the
+            # last interval is longer that the 20 year cutoff (if the branching does not divide
+            # both 10 and 20 years exactly) - we need to drop the last interval
+            nearest_dates.append(nearest_date)
     data = data[data.index.isin(nearest_dates)]
     returns = data.pct_change() + 1
+    #returns are calculated in such a way so that they can be multiplied together to get the final return
     #todo: maybe consider log returns?
     # log_returns = np.log(data) - np.log(data.shift(1)) + 1
     return returns.dropna()

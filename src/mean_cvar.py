@@ -164,8 +164,8 @@ def calculate_mean_cvar_over_leaves(
     #     pickle.dump(root, handle, protocol=pickle.HIGHEST_PROTOCOL)
     logging.info("Creating Cvar model string")
     cvar_model_str = create_model_str_func(root, alpha)
-    # with open("cvar_model_string.txt", "w") as text_file:
-    #     text_file.write(cvar_model_str)
+    with open("cvar_model_string.txt", "w") as text_file:
+        text_file.write(cvar_model_str)
     output_stream = io.StringIO()
     job = gms.add_job_from_string(cvar_model_str)
     logging.info("Solving Cvar model")
