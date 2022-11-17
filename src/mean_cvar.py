@@ -85,7 +85,7 @@ def create_cvar_gams_model_str(root: Node, alpha: float):
     )
     sib = sib.to_list()
 
-    min_expected_return = 0.5
+    riskaversionparameter = 0.2
     sib = [l + ' \n' * (n % 300 == 0) for n, l in enumerate(sib)]
     scen_probs = ', \n'.join([str(k) + " " + "{:.7f}".format(v) for k, v in scenario_probabilities.items()])
     set_s = ", \n".join([leaf.name for leaf in leaves])
@@ -117,7 +117,7 @@ ScenarioProbabilities(s)
 Parameter
 InitialWealth /1/;
 Parameter
-MinimumExpectedReturn /{min_expected_return}/;
+RiskAversionParameter /{riskaversionparameter}/;
 Parameter
 alpha /{alpha}/;
 
@@ -130,7 +130,7 @@ Variable z;
 Variable v;
 Variable TotalExcessScenarioReturns(s);
 
-Equations          rootvariablessumuptoinitialwealth, nonanticipativityofx, eqwealth, eqinitialwealth, eqassetyields, objective, yconstrs, ExcessScenarioReturns(s,t), benchmark;
+Equations          rootvariablessumuptoinitialwealth, nonanticipativityofx, eqwealth, eqinitialwealth, eqassetyields, objective, yconstrs, ExcessScenarioReturns(s,t);
 
 rootvariablessumuptoinitialwealth(s).. InitialWealth=e=sum(i,x(i,s,"T0"));
 eqinitialwealth(s).. wealth(s,"T0") =e= InitialWealth;
@@ -143,9 +143,8 @@ ExcessScenarioReturns(s,t)$(ord(t)=card(t)).. TotalExcessScenarioReturns(s)=e=we
 yconstrs(s).. y(s)=g=-TotalExcessScenarioReturns(s)-z;
 
 nonanticipativityofx(i,s,ss,t)$(siblings(s,ss,t))..  x(i,s,t) =e= x(i,ss,t);
-benchmark.. sum(s,ScenarioProbabilities(s)*TotalExcessScenarioReturns(s)) =g= MinimumExpectedReturn;
 
-objective.. loss=e=z+(1/(1-alpha))*sum(s,ScenarioProbabilities(s)*y(s));
+objective.. loss=e=sum(s,ScenarioProbabilities(s)*TotalExcessScenarioReturns(s))+RiskAversionParameter*(z+(1/(1-alpha))*sum(s,ScenarioProbabilities(s)*y(s)));
 
 Model problem / ALL /;
 
