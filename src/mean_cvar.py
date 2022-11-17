@@ -124,27 +124,30 @@ alpha /{alpha}/;
 Positive Variables x(i,s,t);
 x.l(i,s,t)=1/card(i);
 Variable loss;
-Positive Variables y(s);
+Positive Variables z(s);
 Variable wealth(s,t);
-Variable z;
+Variable y;
 Variable v;
-Variable TotalExcessScenarioReturns(s);
+Variable TotalScenarioReturns(s);
 
-Equations          rootvariablessumuptoinitialwealth, nonanticipativityofx, eqwealth, eqinitialwealth, eqassetyields, objective, yconstrs, ExcessScenarioReturns(s,t);
+Equations          rootvariablessumuptoinitialwealth, nonanticipativityofx, eqwealth, eqinitialwealth, eqassetyields, objective, yconstrs, ScenarioReturns(s,t);
 
 rootvariablessumuptoinitialwealth(s).. InitialWealth=e=sum(i,x(i,s,"T0"));
 eqinitialwealth(s).. wealth(s,"T0") =e= InitialWealth;
 
+** the following equation has the condition $(ord(t) <> card(t)) because the wealth at the very end need not be distributed again
 eqwealth(s, t)$(ord(t) <> card(t)).. wealth(s,t) =e= sum(i,x(i,s,t));
+** the following equation differs from the equation in thesis
+** here we index AssetYields as if they happen in the next stage (this is for computational convenience)
 eqassetyields(s,t)$(ord(t)>1).. wealth(s,t) =e= sum(i, x(i,s,t-1)*AssetYields(i,t,s));
 
-ExcessScenarioReturns(s,t)$(ord(t)=card(t)).. TotalExcessScenarioReturns(s)=e=wealth(s,t)-1;
+ScenarioReturns(s,t)$(ord(t)=card(t)).. TotalScenarioReturns(s)=e=wealth(s,t);
 **Previous row has assumption.. wealth(s,"T0")=1!
-yconstrs(s).. y(s)=g=-TotalExcessScenarioReturns(s)-z;
+yconstrs(s).. z(s)=g=-TotalScenarioReturns(s)-y;
 
 nonanticipativityofx(i,s,ss,t)$(siblings(s,ss,t))..  x(i,s,t) =e= x(i,ss,t);
 
-objective.. loss=e=sum(s,ScenarioProbabilities(s)*TotalExcessScenarioReturns(s))+RiskAversionParameter*(z+(1/(1-alpha))*sum(s,ScenarioProbabilities(s)*y(s)));
+objective.. loss=e=sum(s,ScenarioProbabilities(s)*TotalScenarioReturns(s))+RiskAversionParameter*(y+(1/(1-alpha))*sum(s,ScenarioProbabilities(s)*z(s)));
 
 Model problem / ALL /;
 

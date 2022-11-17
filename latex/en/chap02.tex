@@ -129,23 +129,22 @@ Consider Definition \ref{cvar_definition}. If we consider the loss distribution 
 The definition of \textit{end of horizon $CVaR$} is the same as of regular $CVaR$, with the small difference that we now allow the decision maker to reallocate funds in each stage. 
 
 \subsubsection{End of horizon CVaR - scenario formulation}
-We now extend Formulations \ref{cvar_expected_return} and \ref{eq:cvar_risk_aversion} to the multistage case. Consider we want to optimise a portfolio consisting of $n$ stocks over $T$ stages and consider a scenario tree with $S$ leaves (here we abuse notation and write sets $S=\{1,\dots,S\}$ and $T=\{1,\dots,T\})$. The problem \ref{cvar_expected_return} can then be reformulated as Equation \ref{eq:cvar_multistage_expected_return}:
+We now extend Formulations \ref{cvar_expected_return} and \ref{eq:cvar_risk_aversion} to the multistage case. Consider we want to optimise a portfolio consisting of $n$ stocks over $T$ stages and consider a scenario tree with $S$ leaves (here we abuse notation and write sets $S=\{1,\dots,S\}$, $T=\{1,\dots,T\})$ and $I=\{1,\dots,n\}$. The problem \ref{cvar_expected_return} can then be reformulated as Equation \ref{eq:cvar_multistage_expected_return}:
 
 \begin{alignat}{10}
 & \min \, \, \, && y + \frac{1}{(1-\alpha)} \sum_{s=1}^S p_s z_s, \label{eq:cvar_multistage_expected_return}  \\
 &s.t. && \, z_s \geq  -tot_s -y, \forall s \in S \nonumber \\
 &  && \sum_{s=1}^{S} p_s tot_s \geq r_0, \nonumber \\
-&  && \sum_{i=1}^{n} x_{i,t,s} = 1, \forall t, \forall s \nonumber \\
-& && w_{0,s}=1, s=1,\dots,S, \nonumber \\
-& && w_{t,s}=\sum_{i=1}^{n} x_{i,t,s}, s=1,\dots,S, \label{eq:cvar_multistage_expected_return:wealth_distribution} \\
-& && w_{t+1,s}=\sum_{i=1}^{n} r_{i,t,s} x_{i,t,s}, s=1,\dots,S, \label{eq:cvar_multistage_expected_return:wealth_increases} \\
-& && tot_s = \frac{w_{s,T}}{w_{s,0}}, s=1,\dots,S, \nonumber \\
-& && z_s \geq 0, s=1,\dots,S, \nonumber \\
-& && x_{i,t,s} \geq 0, \forall s, \forall i, \forall t, \nonumber \\
+& && w_{1,s}=1, \forall s \in S, \nonumber \\
+& && w_{t,s}=\sum_{i=1}^{n} x_{i,t,s}, \forall s \in S, \forall t \in T, \label{eq:cvar_multistage_expected_return:wealth_distribution} \\
+& && w_{t+1,s}=\sum_{i=1}^{n} r_{i,t,s} x_{i,t,s}, \forall s \in S, t \in \{1,\dots ,T-1\}, \label{eq:cvar_multistage_expected_return:wealth_increases} \\
+& && tot_s = \frac{w_{T,s}}{w_{0,s}}, \forall s \in S, \nonumber \\
+& && z_s \geq 0, \forall s \in S, \nonumber \\
+& && x_{i,t,s} \geq 0, \forall s \in S, \forall i \in I, \forall t \in T, \nonumber \\
 & && y \in \R ,\nonumber \\
 & && + \mathrm{nonanticipativity \, constraints}, \nonumber
 \end{alignat}
-where $w_{t,s}$ represents the wealth in scenario $s$ at time $t$ and $tot_s$ is the total return in scenario $s$. The initial wealth $w_{0,s}$ is set to 1 and in each stage, the wealth increases by the returns obtained in the previous stage (Equation \ref{eq:cvar_multistage_expected_return:wealth_increases}) and is distributed again (Equation \ref{eq:cvar_multistage_expected_return:wealth_distribution}). $r_{i,t,s}$ is the return obtained from stock $i$ at stage $t$ in scenario $s$ (we consider returns indexed by $t$ to occur at the end of stage $t$ (after the portfolio allocations $x_{i,t,s}$ are set), so that Equation \ref{eq:cvar_multistage_expected_return:wealth_increases} makes sense). The returns $r_{i,t,s}$ are of the form $1+r$ (where if the asset gained 6 percent, then $r_{i,t,s}=1.06$). This justifies Equation \ref{eq:cvar_multistage_expected_return:wealth_increases}. $tot_s \, \forall s \in S$ and $r_0$ are then again of the form $1+r$.
+where $w_{t,s}$ represents the wealth in scenario $s$ at time $t$ and $tot_s$ is the total return in scenario $s$. The initial wealth $w_{1,s}$ is set to 1 and in each stage, the wealth increases by the returns obtained in the previous stage (Equation \ref{eq:cvar_multistage_expected_return:wealth_increases}) and is distributed again (Equation \ref{eq:cvar_multistage_expected_return:wealth_distribution}). $r_{i,t,s}$ is the return obtained from stock $i$ at stage $t$ in scenario $s$ (we consider returns indexed by $t$ to occur at the end of stage $t$ (after the portfolio allocations $x_{i,t,s}$ are set), so that Equation \ref{eq:cvar_multistage_expected_return:wealth_increases} makes sense). The returns $r_{i,t,s}$ are of the form $1+r$ (where if the asset gained 6 percent, then $r_{i,t,s}=1.06$). This justifies Equation \ref{eq:cvar_multistage_expected_return:wealth_increases}. $tot_s \, \forall s \in S$ and $r_0$ are then again of the form $1+r$.
 
 \begin{rem}
 We do not include the nonanticipativity constraints in the above formulation, since they must be specified explicitly according to the structure of the scenario tree. To illustrate the explicit formulation of nonanticipativity constraints, consider Figure \ref{fig:balanced_scenario_tree}. In the context of the above problem, there are 6 scenarios ($111, 112, 113, 121, 122, 123$). For this illustration, let $\mathbf{x}_{t,s}$ be the vector of allocations to each assets at time $t$ and in scenario $s$. The nonanticipativity constraints now read:
@@ -159,15 +158,15 @@ Similarly, the problem \ref{eq:cvar_risk_aversion} can then be reformulated as E
 
 \begin{alignat}{10}
 & \min  \, \, \, &&\sum_{s=1}^{S} p_s tot_s + \lambda \left( y + \frac{1}{(1-\alpha)} \sum_{s=1}^S p_s z_s \right), \label{eq:cvar_multistage_risk_aversion}  \\
-&s.t. && \, z_s \geq  -tot_s -y, s=1,\dots,S, \nonumber \\
-&  && \sum_{i=1}^{n} x_{i,t,s} = 1, \forall t, \forall s \nonumber \\
-& && w_{0,s}=1, s=1,\dots,S, \nonumber \\
-& && w_{t,s}=\sum_{i=1}^{n} x_{i,t,s}, s=1,\dots,S, \label{eq:cvar_multistage_expected_return:wealth_distribution} \\
-& && w_{t+1,s}=\sum_{i=1}^{n} r_{i,t,s} x_{i,t,s}, \forall t, \forall s \label{eq:cvar_multistage_expected_return:wealth_increases} \\
-& && tot_s = \frac{w_{s,T}}{w_{s,0}},\forall s \nonumber \\
-& && z_s \geq 0, s=1,\dots,S, \nonumber \\
-& && x_{i,t,s} \geq 0, \forall s, \forall i, \forall t, \nonumber \\
+&s.t. && \, z_s \geq  -tot_s -y, \forall s \in S \nonumber \\
+& && w_{1,s}=1, \forall s \in S, \nonumber \\
+& && w_{t,s}=\sum_{i=1}^{n} x_{i,t,s}, \forall s \in S, \forall t \in T, \label{eq:cvar_multistage_expected_return:wealth_distribution_risk_aversion} \\
+& && w_{t+1,s}=\sum_{i=1}^{n} r_{i,t,s} x_{i,t,s}, \forall s \in S, t \in \{1,\dots ,T-1\}, \label{eq:cvar_multistage_expected_return:wealth_increases_risk_aversion} \\
+& && tot_s = \frac{w_{T,s}}{w_{0,s}}, \forall s \in S, \nonumber \\
+& && z_s \geq 0, \forall s \in S, \nonumber \\
+& && x_{i,t,s} \geq 0, \forall s \in S, \forall i \in I, \forall t \in T, \nonumber \\
 & && y \in \R ,\nonumber \\
 & && + \mathrm{nonanticipativity \, constraints}, \nonumber
 \end{alignat}
+
 where $\lambda \geq 0$ is a risk aversion parameter and the nonanticipativity constraints would again need to be provided explicitly according to the structure of the scenario tree.

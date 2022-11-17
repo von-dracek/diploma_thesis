@@ -289,30 +289,30 @@ where $m_{i,k}$ are the moments and $c_{i,i'}$ are the correlations between outc
 %%proaches to Scenario Generatin, Journal of Economic Dynamics & Control,
 %vol. 28, Elsevier Science, 2004 - Moment matching - sequential vs whole tree
 
-\subsubsection{Simulation and clustering}
-Another way to generate a scenario tree is to use a parametric model for the underlying process, simulate multiple trajectories of such process and then use a clustering procedure to group similar trajectories in each stage together to obtain a valid scenario tree, see e.g. \cite[Section 3]{dupacova_scenarios_for_multistage_stochastic_programs}. In this section we present the basic theory for Geometric Brownian motion and leave the particulars of clustering to the implementation part of this thesis in \todo{add reference to implementation part where we cover clustering}.
-\subsubsection{Geometric Brownian motion}
-In this section, we mostly follow \cite[Section 3.2.3.]{glasserman2004monte}. The geometric brownian motion is a fundamental model in asset pricing, its first use in finance dates back to the 1960s and it as been the centerpiece of many groudbreaking models, particularly the Black-Scholes model \cite{black_scholes}. We dive right in to the multivariate case, for the basics, see \cite[Section 3.2.]{glasserman2004monte}.
-\begin{defn}{Multidimensional Geometric Brownian motion \cite[p. 104]{glasserman2004monte}.}
-
-A $D$-dimensional random process is called Geometric Brownian motion if it is the solution to the following system of stochastic differential equations:
-\begin{equation}
-\frac{\mathrm{d} S_i(t)}{S_i(t)}=\mu_i \mathrm{d}t + \sigma_i \mathrm{d}X_t(t), S_i(0)>0, i=1,\dots,D,
-\end{equation}
-where each $X_i$ is a standard Brownian motion and $\mathrm{corr}(X_i(t),X_j(t))=\rho_{i,j}$. Define matrix $\Sigma$ by its elements as $\Sigma_{i,j}=\sigma_i\sigma_j\rho_{i,j}, i, j = 1,\dots,D$ and $\mu=(\mu_1,\dots,\mu_D)$, then the process $S=(S_1,\dots,S_D)$ is called $D$-dimensional Geometric Brownian motion with drift vector $\mu$ and covariance matrix $\Sigma$, denoted by $S\sim\mathrm{GBM}(\mu, \Sigma)$.
-\end{defn}
-Using stochastic calculus, an explicit solution to the system of stochastic differential equations can be derived, see Equation \ref{eq:gbm_explicit}.
-\begin{equation}
-\label{eq:gbm_explicit}
-S_i(t)=S_i(0)e^{(\mu_i-\frac{1}{2}\sigma_i^2)t+\sigma_iX_i(t)},i=1,\dots,D.
-\end{equation}
-\subsubsection{Simulating paths}
-Let $A$ be the square root matrix of $\Sigma$, i.e. $\Sigma=AA^T$ (since $\Sigma$ is a covariance matrix, it is positive definite and thus the square root matrix exists and is unique).	 The matrix $A$ is usually obtained by Cholesky decomposition. \cite[Section 3.2.3.]{glasserman2004monte} gives a recurrence relation for simulating the paths of Multidimensional Geometric Brownian motion by using Equation \ref{eq:gbm_recurrence}
-\begin{equation}
-\label{eq:gbm_recurrence}
-S_i(t_{k+1})=S_i(t_k)e^{(\mu_i-\frac{1}{2}\sigma_i^2)(t_{k+1}-t_k)+\sqrt{t_{k+1}-t_k}\sum_{j=1}^DA_{i,j}Z_{k+1,j}},i=1,\dots,D,
-\end{equation}
-where $Z_k=(Z_{k1},\dots,Z_{kD})\sim N(0,I_D)$ (where $I_D$ is the identity matrix of dimension $D$) and $Z_k$ are independent, $k=1,\dots,N$ and where $t_{i}$ are discrete times such that $0=t_0<t_{i}<t_{i+1}$ for $i=0,\dots,N-1$.
+%\subsubsection{Simulation and clustering}
+%Another way to generate a scenario tree is to use a parametric model for the underlying process, simulate multiple trajectories of such process and then use a clustering procedure to group similar trajectories in each stage together to obtain a valid scenario tree, see e.g. \cite[Section 3]{dupacova_scenarios_for_multistage_stochastic_programs}. In this section we present the basic theory for Geometric Brownian motion and leave the particulars of clustering to the implementation part of this thesis in \todo{add reference to implementation part where we cover clustering}.
+%\subsubsection{Geometric Brownian motion}
+%In this section, we mostly follow \cite[Section 3.2.3.]{glasserman2004monte}. The geometric brownian motion is a fundamental model in asset pricing, its first use in finance dates back to the 1960s and it as been the centerpiece of many groudbreaking models, particularly the Black-Scholes model \cite{black_scholes}. We dive right in to the multivariate case, for the basics, see \cite[Section 3.2.]{glasserman2004monte}.
+%\begin{defn}{Multidimensional Geometric Brownian motion \cite[p. 104]{glasserman2004monte}.}
+%
+%A $D$-dimensional random process is called Geometric Brownian motion if it is the solution to the following system of stochastic differential equations:
+%\begin{equation}
+%\frac{\mathrm{d} S_i(t)}{S_i(t)}=\mu_i \mathrm{d}t + \sigma_i \mathrm{d}X_t(t), S_i(0)>0, i=1,\dots,D,
+%\end{equation}
+%where each $X_i$ is a standard Brownian motion and $\mathrm{corr}(X_i(t),X_j(t))=\rho_{i,j}$. Define matrix $\Sigma$ by its elements as $\Sigma_{i,j}=\sigma_i\sigma_j\rho_{i,j}, i, j = 1,\dots,D$ and $\mu=(\mu_1,\dots,\mu_D)$, then the process $S=(S_1,\dots,S_D)$ is called $D$-dimensional Geometric Brownian motion with drift vector $\mu$ and covariance matrix $\Sigma$, denoted by $S\sim\mathrm{GBM}(\mu, \Sigma)$.
+%\end{defn}
+%Using stochastic calculus, an explicit solution to the system of stochastic differential equations can be derived, see Equation \ref{eq:gbm_explicit}.
+%\begin{equation}
+%\label{eq:gbm_explicit}
+%S_i(t)=S_i(0)e^{(\mu_i-\frac{1}{2}\sigma_i^2)t+\sigma_iX_i(t)},i=1,\dots,D.
+%\end{equation}
+%\subsubsection{Simulating paths}
+%Let $A$ be the square root matrix of $\Sigma$, i.e. $\Sigma=AA^T$ (since $\Sigma$ is a covariance matrix, it is positive definite and thus the square root matrix exists and is unique).	 The matrix $A$ is usually obtained by Cholesky decomposition. \cite[Section 3.2.3.]{glasserman2004monte} gives a recurrence relation for simulating the paths of Multidimensional Geometric Brownian motion by using Equation \ref{eq:gbm_recurrence}
+%\begin{equation}
+%\label{eq:gbm_recurrence}
+%S_i(t_{k+1})=S_i(t_k)e^{(\mu_i-\frac{1}{2}\sigma_i^2)(t_{k+1}-t_k)+\sqrt{t_{k+1}-t_k}\sum_{j=1}^DA_{i,j}Z_{k+1,j}},i=1,\dots,D,
+%\end{equation}
+%where $Z_k=(Z_{k1},\dots,Z_{kD})\sim N(0,I_D)$ (where $I_D$ is the identity matrix of dimension $D$) and $Z_k$ are independent, $k=1,\dots,N$ and where $t_{i}$ are discrete times such that $0=t_0<t_{i}<t_{i+1}$ for $i=0,\dots,N-1$.
 %Kaut M, Wallace SW, Evaluation of Scenario Generation Methods for
 %Stochastic Programming, 2003 - Clustering with GBM
 \subsection{Curse of dimensionality}
