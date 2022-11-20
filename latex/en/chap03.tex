@@ -171,20 +171,20 @@ There exist also hybrid method between policy gradient methods and value based m
 \subsubsection{Advantage actor critic}
 In this section, we present the theory behind the (asynchronous) advantage actor critic (A3C) algorithm as developed in \cite{a3c_paper}.
 
-The Advantage actor critic is a policy approximation algorithm that learns not only the policy but also the action value function. Let us first decipher the name of the algorithm. Advantage refers to the advantage function defined in Definition \ref{defn:advantage_function}, actor refers the learned policy approximation and critic refers to the learned action value function approximation (both the actor and the critic are neural networks that are used as function approximators). 
+The Advantage actor critic is a policy approximation algorithm that learns not only the policy but also the action value function. Let us first decipher the name of the algorithm. Advantage refers to the advantage function defined in Definition \ref{defn:advantage_function}, actor refers the learned policy approximation and critic refers to the learned action value function approximation (both the actor and the critic are neural networks that are used as function approximators). In practice, the actor and critic networks share some parameters (they can be thought of as a single neural net with diverging structure, such as a first shared layer and then diverging such that the second layer is not common to both the actor and the critic).
 
 Denote the weights of the actor as $\theta$ and weights of the critic as $\theta_v$, thus the estimated policy can be written as $\pi(a|s;\theta)$ and the estimated value function as $v(s;\theta_v)$, $a \in \mathcal{A}, s \in \mathcal{S}$. The performance measure $J$ as mentioned in the previous section can be written as
 \begin{equation}
-J() = \nabla_{\theta'} \log \pi(a_t|s_t;\theta')A(s_t,a_t;\theta,\theta_v),
+J(\theta, \theta_v) = \nabla_{\theta'} \log \pi(a_t|s_t;\theta')A(s_t,a_t;\theta,\theta_v),
 \end{equation}
-\todo{fix J(), define advantage function}
+\todo{check if J() is correct here, check if the definition of advantage function is correct}
 where we again add the time subscript $t$ and where $\widehat{A}(s_t,a_t;\theta,\theta_v)$ is the advantage function given by 
 \begin{equation}
 \widehat{A}(s_t,a_t;\theta,\theta_v)=\sum_{i=0}^{k-1}\gamma^i r_{t+1} + \gamma^k V(s_{t+k};\theta_v) - V(s_{t};\theta_v),
 \end{equation}
 where $\gamma$ is the discount factor and where $k$ is the number of steps the agent has taken before the update, which is upper bounded by a chosen hyperparameter $t_{max}$. $t_max$ chooses at most how many steps the agent should take in an environment. The update is performed whenever a final state is reached or when $t_max$ steps have been taken.
 \begin{rem}
-Notice that in the formula for $\widehat{A}(s_t,a_t;\theta,\theta_v)$ the parameters $\theta$ are not explicitly present. In reality, the rewards $r_{(\cdot)}$ depend on the policy and thus on the parameters $\theta$. \todo{is this remark correct? please check} 
+Notice that in the formula for $\widehat{A}(s_t,a_t;\theta,\theta_v)$ the parameters $\theta$ are not explicitly present. In reality, the rewards $r_{(\cdot)}$ are chosen by the policy and thus depend on the parameters $\theta$. \todo{is this remark correct? please check} 
 \end{rem}
 
 The full A3C algorithm is given in \cite[Algorithm S3]{a3c_paper}. \todo{Should I write the full algorithm here? It would be exact copying of the algorithm from the paper, it is hard to write differently.} In the original paper, they made use of asynchronous updates to supposedly improve training stability. It was later shown in the paper \cite{a3c_asynchrony_not_necessary} that the asynchrony provides no added benefit in performance. Henceforth, when we refer to the Advantage actor critic, we mean the synchronous version and denote it shortly as A2C.
