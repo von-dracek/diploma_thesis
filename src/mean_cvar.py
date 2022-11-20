@@ -24,8 +24,8 @@ def create_cvar_gams_model_str(root: Node, alpha: float):
                     index=[
                         f"stock{n+1}"
                         + " "
-                        * (specified_row_name_length - len(f"stock{n+1}") - len(f".T{node.depth}"))
-                        + f".T{node.depth}"
+                        * (specified_row_name_length - len(f"stock{n+1}") - len(f".T{node.depth - 1}"))
+                        + f".T{node.depth -1 }"
                         for n in range(len(node.returns))
                     ],
                 )
@@ -97,19 +97,26 @@ preind 1
 names no
 $offecho
 
+**set of scenarios - in Figure 1.1. they are indexed from 1 instead of from 0
+**i.e. in GAMS the root node is 0 and not 1
 Set       s        / {set_s} / ;
+**set of stocks
 Set       i        / {', '.join([f'stock{n + 1}' for n in range(len(node.returns))])} / ;
+**time steps - T0 is the root node of the tree (first decision is taken)  
+**in the thesis, root is indexed by t1
 Set       t        / {', '.join([f'T{n}' for n in range((root.height + 1))])} / ;
 
 Alias (s, ss);
 Set siblings /{set_siblings}/
 ;
 
+**Asset yields(.,t,s) are considered to happen after values of x(.,t,s) are set
 Table
 AssetYields(i, t, s)
 {asset_yields_string}
 ;
 
+**probability of each leaf in tree
 Parameter
 ScenarioProbabilities(s)
 /{scen_probs}/
@@ -117,37 +124,39 @@ ScenarioProbabilities(s)
 Parameter
 InitialWealth /1/;
 Parameter
-RiskAversionParameter /{riskaversionparameter}/;
+RiskAversionParameter /0.2/;
 Parameter
-alpha /{alpha}/;
+alpha /0.95/;
 
 Positive Variables x(i,s,t);
+**initialise x uniformly
 x.l(i,s,t)=1/card(i);
 Variable loss;
 Positive Variables z(s);
 Variable wealth(s,t);
-Variable y;
-Variable v;
+Variable gamma_;
 Variable TotalScenarioReturns(s);
+Equations          nonanticipativityofx, eqwealth, eqinitialwealth, eqassetyields, objective, zconstrs, ScenarioReturns;
 
-Equations          rootvariablessumuptoinitialwealth, nonanticipativityofx, eqwealth, eqinitialwealth, eqassetyields, objective, yconstrs, ScenarioReturns(s,t);
+objective.. loss=e=-sum(s,ScenarioProbabilities(s)*TotalScenarioReturns(s))+RiskAversionParameter*(gamma_+(1/(1-alpha))*sum(s,ScenarioProbabilities(s)*z(s)));
 
-rootvariablessumuptoinitialwealth(s).. InitialWealth=e=sum(i,x(i,s,"T0"));
+zconstrs(s).. z(s)=g=-TotalScenarioReturns(s)-gamma_;
+
 eqinitialwealth(s).. wealth(s,"T0") =e= InitialWealth;
 
 ** the following equation has the condition $(ord(t) <> card(t)) because the wealth at the very end need not be distributed again
 eqwealth(s, t)$(ord(t) <> card(t)).. wealth(s,t) =e= sum(i,x(i,s,t));
-** the following equation differs from the equation in thesis
-** here we index AssetYields as if they happen in the next stage (this is for computational convenience)
-eqassetyields(s,t)$(ord(t)>1).. wealth(s,t) =e= sum(i, x(i,s,t-1)*AssetYields(i,t,s));
+
+eqassetyields(s,t)$(ord(t) <> card(t)).. wealth(s,t+1) =e= sum(i, x(i,s,t)*AssetYields(i,t,s));
 
 ScenarioReturns(s,t)$(ord(t)=card(t)).. TotalScenarioReturns(s)=e=wealth(s,t);
-**Previous row has assumption.. wealth(s,"T0")=1!
-yconstrs(s).. z(s)=g=-TotalScenarioReturns(s)-y;
+**Previous row has assumption.. wealth(s,"T0")=1! LP problem cannot be solved without this
 
+**the nonanticipativity constraint are generated using the set siblings
+**which holds the nodes which are siblings for each level of the tree
+**this works correctly (checked by eye)
 nonanticipativityofx(i,s,ss,t)$(siblings(s,ss,t))..  x(i,s,t) =e= x(i,ss,t);
 
-objective.. loss=e=sum(s,ScenarioProbabilities(s)*TotalScenarioReturns(s))+RiskAversionParameter*(y+(1/(1-alpha))*sum(s,ScenarioProbabilities(s)*z(s)));
 
 Model problem / ALL /;
 

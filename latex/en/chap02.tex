@@ -1,5 +1,5 @@
 \chapter{Risk measures}
-When investing, the investor has to make a decision whether to trade certainty for potentially higher profit in the future. If he would invest in a risk free asset, then some small positive return is guaranteed. Investing in a risky asset can yield significantly higher returns, but of course there is no free lunch. The potentially higher returns are compensated for by the fact that the investor may incur loss. To quantify the degree of riskiness of such assets, several risk measures have been introduced over time.
+When investing, the investor has to make a decision whether to trade certainty for potentially higher profit in the future. If he would invest in a risk free asset, then some small positive return is guaranteed. Investing in a risky asset can yield significantly higher returns, but of course, there is no free lunch. The potentially higher returns are compensated for by the fact that the investor may incur loss. To quantify the degree of riskiness of such assets, several risk measures have been introduced over time.
 In the following, we will follow mainly \cite{leoppold_risk_measures} and \cite[p. 275-278]{cornuejols_tutuncu_2006} if not specified otherwise.
 
 \begin{defn}{Measure of risk} \\
@@ -8,11 +8,11 @@ Let $\mathcal{V}$ be the set of real random variables. A risk measure $\rho$ map
 
 Let $\mathcal{R}$ be a random variable representing returns of a portfolio. In the last century, one of the most popular risk measures was the variance of returns of an asset, used famously in the Nobel Prize winning model in \cite{markowitz}, where a porfolio selection model was formulated that maximised the expected return while minimising the variance in returns. To be precise, variance in returns is defined as
 \begin{equation*}
-\sigma^2=E(\mathcal{R} - \mathbb{E}\mathcal{R} )^2.
+\mathbb{E}(\mathcal{R} - \mathbb{E}\mathcal{R} )^2.
 \end{equation*}
 Although at the time the achievement of the Markowitz model was groundbreaking, the use of variance as a risk measure has been a subject of debate. The problem is that variance is symmetric and does not take into account the tails of the distribution of $\mathcal{R}$. To handle the symmetry problem, another risk measure was proposed, the semivariance defined as
 \begin{equation*}
-\gamma=\mathbb{E}(max(\mathcal{L} - \mathbb{E}\mathcal{L},0))^2=\mathbb{E}(max(-\mathcal{R} + \mathbb{E}\mathcal{R},0))^2,
+\mathbb{E}(max(\mathcal{L} - \mathbb{E}\mathcal{L},0))^2=\mathbb{E}(max(-\mathcal{R} + \mathbb{E}\mathcal{R},0))^2,
 \end{equation*}
 where $\mathcal{L}=-\mathcal{R}$ is the loss random variable.
 %Notice that both variance and semivariance yield the same result whether the random variable $\mathcal{R}$ represents returns or losses of the portfolio.
@@ -27,7 +27,7 @@ Let $\mathcal{V}$ be the set of real random variables. We say that a risk measur
 	\item Translation equivariance: $X \in \mathcal{V}, a \in \R \implies \rho(X+a)=\rho(X)-a$.
 \end{enumerate}
 \end{defn}
-The properties have a quite nice interpretation. The monotony property implies that a portfolio $Y$ that is more favourable in all possible scenarios should have smaller risk compared to the less favourable portfolio $X$. The subadditivity property pertains to the notion of diversification, as it says that if we combine two portfolios $X$ and $Y$, the resulting combined portfolio should not be riskier than the portfolios separately. The positive homogenity property pertains to the notion of leverage -- if we leverage our portfolio by some factor $h\geq0$, the risk should change proportionally to $h$. Last is the property of translation equivariance, which says that increasing the value of portfolio by risk free $a$, the risk profile is decreased by $a$. \todo{is this translation equivariance property ok? I think it is, just to check.} Unfortunately, neither variance not semivariance are coherent risk measures.
+The properties have a quite nice interpretation. The monotony property implies that a portfolio $Y$ that is more favourable in all possible scenarios should have smaller risk compared to the less favourable portfolio $X$. The subadditivity property pertains to the notion of diversification, as it says that if we combine two portfolios $X$ and $Y$, the resulting combined portfolio should not be riskier than the portfolios separately. The positive homogenity property pertains to the notion of leverage -- if we leverage our portfolio by some factor $h\geq0$, the risk should change proportionally to $h$. Last is the property of translation equivariance, which says that increasing the value of portfolio by risk free $a$, the risk is decreased by $a$. \todo{is this translation equivariance property ok? I think it is, just to check.} Unfortunately, neither variance not semivariance are coherent risk measures.
 
 Let us now introduce another risk measure, the \textit{value at risk}.
 Using the notation developed in \cite{cornuejols_tutuncu_2006}, let $f(x,\Upsilon)$ be a loss function of a vector $x$ which may be considered as a portfolio and a random vector $\Upsilon$ which represents the unknown returns or other random aspects influencing the distribution of loss and denote the loss random variable $\mathcal{L}(x,\Upsilon)=f(x,\Upsilon)$. We assume that the probability distribution of $\Upsilon$ is known and for simplicity that $\Upsilon$ has a probability density $p(y)$. The cumulative distribution function of $\mathcal{L}(x,\Upsilon)$ is then defined as
@@ -73,8 +73,9 @@ In this section, we closely follow the exposition provided in \cite[p. 275-278]{
 Let
 \begin{equation}
 \label{eq:cvar_approx}
-F_{\alpha}(x,\gamma)=\gamma + \frac{1}{1-\alpha} \int_{f(x,y) \geq \gamma} (f(x,y)-\gamma)p(y) \, \mathrm{d}y.
+F_{\alpha}(x,\gamma)=\gamma + \frac{1}{1-\alpha} \int_{f(x,y) \geq \gamma} (f(x,y)-\gamma)p(y) \, \mathrm{d}y,
 \end{equation}
+where $\gamma \in \R$.
 The function $F_{\alpha}(x,\gamma)$ has three important properties:
 \begin{lemma}{Properties of $F_{\alpha}(x,\gamma)$ \cite[p. 276]{cornuejols_tutuncu_2006}.}
 \label{lemma:properties_of_cvar_approx} 
@@ -122,11 +123,11 @@ where $\bar{R_i}=\sum_{s=1}^{S}p_s r_{i,s}$, which is still a linear programming
 \subsubsection*{Formulation using risk aversion}
 Another equivalent formulation might be useful when the decision maker does not require a minimum expected return explicitly, but rather wants to set his risk aversion expectations. This can be achieved by introducing a risk aversion parameter $\lambda \geq 0$ and writing
 \begin{alignat}{10}
-& \underset{x_i \geq 0 , z_s \geq 0, \gamma}{\min}  \, \, \, && \sum_{i=1}^{n} x_i \bar{R_i} + \lambda \left( \gamma + \frac{1}{(1-\alpha)} \sum_{s=1}^S p_s z_s \right), \label{eq:cvar_risk_aversion} \\
+& \underset{x_i \geq 0 , z_s \geq 0, \gamma}{\min}  \, \, \, && - \sum_{i=1}^{n} x_i \bar{R_i} + \lambda \left( \gamma + \frac{1}{(1-\alpha)} \sum_{s=1}^S p_s z_s \right), \label{eq:cvar_risk_aversion} \\
 &s.t. && \, z_s \geq  -\sum_{i=1}^{n} x_i r_{i,s} -\gamma, s=1,\dots,S, \nonumber \\
 &  && \sum_{i=1}^{n} x_i = 1. \nonumber
 \end{alignat}
-\section{Minimising CVaR using scenarios in multistage setting}
+\section{Minimising CVaR using scenarios in the multistage setting}
 In the multistage setting, the problem is a bit more complicated. Since the returns now do not occur at one single time but rather it is a sequence of returns, the notion of a risk measure must be extended accordingly. For the purposes of this thesis, we focus on the \textit{end of horizon $CVaR$}, for more advanced topics such as \textit{Nested $CVaR$ model} or \textit{Sum of $CVaR$ model}, we refer the reader to the summary in \cite[Section 1.4.]{kozmikv_phdthesis}.
 
 \subsection{End of horizon CVaR}
@@ -134,6 +135,7 @@ In the multistage setting, the problem is a bit more complicated. Since the retu
 \begin{defn}{End of horizon $CVaR$.} \\
 Consider Definition \ref{cvar_definition}. If we consider the $CVaR$ calculated from the last stage (at the end of the investment horizon), we call it end of horizon $CVaR$.
 \end{defn}
+\todo{Is this definition of end of horizon cvar enough?}
 The definition of \textit{end of horizon $CVaR$} is very similar to the definition of regular $CVaR$, with the small difference that the multistage formulation now allows the decision maker to reallocate funds during the investment period (at the end of each stage). 
 
 \subsubsection{End of horizon CVaR - scenario formulation}
@@ -146,7 +148,7 @@ We now extend Formulations \ref{cvar_expected_return} and \ref{eq:cvar_risk_aver
 & && w_{1,s}=1, \forall s \in S, \nonumber \\
 & && w_{t,s}=\sum_{i=1}^{n} x_{i,t,s}, \forall s \in S, \forall t \in \{1,\dots,T-1\}, \label{eq:cvar_multistage_expected_return:wealth_distribution} \\
 & && w_{t+1,s}=\sum_{i=1}^{n} r_{i,t,s} x_{i,t,s}, \forall s \in S, \forall t \in \{1,\dots ,T-1\}, \label{eq:cvar_multistage_expected_return:wealth_increases} \\
-& && tot_s = \frac{w_{T,s}}{w_{1,s}}, \forall s \in S, \nonumber \\
+& && tot_s = w_{T,s}, \forall s \in S, \nonumber \\
 & && z_s \geq 0, \forall s \in S, \nonumber \\
 & && x_{i,t,s} \geq 0, \forall s \in S, \forall i \in I, \forall t \in \{1,\dots ,T-1\}, \nonumber \\
 & && \gamma \in \R ,\nonumber \\
@@ -155,7 +157,12 @@ We now extend Formulations \ref{cvar_expected_return} and \ref{eq:cvar_risk_aver
 The initial wealth $w_{1,s}$ is set to 1 and in each stage, the wealth increases by the returns obtained in the previous stage (Equation \ref{eq:cvar_multistage_expected_return:wealth_increases}) and is distributed again (Equation \ref{eq:cvar_multistage_expected_return:wealth_distribution}, at the end of the investment horizon we do not need to distribute the wealth into assets again). $r_{i,t,s}$ is the return obtained from stock $i$ at stage $t$ in scenario $s$ (we consider returns indexed by $t$ to occur at the end of stage $t$ (after the portfolio allocations $x_{i,t,s}$ are set), so that Equation \ref{eq:cvar_multistage_expected_return:wealth_increases} makes sense). The returns $r_{i,t,s}$ are of the form $1+r$ (where if the asset gained 6 percent, then $r_{i,t,s}=1.06$). This justifies Equation \ref{eq:cvar_multistage_expected_return:wealth_increases}. $tot_s \, \forall s \in S$ and $r_0$ are then again of the form $1+r$.
 
 \begin{rem}
-We do not include the nonanticipativity constraints in the above formulation, since they must be specified explicitly according to the structure of the scenario tree. To illustrate the explicit formulation of nonanticipativity constraints, consider Figure \ref{fig:balanced_scenario_tree}. In the context of the above problem, there are 6 scenarios ($111, 112, 113, 121, 122, 123$). For this illustration, let $\mathbf{x}_{t,s}$ be the vector of allocations to each assets at time $t$ and in scenario $s$. The nonanticipativity constraints now read:
+The cautious reader would expect the equation for total scenario return $tot_s = w_{T,s}$ to read $tot_s = w_{T,s}/w_{1,s}$. This would make the program nonlinear and we overcome this problem by using the assumption $w_{1,s}=1$.
+\end{rem}
+
+
+\begin{rem}
+We do not include the nonanticipativity constraints in the above formulation, since they must be specified explicitly according to the structure of the scenario tree. To illustrate the explicit formulation of nonanticipativity constraints, consider Figure \ref{fig:balanced_scenario_tree}. In the context of the above problem, there are 6 scenarios ($111, 112, 113, 121, 122, 123$). For this illustration, let $\mathbf{x}_{t,s}$ be the vector of allocations to each assets at time $t$ and in scenario $s$. The nonanticipativity constraints then be:
 \begin{alignat}{10}
 & && \mathbf{x}_{t1,111}=\mathbf{x}_{t1,112}=\mathbf{x}_{t1,113}=\mathbf{x}_{t1,121}=\mathbf{x}_{t1,122}=\mathbf{x}_{t1,123} \nonumber \\
 & && \mathbf{x}_{t2,111}=\mathbf{x}_{t2,112}=\mathbf{x}_{t2,113},\mathbf{x}_{t2,121}=\mathbf{x}_{t2,122}=\mathbf{x}_{t2,123}. \nonumber
@@ -164,12 +171,12 @@ We do not include the nonanticipativity constraints in the above formulation, si
 Similarly, the problem \ref{eq:cvar_risk_aversion} can then be reformulated as Equation \ref{eq:cvar_multistage_risk_aversion}:
 
 \begin{alignat}{10}
-& \min  \, \, \, &&\sum_{s=1}^{S} p_s tot_s + \lambda \left( \gamma + \frac{1}{(1-\alpha)} \sum_{s=1}^S p_s z_s \right), \label{eq:cvar_multistage_risk_aversion}  \\
+& \min  \, \, \, && - \sum_{s=1}^{S} p_s tot_s + \lambda \left( \gamma + \frac{1}{(1-\alpha)} \sum_{s=1}^S p_s z_s \right), \label{eq:cvar_multistage_risk_aversion}  \\
 &s.t. && \, z_s \geq  -tot_s -\gamma, \forall s \in S \nonumber \\
 & && w_{1,s}=1, \forall s \in S, \nonumber \\
-& && w_{t,s}=\sum_{i=1}^{n} x_{i,t,s}, \forall s \in S, \forall t \in \{1,\dots ,T-1\}, \label{eq:cvar_multistage_expected_return:wealth_distribution_risk_aversion} \\
-& && w_{t+1,s}=\sum_{i=1}^{n} r_{i,t,s} x_{i,t,s}, \forall s \in S, \forall t \in \{1,\dots ,T-1\}, \label{eq:cvar_multistage_expected_return:wealth_increases_risk_aversion} \\
-& && tot_s = \frac{w_{T,s}}{w_{1,s}}, \forall s \in S, \nonumber \\
+& && w_{t,s}=\sum_{i=1}^{n} x_{i,t,s}, \forall s \in S, \forall t \in \{1,\dots ,T-1\}, \nonumber \\
+& && w_{t+1,s}=\sum_{i=1}^{n} r_{i,t,s} x_{i,t,s}, \forall s \in S, \forall t \in \{1,\dots ,T-1\},  \nonumber \\
+& && tot_s = w_{T,s}, \forall s \in S, \nonumber \\
 & && z_s \geq 0, \forall s \in S, \nonumber \\
 & && x_{i,t,s} \geq 0, \forall s \in S, \forall i \in I, \forall t \in \{1,\dots ,T-1\}, \nonumber \\
 & && \gamma \in \R ,\nonumber \\
