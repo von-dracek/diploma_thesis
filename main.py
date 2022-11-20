@@ -40,5 +40,6 @@ def get_cvar_value(branching: List[int], data, alpha: float = 0.95, train_or_tes
 
 if __name__ == "__main__":
     """Start here."""
-    branching = [3] * 8
-    print(get_cvar_value(branching))
+    branching = [2,3]
+    data = get_necessary_data()
+    print(get_cvar_value(branching, data))
