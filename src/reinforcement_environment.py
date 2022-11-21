@@ -5,14 +5,13 @@ from gym import spaces
 # possible branching - width - 3 - 8
 # depth - 2 - 8
 from random import random, uniform
-
 from main import get_cvar_value, get_necessary_data
-import logging
 
-from src.configuration import MAX_NUMBER_LEAVES_IN_SCENARIO_TREE
+from src.configuration import MAX_NUMBER_LEAVES_IN_SCENARIO_TREE, MIN_NUMBER_LEAVES_IN_SCENARIO_TREE
 
-valid_action_reward = 0.1
+valid_action_reward = 0.2
 invalid_action_reward = -valid_action_reward
+
 
 def _get_predictors_from_data(data):
     """
@@ -44,11 +43,12 @@ def _reward_func_v2(branching, data, alpha, train_or_test):
     #higher value -> better reward and that is exactly what the
     #minus sign does here
     num_scenarios = np.prod(branching)
-    coef_minus_reward_scenario_tree_complexity = 1/1000
+    coef_minus_reward_scenario_tree_complexity = 1/10000
     penalty_for_complexity = coef_minus_reward_scenario_tree_complexity*num_scenarios
-    return -get_cvar_value(branching, data, alpha, train_or_test) - penalty_for_complexity
+    value = get_cvar_value(branching, data, alpha, train_or_test)
+    return - value - penalty_for_complexity
 
-class TreeBuildingEnv_v4(gym.Env):
+class TreeBuildingEnv(gym.Env):
     """
     Adaptation of gridworld environment for tree building purposes.
     First choosing depth of tree, then each step chooses next branching.
@@ -85,7 +85,7 @@ class TreeBuildingEnv_v4(gym.Env):
             invalid_action = True
             if self.depth == 0: #invalid depth of tree
                 self.done=True
-                return self.get_current_observation_state(), -10, self.done, {"num_scen":self.current_num_scenarios} #if invalid depth of tree is chosen, end the episode
+                return self.get_current_observation_state(), -10, self.done, {"num_scen":self.current_num_scenarios, "terminal_observation":self.get_current_observation_state()} #if invalid depth of tree is chosen, end the episode
             else: #return maximum valid action - if the agent chooses a bad action, we force him to take maximum
                 amax = np.argmax(valid_actions[::-1])
                 action =len(valid_actions) - amax - 1
@@ -99,8 +99,11 @@ class TreeBuildingEnv_v4(gym.Env):
         self.S[y, x] = 1
         if self.current_y == np.argmax(self.S[0, :]) + 1: #all branchings have been chosen - end episode
             self.done = True
-            return self.get_current_observation_state(), _reward_func_v2(self.get_branching(), self.data, self.predictors[0], self.train_or_test), self.done, {"num_scen":self.current_num_scenarios}
-        return self.get_current_observation_state(), valid_action_reward if not invalid_action else invalid_action_reward, self.done, {}
+            reward = _reward_func_v2(self.get_branching(), self.data, self.predictors[0], self.train_or_test)
+            print(f"Done, got reward {reward}")
+            return self.get_current_observation_state(), reward, self.done, {"num_scen":self.current_num_scenarios, "terminal_observation":self.get_current_observation_state()}
+        reward = valid_action_reward if not invalid_action else invalid_action_reward
+        return self.get_current_observation_state(), reward, self.done, {}
 
     @property
     def remaining_depth(self):
@@ -122,16 +125,17 @@ class TreeBuildingEnv_v4(gym.Env):
         if (self.action_space is not None) and (self.depth > 0) and self.remaining_depth > 0:
             current_num_scenarios = self.current_num_scenarios
             if (
-                current_num_scenarios * action * (3 ** (self.remaining_depth - 1))
-                < MAX_NUMBER_LEAVES_IN_SCENARIO_TREE
+                    (current_num_scenarios * action * (3 ** (self.remaining_depth - 1))
+                < MAX_NUMBER_LEAVES_IN_SCENARIO_TREE) and (current_num_scenarios * action * (3 ** (self.remaining_depth - 1))
+                > MIN_NUMBER_LEAVES_IN_SCENARIO_TREE)
             ):
                 return True
         return False
 
     def valid_actions(self):
         if self.depth == 0:
-            va = [False, False]
-            for i in range(2, self.width):
+            va = [False, False, False]
+            for i in range(3, self.width):
                 va.append(3**i < MAX_NUMBER_LEAVES_IN_SCENARIO_TREE)
             arr = np.array(va) * 1
             return np.array(arr, dtype=np.int8)

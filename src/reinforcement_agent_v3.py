@@ -3,8 +3,8 @@ from stable_baselines3.common.callbacks import BaseCallback
 from stable_baselines3.common.monitor import load_results
 from stable_baselines3.common.results_plotter import ts2xy
 
-from stable_baselines3.common.vec_env import SubprocVecEnv
-from reinforcement_environment import TreeBuildingEnv_v4
+from stable_baselines3.common.vec_env import SubprocVecEnv, VecNormalize
+from reinforcement_environment import TreeBuildingEnv
 from stable_baselines3 import A2C
 import torch as th
 from datetime import datetime
@@ -48,14 +48,16 @@ class SaveOnBestTrainingRewardCallback(BaseCallback):
                 print(f"Best mean reward: {self.best_mean_reward:.2f} - Last mean reward per episode: {mean_reward:.2f}")
               self.logger.record(f"Mean reward over last 100 episodes", mean_reward)
 
+              global current_time
               # New best model, you could save the agent here
               if mean_reward > self.best_mean_reward:
                   self.best_mean_reward = mean_reward
                   # Example for saving best model
-                  global current_time
                   if self.verbose > 0:
                     print(f"Saving new best model after {self.n_calls} calls to {self.save_path}_{self.n_calls}, {current_time}.zip")
                   self.model.save(self.save_path + f"_{self.n_calls}, {current_time}")
+              self.model.save(os.path.join(self.log_dir, 'checkpoint') + f"_{self.n_calls}, {current_time}")
+
               # print("Logging mean reward to tensorboard")
 
 
@@ -68,8 +70,9 @@ if __name__ == '__main__':
     os.makedirs(log_dir, exist_ok=True)
 
     # Instantiate the env
-    env = TreeBuildingEnv_v4
-    env = SubprocVecEnv(env_fns=[env]*6)
+    env = TreeBuildingEnv
+    env = SubprocVecEnv(env_fns=[env]*4)
+    env = VecNormalize(env, norm_obs_keys=["predictors"])
     env.seed(1337)
     env = CustomVecMonitor(env, log_dir, info_keywords=("num_scen",))
     current_time = datetime.now().strftime("%Y-%m-%d %H,%M,%S")
@@ -83,9 +86,10 @@ if __name__ == '__main__':
     #     del a2c_model
     num_neurons=64
     #not normalising advantage - should have no effect, see https://github.com/DLR-RM/stable-baselines3/issues/485
-    a2c_model = A2C(policy="MultiInputPolicy", learning_rate=4e-4, use_rms_prop=True, env=env, n_steps=5, policy_kwargs=dict(activation_fn=th.nn.ReLU, net_arch=[num_neurons*2, dict(vf=[num_neurons], pi=[num_neurons])]), tensorboard_log=tensorboard_log, seed=1337)
-    a2c_model.learn(10**9, callback=SaveOnBestTrainingRewardCallback(check_freq=20, log_dir=log_dir, model_name=f"A2C_{num_neurons*2}_{num_neurons}_neurons"), progress_bar=True, tb_log_name=f"A2C_random_normal_{num_neurons*2}_{num_neurons}_neurons", log_interval=4)
-
+    a2c_model = A2C(policy="MultiInputPolicy", learning_rate=1e-4, use_rms_prop=True, env=env, n_steps=5, policy_kwargs=dict(activation_fn=th.nn.ReLU, net_arch=[num_neurons*2, dict(vf=[num_neurons], pi=[num_neurons])]), tensorboard_log=tensorboard_log, seed=1337)
+    a2c_model.learn(1000, callback=SaveOnBestTrainingRewardCallback(check_freq=20, log_dir=log_dir, model_name=f"A2C_{num_neurons*2}_{num_neurons}_neurons"), progress_bar=True, tb_log_name=f"A2C_{num_neurons*2}_{num_neurons}_neurons", log_interval=4)
+    for i in range(100):
+        a2c_model.learn(1000, callback=SaveOnBestTrainingRewardCallback(check_freq=20, log_dir=log_dir, model_name=f"A2C_{num_neurons*2}_{num_neurons}_neurons"), progress_bar=True, tb_log_name=f"A2C_{num_neurons*2}_{num_neurons}_neurons", log_interval=4, reset_num_timesteps=False)
 
 
 
