@@ -38,8 +38,8 @@
 In this chapter, we give an introduction to the theory of stochastic programming with particular focus on multistage linear programs. Most of the content in this chapter is based on the material covered in \cite[Chapter 1]{stochasticprogrammingbible}, \cite[Chapters 1-3]{stochasticprogrammingbible2009} and \cite[Part 2]{dupacovastochasticprogramming} if not specified otherwise.
 
 \section{Basic definitions}
-\begin{defn}{Mathematical program in $\R^n$ \cite[p. 107]{dupacovastochasticprogramming}}. \\
-\label{def:MathematicalProgramDef}
+\begin{defn}{Mathematical program in $\R^n$}. \label{def:MathematicalProgramDef} \\
+\cite[p. 107]{dupacovastochasticprogramming} \\
 Let $p,m,n \in \N$. A mathematical program in $\R^n$ is defined as
 \begin{equation*}
 \mathrm{min} \{f(\mathbf{x}), \mathbf{x} \in \mathbf{M}\},
@@ -52,7 +52,7 @@ This set is usually defined by constraints as follows:
 where $h_j$ and $g_k$ are real functions.
 \end{defn}
 If all functions in Definition~\ref{def:MathematicalProgramDef} are linear, we call the problem a \textit{Linear program}.
-Furthermore, if any of the functions mentioned in Definition~\ref{def:MathematicalProgramDef} depend on parameters, we call the problem a \textit{Parametric program}. If any of the parameters are uncertain \textcolor{red}{(random variables)}\todo{Is random variable ok here? I assume it is, just for check.}, we call the problem a \textit{Stochastic program}.
+Furthermore, if any of the functions mentioned in Definition~\ref{def:MathematicalProgramDef} depend on parameters, we call the problem a \textit{Parametric program}. If any of the parameters are random variables, we call the problem a \textit{Stochastic program}.
 
 
 However, this definition of a Stochastic program is not well formulated. Consider the Definition~\ref{def:MathematicalProgramDef} and let $\Omega$ be a non-empty set, $\mathcal{F}$ be a  $\sigma$-algebra on $\Omega$, $\omega \in \Omega$ and $\mathcal{P}$ be a probability measure on $(\Omega, \mathcal{F})$, leading to a probability space $(\Omega, \mathcal{F}, \mathcal{P})$. In the context of a Stochastic program, the function $f$ does not depend on $\mathbf{x}$ only, but also on the realisation of $\omega$. This would lead to a nonsensical definition, as for different realisations of $\omega$, the optimal value may be different. The standard way to handle this problem is to consider minimisation of expected value of the function $f$:
@@ -60,7 +60,11 @@ However, this definition of a Stochastic program is not well formulated. Conside
 \begin{equation*}
 \mathrm{min} \{\mathbb{E}\left[f(\mathbf{x}, \omega)\right], \mathbf{x} \in \mathbf{M}\},
 \end{equation*}
-where $\mathbb{E}$ is the expected value operator defined with respect to the probability measure $\mathcal{P}$. \todo{Are these definitions (mostly the probability measure stuff) correct?}
+where $\mathbb{E}$ is the expected value operator defined with respect to the probability measure $\mathcal{P}$. 
+\begin{rem}
+We consider only the case where only the function $f$ depends on $\omega$ and that the set $\mathbf{M}$ is deterministic.
+\end{rem}
+ \todo{Are these definitions (mostly the probability measure stuff) correct? I think they are, just to check.}
 
 
 \section{Multistage stochastic programming}
@@ -71,6 +75,10 @@ This section is heavily inspired by \cite[Section 3.3.]{stochasticprogrammingbib
 Following the notation established there, consider the following sequence of events
 \begin{equation*}
 \begin{gathered}
+\mathrm{Observation} \,\, \xi_1
+\\
+\downarrow
+\\
 \mathrm{Decision} \, \, x_1
 \\
 \downarrow
@@ -98,21 +106,22 @@ Following the notation established there, consider the following sequence of eve
 \mathrm{Decision} \,\, x_T,
 \end{gathered}
 \end{equation*}
-where $T$ is the number of stages, $x=(x_1,\dots,x_T)$ is called the decision process ($x_1$ is a non-random vector of variables), $\xi = (\xi_2,\dots,\xi_{T})$ is a stochastic data process ($\xi_1$ is assumed to be known before making the decision $x_1$ and deterministic).  The decision process $x$ represents the decisions made at each stage (i.e. for a portfolio optimization problem, $x_t$ may be a random vector of proportions of some assets in a portfolio at some intermediate stage\todo{is this clear? Maybe rewrite}) and $\xi_{T}$ is a random vector representing the data process in the last stage (i.e. it may be a vector of yearly asset returns). Furthermore, the probability distribution of $\xi$ is assumed to be known. Usually, one more observation from the stochastic data process, denoted as $\xi_{T+1}$, is considered to happen after the last decision $x_T$.
+where $T$ is the number of stages, $x=(x_1,\dots,x_T)$ is called the decision process ($x_1$ is a non-random vector of variables), $\xi = (\xi_2,\dots,\xi_{T})$ is a stochastic data process ($\xi_1$ is assumed to be known before making the decision $x_1$ and can thus be considered deterministic).  The decision process $x$ represents the decisions made at each stage (i.e. for a portfolio optimization problem, $x_t$ may be a random vector of proportions of some assets in a portfolio at some intermediate stage\todo{is this clear? Maybe rewrite}) and $\xi_{t}$ is a random vector representing the data process in stage $t$ (i.e. it may be a vector of yearly asset returns). Furthermore, the probability distribution of $\xi$ is assumed to be known. Usually, one more observation from the stochastic data process, denoted as $\xi_{T+1}$, is considered to happen after the last decision $x_T$.
 \todo{make notation consistent regarding $\xi$}
 \subsection{Nonanticipativity}
 Both processes $x$ and $\xi$ are random and thus depend on the realised $\omega \in \Omega$. In order for the program to be well defined, the decision process $x$ must not take into account future observations of either
-$\xi$ or decisions $x$, but only the past and present. This is formalised by the so called nonanticipativity constraints, which assure that the $x_t$ may depend only on $(x_1,\dots,x_{t-1})$ and $(\xi_1,...,\xi_{t})$.
+$\xi$ or decisions $x$, but only the past and present. This is formalised by the so called nonanticipativity constraints, which assure that the $x_t$ at time $t$ may depend only on $(x_1,\dots,x_{t-1})$ and $(\xi_1,...,\xi_{t})$.
 
-\begin{defn}{Nonanticipativity constraints} \cite[Section 3.3.]{stochasticprogrammingbible}. \\
-\label{def:nonanticipativity constraints}
+\begin{defn}{Nonanticipativity constraints} \label{def:nonanticipativity constraints}
+\\
+\cite[Section 3.3.]{stochasticprogrammingbible}. \\
 The decision process $x$ is termed nonanticipative if
 \begin{equation*}
 x_t=\mathbb{E}\left[x_t|\xi_1,\dots,\xi_t \right], t=1,\dots,T,
 \end{equation*}
 or equivalently, if $\mathcal{F}_t$ is the $\sigma$-algebra generated by $(\xi_1,\dots,\xi_t)$, then $x_t(\omega)$\todo{should ($\omega$) be here?} must be measurable with respect to $\mathcal{F}_t$, where $\mathcal{F}_1 \subset \mathcal{F}_2 \subset \dots \subset \mathcal{F}_T \subset \mathcal{F}$.
 \end{defn}
-This is in contrast to general deterministic (multiperiod) programs, where all data are taken into account. Of course, this definition is not very practical from an implementation standpoint. We provide explicit formulation of nonanticipavity constraints in \todo{doplnit referenci}.
+This is in contrast to general deterministic (multiperiod) programs, where all data are taken into account. Of course, this definition is not very practical from an implementation standpoint. We provide explicit formulation of nonanticipavity constraints in Section \ref{section:endofhorizoncvar_scenario_formulation}.
 
 \subsection{General multistage optimization problem formulation}
 We first present the nested problem formulation, see Definition \ref{eq:generalmultistageprogrammingformulation}, that arises by considering the optimization subproblems in each stage (in the reverse order, i.e. from the last stage to the first stage) recursively.
@@ -166,7 +175,7 @@ If we view the decision process $x_t$ (at time $t$) as a function of the part of
 \end{defn}
 where the nonanticipativity constraints are included implicitly.
 
-All aforementioned stochastic programming problems may involve general distributions, which, in particular, may be continuous. The literature suggests that while formulating such multistage stochastic programs is possible, solving such programs is not feasible. Particularly \cite{pflugscenariotreegeneration} mentions that this is \textit{due to the fact that the decisions are functions, making the problem a functional optimization problem, which cannot be numerically solved as it is}. We need to keep in mind that the resulting formulation is only approximate and solving it thus provides an estimate of the true objective value (and true decision variables).
+All aforementioned stochastic programming problems may involve general distributions, which, in particular, may be continuous. The literature suggests that while formulating such multistage stochastic programs is possible, solving such programs is not feasible. Particularly \cite{pflugscenariotreegeneration} mentions that this is \textit{due to the fact that the decisions are functions, making the problem a functional optimization problem, which cannot be numerically solved as it is}. To get around this problem, the continuous distributions can be approximated using discrete distributions. We need to keep in mind that the resulting formulation is only approximate and solving it thus provides an estimate of the true objective value (and true decision variables).
 \subsubsection{Formulation using scenario trees}
 To obtain a solvable program, we must obtain a suitable approximation of the underlying continuous distribution. This approximation may be a discrete distribution with a finite number of atoms (scenarios) $\xi^i, i=1,\dots,S$ where $S$ is the number of scenarios. The scenarios are usually organised in tree form as shown in Figures \ref{fig:balanced_scenario_tree} and \ref{fig:unbalanced_scenario_tree}. The following description of scenario tree formulation is heavily inspired by \cite[Section 2]{dupacova_scenarios_for_multistage_stochastic_programs}.
 
