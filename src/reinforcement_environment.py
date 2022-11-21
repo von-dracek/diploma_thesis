@@ -1,15 +1,17 @@
+from typing import Callable
+
 import gym
 import numpy as np
 from gym import spaces
 # gridworld
-# possible branching - width - 3 - 8
-# depth - 2 - 8
+# possible branching - width - 3 - 7
+# depth - 3 - 7
 from random import random, uniform
 from main import get_cvar_value, get_necessary_data
 
 from src.configuration import MAX_NUMBER_LEAVES_IN_SCENARIO_TREE, MIN_NUMBER_LEAVES_IN_SCENARIO_TREE
 
-valid_action_reward = 0.2
+valid_action_reward = 0.1
 invalid_action_reward = -valid_action_reward
 
 
@@ -33,6 +35,9 @@ def _get_predictors_from_data(data):
     predictors[7] = returns.mean()
     predictors[8] = returns.var()
     return predictors
+
+def _reward_func_pretraining(branching, data, alpha, train_or_test):
+    return valid_action_reward
 
 def _reward_func_v2(branching, data, alpha, train_or_test):
     """Calculates reward from chosen branching."""
@@ -58,14 +63,15 @@ class TreeBuildingEnv(gym.Env):
     the brachings in each level.
     """
 
-    def __init__(self, train_or_test:str = "train"):
+    def __init__(self, reward_fn: Callable, train_or_test:str = "train"):
         self.train_or_test = train_or_test
-        self.height = 9
+        self.height = 8
         # first level in height is chosen depth of tree
         # next levels represent branching at each stage
-        self.width = 9
+        self.width = 8
         self.observation_space = spaces.Dict(state=spaces.MultiDiscrete([2]*self.height*self.width), predictors=spaces.Box(shape=(9,), low=0, high=1000))
         self.reset()
+        self.reward_fn = reward_fn
         # begin in start state
 
     def step(self, action):
@@ -78,17 +84,19 @@ class TreeBuildingEnv(gym.Env):
         """
         if action not in self.action_space:
             raise NotImplementedError
+        action = action + 3
         if self.done:
             raise NotImplementedError
         valid_actions = self.valid_actions()
         if valid_actions[action]==0: #checks if action is valid
             invalid_action = True
-            if self.depth == 0: #invalid depth of tree
-                self.done=True
-                return self.get_current_observation_state(), -10, self.done, {"num_scen":self.current_num_scenarios, "terminal_observation":self.get_current_observation_state()} #if invalid depth of tree is chosen, end the episode
-            else: #return maximum valid action - if the agent chooses a bad action, we force him to take maximum
-                amax = np.argmax(valid_actions[::-1])
-                action =len(valid_actions) - amax - 1
+            # if self.depth == 0: #invalid depth of tree
+            #     self.done=True
+            #     print("Done, got reward -10")
+            #     return self.get_current_observation_state(), -10, self.done, {"num_scen":self.current_num_scenarios, "terminal_observation":self.get_current_observation_state()} #if invalid depth of tree is chosen, end the episode
+            # else: #return maximum valid action - if the agent chooses a bad action, we force him to take maximum
+            amax = np.argmax(valid_actions[::-1])
+            action =len(valid_actions) - amax - 1
         else:
             invalid_action = False
         x = action
@@ -99,7 +107,7 @@ class TreeBuildingEnv(gym.Env):
         self.S[y, x] = 1
         if self.current_y == np.argmax(self.S[0, :]) + 1: #all branchings have been chosen - end episode
             self.done = True
-            reward = _reward_func_v2(self.get_branching(), self.data, self.predictors[0], self.train_or_test)
+            reward = self.reward_fn(self.get_branching(), self.data, self.predictors[0], self.train_or_test)
             print(f"Done, got reward {reward}")
             return self.get_current_observation_state(), reward, self.done, {"num_scen":self.current_num_scenarios, "terminal_observation":self.get_current_observation_state()}
         reward = valid_action_reward if not invalid_action else invalid_action_reward
@@ -117,10 +125,11 @@ class TreeBuildingEnv(gym.Env):
 
     @property
     def action_space(self):
-        return spaces.Discrete(9)
+        return spaces.Discrete(5)
+        # return spaces.Discrete(9)
 
     def is_action_valid(self, action):
-        if action < 3 or action >= 9: #in other states permit only actions 3 - 8
+        if action < 3 or action > 7: #in other states permit only actions 3 - 8
             return False
         if (self.action_space is not None) and (self.depth > 0) and self.remaining_depth > 0:
             current_num_scenarios = self.current_num_scenarios

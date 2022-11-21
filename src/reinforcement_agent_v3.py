@@ -4,7 +4,7 @@ from stable_baselines3.common.monitor import load_results
 from stable_baselines3.common.results_plotter import ts2xy
 
 from stable_baselines3.common.vec_env import SubprocVecEnv, VecNormalize
-from reinforcement_environment import TreeBuildingEnv
+from reinforcement_environment import TreeBuildingEnv, _reward_func_pretraining, _reward_func_v2
 from stable_baselines3 import A2C
 import torch as th
 from datetime import datetime
@@ -57,6 +57,9 @@ class SaveOnBestTrainingRewardCallback(BaseCallback):
                     print(f"Saving new best model after {self.n_calls} calls to {self.save_path}_{self.n_calls}, {current_time}.zip")
                   self.model.save(self.save_path + f"_{self.n_calls}, {current_time}")
               self.model.save(os.path.join(self.log_dir, 'checkpoint') + f"_{self.n_calls}, {current_time}")
+              self.model.env.save(os.path.join(self.log_dir, 'checkpoint_env') + f"_{self.n_calls}, {current_time}")
+              self.model.save(os.path.join(self.log_dir, 'latest'))
+              self.model.env.save(os.path.join(self.log_dir, 'latest_env'))
 
               # print("Logging mean reward to tensorboard")
 
@@ -64,69 +67,52 @@ class SaveOnBestTrainingRewardCallback(BaseCallback):
         return True
 
 
+def make_pretraining_env():
+    return TreeBuildingEnv(_reward_func_pretraining)
+
+def make_training_env():
+    return TreeBuildingEnv(_reward_func_v2)
+
 if __name__ == '__main__':
 
     log_dir = "./tensorboard_logging/gym/"
     os.makedirs(log_dir, exist_ok=True)
 
-    # Instantiate the env
-    env = TreeBuildingEnv
-    env = SubprocVecEnv(env_fns=[env]*4)
-    env = VecNormalize(env, norm_obs_keys=["predictors"])
-    env.seed(1337)
-    env = CustomVecMonitor(env, log_dir, info_keywords=("num_scen",))
+    start_training=True
+    num_neurons = 64
+
+
     current_time = datetime.now().strftime("%Y-%m-%d %H,%M,%S")
+    tensorboard_log = log_dir
 
-    tensorboard_log=log_dir
+    if start_training:
 
-    # for i in range(7):
-    #     num_neurons = 2**(i+1)
-    #     a2c_model = A2C(policy="MultiInputPolicy", learning_rate=4e-4, use_rms_prop=True, normalize_advantage=True, env=env, n_steps=5, policy_kwargs=dict(activation_fn=th.nn.ReLU, net_arch=[num_neurons*2, dict(vf=[num_neurons], pi=[num_neurons])]), tensorboard_log=tensorboard_log, seed=1337)
-    #     a2c_model.learn(100000, callback=SaveOnBestTrainingRewardCallback(check_freq=20, log_dir=log_dir, model_name=f"A2C_{num_neurons*2}_{num_neurons}_neurons"), progress_bar=True, tb_log_name=f"A2C_random_normal_{num_neurons*2}_{num_neurons}_neurons", log_interval=4)
-    #     del a2c_model
-    num_neurons=64
-    #not normalising advantage - should have no effect, see https://github.com/DLR-RM/stable-baselines3/issues/485
-    a2c_model = A2C(policy="MultiInputPolicy", learning_rate=1e-4, use_rms_prop=True, env=env, n_steps=5, policy_kwargs=dict(activation_fn=th.nn.ReLU, net_arch=[num_neurons*2, dict(vf=[num_neurons], pi=[num_neurons])]), tensorboard_log=tensorboard_log, seed=1337)
-    a2c_model.learn(1000, callback=SaveOnBestTrainingRewardCallback(check_freq=20, log_dir=log_dir, model_name=f"A2C_{num_neurons*2}_{num_neurons}_neurons"), progress_bar=True, tb_log_name=f"A2C_{num_neurons*2}_{num_neurons}_neurons", log_interval=4)
-    for i in range(100):
-        a2c_model.learn(1000, callback=SaveOnBestTrainingRewardCallback(check_freq=20, log_dir=log_dir, model_name=f"A2C_{num_neurons*2}_{num_neurons}_neurons"), progress_bar=True, tb_log_name=f"A2C_{num_neurons*2}_{num_neurons}_neurons", log_interval=4, reset_num_timesteps=False)
+        # Instantiate the env
+        env = make_training_env
+        venv = SubprocVecEnv(env_fns=[env] * 4)
+        venv = CustomVecMonitor(venv, log_dir, info_keywords=("num_scen",))
+
+        env = VecNormalize(venv, norm_obs_keys=["predictors"])
+        env.seed(1337)
 
 
+        # for i in range(7):
+        #     num_neurons = 2**(i+1)
+        #     a2c_model = A2C(policy="MultiInputPolicy", learning_rate=4e-4, use_rms_prop=True, normalize_advantage=True, env=env, n_steps=5, policy_kwargs=dict(activation_fn=th.nn.ReLU, net_arch=[num_neurons*2, dict(vf=[num_neurons], pi=[num_neurons])]), tensorboard_log=tensorboard_log, seed=1337)
+        #     a2c_model.learn(100000, callback=SaveOnBestTrainingRewardCallback(check_freq=20, log_dir=log_dir, model_name=f"A2C_{num_neurons*2}_{num_neurons}_neurons"), progress_bar=True, tb_log_name=f"A2C_random_normal_{num_neurons*2}_{num_neurons}_neurons", log_interval=4)
+        #     del a2c_model
 
-    # dqn_model = DQN("MlpPolicy",
-    #             env,
-    #             verbose=1,
-    #             train_freq=32,
-    #             gradient_steps=8,
-    #             gamma=0.99,
-    #             exploration_fraction=1,
-    #             exploration_final_eps=0.01,
-    #             target_update_interval=600,
-    #             learning_starts=10000,
-    #             batch_size=128,
-    #             learning_rate=4e-3,
-    #             policy_kwargs=dict(net_arch=[48, 24, 12]),
-    #             tensorboard_log=tensorboard_log,
-    #             seed=2)
-    #
-    #
-    # dqn_model.learn(100000, callback=callback, progress_bar=True, log_interval=100)
-
-    # ddqn_model = DQN("MlpPolicy",
-    #             env,
-    #             verbose=1,
-    #             train_freq=32,
-    #             gamma=0.99,
-    #             exploration_fraction=0.5,
-    #             exploration_final_eps=0.01,
-    #             learning_starts=10000,
-    #             batch_size=128,
-    #             learning_rate=1e-4,
-    #             policy_kwargs=dict(net_arch=[48, 12]),
-    #             tensorboard_log=tensorboard_log,
-    #             target_update_interval=100,
-    #             seed=2)
-    #
-    #
-    # ddqn_model.learn(100000, callback=callback,log_interval=100)
-
+        #not normalising advantage - should have no effect, see https://github.com/DLR-RM/stable-baselines3/issues/485
+        a2c_model = A2C(policy="MultiInputPolicy", learning_rate=1e-4, use_rms_prop=True, env=env, n_steps=5, policy_kwargs=dict(activation_fn=th.nn.ReLU, net_arch=[num_neurons*2, dict(vf=[num_neurons], pi=[num_neurons])]), tensorboard_log=tensorboard_log, seed=1337)
+        a2c_model.learn(961, callback=SaveOnBestTrainingRewardCallback(check_freq=20, log_dir=log_dir, model_name=f"A2C_{num_neurons*2}_{num_neurons}_neurons"), progress_bar=True, tb_log_name=f"A2C_{num_neurons*2}_{num_neurons}_neurons", log_interval=4)
+    else:
+        a2c_model = A2C.load(os.path.join(log_dir, 'latest.zip'))
+        env = make_training_env
+        venv = SubprocVecEnv(env_fns=[env] * 4)
+        venv = CustomVecMonitor(venv, log_dir, info_keywords=("num_scen",))
+        env = VecNormalize.load(os.path.join(log_dir, 'latest_env'), venv=venv)
+        a2c_model.set_env(env)
+        a2c_model.learn(10000, callback=SaveOnBestTrainingRewardCallback(check_freq=20, log_dir=log_dir,
+                                                                        model_name=f"A2C_{num_neurons * 2}_{num_neurons}_neurons"),
+                        progress_bar=True, tb_log_name=f"A2C_{num_neurons * 2}_{num_neurons}_neurons", log_interval=4,
+                        reset_num_timesteps=False)
