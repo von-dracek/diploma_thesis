@@ -2,8 +2,8 @@ import datetime
 import enum
 
 FIRST_VALID_DATE = datetime.datetime(2000, 1, 1, 1, 1)
-LAST_VALID_DATE = datetime.datetime(2020, 12, 31, 23, 59)
-DOWNLOAD_DATA = False
+LAST_VALID_DATE = datetime.datetime(2019, 12, 31, 23, 59)
+DOWNLOAD_DATA = True
 RETURNS_FILE = "returns"
 
 MIN_NUMBER_LEAVES_IN_SCENARIO_TREE = 100

@@ -6,7 +6,8 @@ import pandas as pd
 import yfinance as yf
 from dateutil.relativedelta import relativedelta
 
-from src.configuration import FILE, train_tickers, test_tickers
+from src.configuration import FILE, train_tickers, test_tickers, FIRST_VALID_DATE, LAST_VALID_DATE, TICKERS
+
 
 def download_data(
     start: datetime.datetime,
@@ -75,13 +76,20 @@ def date_intv(start: datetime.datetime, end: datetime.datetime, intv: int) -> da
 class DataGetter:
     def __init__(self):
         self.loaded_data = load_data(FILE.DATA_PRICES_CLOSE_FILE.value)
+        self.first_half_of_data = self.loaded_data[:len(self.loaded_data)//2]
+        self.second_half_of_data = self.loaded_data[len(self.loaded_data)//2:]
 
     def randomly_sample_data(self, train_or_test: str):
         tickers = train_tickers if train_or_test == "train" else (test_tickers if train_or_test=="test" else None)
+        data = self.first_half_of_data if train_or_test == "train" else (self.second_half_of_data if train_or_test=="test" else None)
         n_stocks = randint(4,10)
         assert isinstance(tickers, List)
         chosen_tickers = sample(tickers, n_stocks)
         assert isinstance(chosen_tickers, List)
         chosen_tickers = [("Close", x) for x in chosen_tickers]
-        return self.loaded_data[chosen_tickers]
+        return data[chosen_tickers]
 
+
+if __name__ == "__main__":
+    """Start here."""
+    download_data(FIRST_VALID_DATE, LAST_VALID_DATE, TICKERS)

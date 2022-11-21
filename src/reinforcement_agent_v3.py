@@ -68,10 +68,15 @@ class SaveOnBestTrainingRewardCallback(BaseCallback):
 
 
 def make_pretraining_env():
-    return TreeBuildingEnv(_reward_func_pretraining)
+    raise NotImplementedError
+    # return TreeBuildingEnv(_reward_func_pretraining)
 
 def make_training_env():
-    return TreeBuildingEnv(_reward_func_v2)
+    return TreeBuildingEnv(_reward_func_v2, "train")
+
+def make_testing_env():
+    return TreeBuildingEnv(_reward_func_v2, "test")
+
 
 if __name__ == '__main__':
 
