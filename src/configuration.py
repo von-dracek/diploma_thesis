@@ -19,3 +19,7 @@ assert len(set(train_tickers).intersection(set(test_tickers)))==0
 class FILE(enum.Enum):
     RETURNS_FILE = "returns"
     DATA_PRICES_CLOSE_FILE = "Downloaded_Adjusted_Close_prices"
+
+ASSET_SET_1 = train_tickers[:10]
+ASSET_SET_2 = train_tickers[10:20]
+ASSET_SET_3 = train_tickers[20:30]

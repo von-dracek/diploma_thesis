@@ -21,8 +21,8 @@ configure()
 
 datagetter = DataGetter()
 
-def get_necessary_data(train_or_test:str = "train"):
-    data = datagetter.randomly_sample_data(train_or_test)
+def get_necessary_data(train_or_test:str = "train", defined_tickers: List[str]=None):
+    data = datagetter.randomly_sample_data(train_or_test, defined_tickers)
     return data
 
 def get_cvar_value(branching: List[int], data, alpha: float = 0.95, train_or_test:str = "train") -> float:

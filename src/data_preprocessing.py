@@ -54,8 +54,6 @@ def data_to_returns_iid(data: pd.DataFrame, branching: List[int]):
     data = data[data.index.isin(nearest_dates)]
     returns = data.pct_change() + 1
     #returns are calculated in such a way so that they can be multiplied together to get the final return
-    #todo: maybe consider log returns?
-    # log_returns = np.log(data) - np.log(data.shift(1)) + 1
     returns = returns.dropna()
     assert len(returns) == len(branching)
     return returns

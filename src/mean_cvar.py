@@ -124,7 +124,7 @@ ScenarioProbabilities(s)
 Parameter
 InitialWealth /1/;
 Parameter
-RiskAversionParameter /1/;
+RiskAversionParameter /0.3/;
 Parameter
 alpha /0.95/;
 

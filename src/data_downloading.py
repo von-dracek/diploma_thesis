@@ -79,12 +79,16 @@ class DataGetter:
         self.first_half_of_data = self.loaded_data[:len(self.loaded_data)//2]
         self.second_half_of_data = self.loaded_data[len(self.loaded_data)//2:]
 
-    def randomly_sample_data(self, train_or_test: str):
+    def randomly_sample_data(self, train_or_test: str, defined_tickers: List[str]=None):
+        """defined_tickers - list of tickers to choose from (not choosing randomly)"""
         tickers = train_tickers if train_or_test == "train" else (test_tickers if train_or_test=="test" else None)
         data = self.first_half_of_data if train_or_test == "train" else (self.second_half_of_data if train_or_test=="test" else None)
-        n_stocks = randint(4,10)
+        n_stocks = randint(7,10)
         assert isinstance(tickers, List)
         chosen_tickers = sample(tickers, n_stocks)
+        if defined_tickers is not None:
+            chosen_tickers = defined_tickers
+            print(f"WARNING!!!!! Fixing ticker set to {defined_tickers}")
         assert isinstance(chosen_tickers, List)
         chosen_tickers = [("Close", x) for x in chosen_tickers]
         return data[chosen_tickers]
