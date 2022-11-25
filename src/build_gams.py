@@ -59,6 +59,7 @@ objective..      loss =e= sum(i,power(mean(i)-TARMOM("1",i),2))
 sumuptoone..     1 =e= sum(j, p(j));
 
 Model problem / objective, sumuptoone, m1, m2, m3, m4, correl_eq /;
+problem.solveLink = 5;
 
 solve problem using NLP minimising loss;
         """  # noqa: E501
@@ -70,8 +71,8 @@ solve problem using NLP minimising loss;
 # and Distribution Matching
 # Bruno A. Calfa∗, Anshul Agarwal†, Ignacio E. Grossmann∗, John M. Wassick†
 
-def build_mm_model(n_nodes, TARMOM, R):
-    gms = GamsWorkspace(system_directory=r"C:\GAMS\40")
+def build_mm_model(n_nodes, TARMOM, R, gams_workspace):
+    gms = gams_workspace
     model_str = prepare_moment_matching_model_str(n_nodes, TARMOM, R)
     output_stream = io.StringIO()
     job = gms.add_job_from_string(model_str)
@@ -88,6 +89,8 @@ def build_mm_model(n_nodes, TARMOM, R):
     assert "** Optimal solution" in output or "** Feasible solution" in output
     assert "*** Status: Normal completion" in output
     assert all((_p >= 0) and (_p <= 1) for _p in p.values())
+    del job
+    output_stream.close()
     x = pd.DataFrame.from_dict(x).T
     p = pd.Series(p)
     x = x.to_numpy()

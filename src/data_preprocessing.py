@@ -38,7 +38,7 @@ def data_to_returns_iid(data: pd.DataFrame, branching: List[int]):
     """Convert weekly data to returns according to specified branching.
     The time period is constant, only the number of stages changes - returns
     need to be calculated based on the given number of stages."""
-    n_stages = len(branching)
+    n_stages = len(branching) * 2
     first_date_in_dataset = data.index[0]
     last_date_in_dataset = data.index[-1]
     interval = date_intv(first_date_in_dataset, last_date_in_dataset, n_stages)
@@ -55,7 +55,7 @@ def data_to_returns_iid(data: pd.DataFrame, branching: List[int]):
     returns = data.pct_change() + 1
     #returns are calculated in such a way so that they can be multiplied together to get the final return
     returns = returns.dropna()
-    assert len(returns) == len(branching)
+    assert len(returns) == len(branching) * 2
     return returns
 
 

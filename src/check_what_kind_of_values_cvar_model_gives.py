@@ -20,12 +20,12 @@ if __name__ == '__main__':
     if perform_experiment:
         for asset_set_index, asset_set in enumerate(asset_sets):
             for env_name, env_function in env_function_dict.items():
-                env = env_function(asset_set, 0.9)
+                env = env_function(asset_set, 0.9)()
 
                 env.seed(1337)
                 rewards = []
                 i = 0
-                count_to = 5
+                count_to = 250
                 while i < count_to:
                     logging.info(f"Calculating tree {i} out of {count_to}")
                     env.reset()
@@ -40,6 +40,9 @@ if __name__ == '__main__':
 
 
                 with open(f'reward_distribution_from_mean_cvar_{env_name}_{asset_set_index}.pickle', 'wb') as handle:
+                    pickle.dump(rewards, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+                with open(f'reward_distribution_from_mean_cvar_{env_name}_{asset_set_index}_{current_time}.pickle', 'wb') as handle:
                     pickle.dump(rewards, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
                 print(rewards)
@@ -70,8 +73,8 @@ if __name__ == '__main__':
                 fig.update_yaxes(title_text="Normalized Reward", row=i, col=j)
         # fig.show()
         fig.update(layout_showlegend=False)
-        fig.write_image("C:/Users/crash/Documents/Programming/diploma_thesis_merged/diploma_thesis_v2/scatterplots_scenarios_normalized.pdf")
-        fig.write_html("C:/Users/crash/Documents/Programming/diploma_thesis_merged/diploma_thesis_v2/scatterplots_scenarios_normalized.html")
+        fig.write_image(f"C:/Users/crash/Documents/Programming/diploma_thesis_merged/diploma_thesis_v2/scatterplots_scenarios_normalized_{current_time}.pdf")
+        fig.write_html(f"C:/Users/crash/Documents/Programming/diploma_thesis_merged/diploma_thesis_v2/scatterplots_scenarios_normalized_{current_time}.html")
 
         del fig
 
@@ -89,8 +92,8 @@ if __name__ == '__main__':
                 fig.update_yaxes(title_text="Normalized Reward", row=i, col=j)
         # fig.show()
         fig.update(layout_showlegend=False)
-        fig.write_image("C:/Users/crash/Documents/Programming/diploma_thesis_merged/diploma_thesis_v2/scatterplots_depth_normalized.pdf")
-        fig.write_html("C:/Users/crash/Documents/Programming/diploma_thesis_merged/diploma_thesis_v2/scatterplots_depth_normalized.html")
+        fig.write_image(f"C:/Users/crash/Documents/Programming/diploma_thesis_merged/diploma_thesis_v2/scatterplots_depth_normalized_{current_time}.pdf")
+        fig.write_html(f"C:/Users/crash/Documents/Programming/diploma_thesis_merged/diploma_thesis_v2/scatterplots_depth_normalized_{current_time}.html")
 
         del fig
 
@@ -108,8 +111,8 @@ if __name__ == '__main__':
                 fig.update_yaxes(title_text="Normalized Reward", row=i, col=j)
         # fig.show()
         fig.update(layout_showlegend=False)
-        fig.write_image("C:/Users/crash/Documents/Programming/diploma_thesis_merged/diploma_thesis_v2/boxplots_depth_normalized.pdf")
-        fig.write_html("C:/Users/crash/Documents/Programming/diploma_thesis_merged/diploma_thesis_v2/boxplots_depth_normalized.html")
+        fig.write_image(f"C:/Users/crash/Documents/Programming/diploma_thesis_merged/diploma_thesis_v2/boxplots_depth_normalized_{current_time}.pdf")
+        fig.write_html(f"C:/Users/crash/Documents/Programming/diploma_thesis_merged/diploma_thesis_v2/boxplots_depth_normalized_{current_time}.html")
 
 
         fig = make_subplots(rows=3, cols=2, subplot_titles=titles)
@@ -125,8 +128,8 @@ if __name__ == '__main__':
                 fig.update_yaxes(title_text="Normalized Reward", row=i, col=j)
         # fig.show()
         fig.update(layout_showlegend=False)
-        fig.write_image("C:/Users/crash/Documents/Programming/diploma_thesis_merged/diploma_thesis_v2/scatterplots_scenarios.pdf")
-        fig.write_html("C:/Users/crash/Documents/Programming/diploma_thesis_merged/diploma_thesis_v2/scatterplots_scenarios.html")
+        fig.write_image(f"C:/Users/crash/Documents/Programming/diploma_thesis_merged/diploma_thesis_v2/scatterplots_scenarios_{current_time}.pdf")
+        fig.write_html(f"C:/Users/crash/Documents/Programming/diploma_thesis_merged/diploma_thesis_v2/scatterplots_scenarios_{current_time}.html")
 
         del fig
 
@@ -144,8 +147,8 @@ if __name__ == '__main__':
                 fig.update_yaxes(title_text="Normalized Reward", row=i, col=j)
         # fig.show()
         fig.update(layout_showlegend=False)
-        fig.write_image("C:/Users/crash/Documents/Programming/diploma_thesis_merged/diploma_thesis_v2/scatterplots_depth.pdf")
-        fig.write_html("C:/Users/crash/Documents/Programming/diploma_thesis_merged/diploma_thesis_v2/scatterplots_depth.html")
+        fig.write_image(f"C:/Users/crash/Documents/Programming/diploma_thesis_merged/diploma_thesis_v2/scatterplots_depth_{current_time}.pdf")
+        fig.write_html(f"C:/Users/crash/Documents/Programming/diploma_thesis_merged/diploma_thesis_v2/scatterplots_depth_{current_time}.html")
 
         del fig
 
@@ -163,5 +166,5 @@ if __name__ == '__main__':
                 fig.update_yaxes(title_text="Normalized Reward", row=i, col=j)
         # fig.show()
         fig.update(layout_showlegend=False)
-        fig.write_image("C:/Users/crash/Documents/Programming/diploma_thesis_merged/diploma_thesis_v2/boxplots_depth.pdf")
-        fig.write_html("C:/Users/crash/Documents/Programming/diploma_thesis_merged/diploma_thesis_v2/boxplots_depth.html")
+        fig.write_image(f"C:/Users/crash/Documents/Programming/diploma_thesis_merged/diploma_thesis_v2/boxplots_depth_{current_time}.pdf")
+        fig.write_html(f"C:/Users/crash/Documents/Programming/diploma_thesis_merged/diploma_thesis_v2/boxplots_depth_{current_time}.html")

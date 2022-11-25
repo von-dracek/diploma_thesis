@@ -2,17 +2,19 @@ import os
 from typing import List
 
 from stable_baselines3.common.callbacks import BaseCallback
-from stable_baselines3.common.monitor import load_results
+from stable_baselines3.common.monitor import load_results, Monitor
 from stable_baselines3.common.results_plotter import ts2xy
-
 from stable_baselines3.common.vec_env import SubprocVecEnv, VecNormalize
-from src.reinforcement_environment import TreeBuildingEnv, _reward_func_pretraining, _reward_func_v2
-from stable_baselines3 import A2C
+from src.reinforcement_environment import TreeBuildingEnv, _reward_func_v2
+from src.configuration import ASSET_SET_1
+from stable_baselines3 import PPO
 import torch as th
 from datetime import datetime
 import numpy as np
 
 from src.CustomVecMonitor import CustomVecMonitor
+
+#tensorboard --logdir C:\Users\crash\Documents\Programming\diploma_thesis_merged\diploma_thesis_v2\tensorboard_logging\gym
 
 
 class SaveOnBestTrainingRewardCallback(BaseCallback):
@@ -43,14 +45,14 @@ class SaveOnBestTrainingRewardCallback(BaseCallback):
           # Retrieve training reward
           x, y = ts2xy(load_results(self.log_dir), 'timesteps')
           if len(x) > 0:
-              # Mean training reward over the last 100 episodes
-              mean_reward = np.mean(y[-100:])
+              # Mean training reward over the last 250 episodes
+              mean_reward = np.mean(y[-250:])
               if self.verbose > 0:
                 print(f"Num timesteps: {self.num_timesteps}")
                 print(f"Best mean reward: {self.best_mean_reward:.2f} - Last mean reward per episode: {mean_reward:.2f}")
-              self.logger.record(f"Mean reward over last 100 episodes", mean_reward)
+              self.logger.record(f"Mean reward over last 250 episodes", mean_reward)
 
-              global current_time
+              current_time = datetime.now().strftime("%Y-%m-%d %H,%M,%S")
               # New best model, you could save the agent here
               if mean_reward > self.best_mean_reward:
                   self.best_mean_reward = mean_reward
@@ -63,21 +65,15 @@ class SaveOnBestTrainingRewardCallback(BaseCallback):
               self.model.save(os.path.join(self.log_dir, 'latest'))
               self.model.env.save(os.path.join(self.log_dir, 'latest_env'))
 
-              # print("Logging mean reward to tensorboard")
-
-
         return True
 
 
-def make_pretraining_env():
-    raise NotImplementedError
-    # return TreeBuildingEnv(_reward_func_pretraining)
+def make_training_env(defined_tickers:List[str]=None, defined_alpha:float=None, evaluate:bool = None):
+    return lambda : TreeBuildingEnv(_reward_func_v2, "train", defined_tickers, defined_alpha, evaluate)
 
-def make_training_env(defined_tickers:List[str]=None, defined_alpha:float=None):
-    return TreeBuildingEnv(_reward_func_v2, "train", defined_tickers, defined_alpha)
+def make_testing_env(defined_tickers:List[str]=None, defined_alpha:float=None, evaluate:bool = None):
+    return lambda : TreeBuildingEnv(_reward_func_v2, "test", defined_tickers, defined_alpha, evaluate)
 
-def make_testing_env(defined_tickers:List[str]=None, defined_alpha:float=None):
-    return TreeBuildingEnv(_reward_func_v2, "test", defined_tickers, defined_alpha)
 
 
 if __name__ == '__main__':
@@ -85,8 +81,8 @@ if __name__ == '__main__':
     log_dir = "./tensorboard_logging/gym/"
     os.makedirs(log_dir, exist_ok=True)
 
-    start_training=False
-    num_neurons = 64
+    start_training = True
+    num_neurons = 128
 
 
     current_time = datetime.now().strftime("%Y-%m-%d %H,%M,%S")
@@ -95,24 +91,30 @@ if __name__ == '__main__':
     if start_training:
 
         # Instantiate the env
-        env = make_training_env
-        venv = SubprocVecEnv(env_fns=[env] * 4)
+        env = make_training_env(evaluate=True) #TODO delete this set of tickers after training
+        venv = SubprocVecEnv(env_fns=[env] * 6)
         venv = CustomVecMonitor(venv, log_dir, info_keywords=("num_scen",))
+        env = VecNormalize(venv, norm_obs_keys=["predictors"],clip_obs=1000, clip_reward=1000, norm_reward=False, norm_obs=True)
 
-        env = VecNormalize(venv, norm_obs_keys=["predictors"])
         env.seed(1337)
 
+
         #not normalising advantage - should have no effect, see https://github.com/DLR-RM/stable-baselines3/issues/485
-        a2c_model = A2C(policy="MultiInputPolicy", learning_rate=1e-4, use_rms_prop=True, env=env, n_steps=5, policy_kwargs=dict(activation_fn=th.nn.ReLU, net_arch=[num_neurons*2, dict(vf=[num_neurons], pi=[num_neurons])]), tensorboard_log=tensorboard_log, seed=1337)
-        a2c_model.learn(1000, callback=SaveOnBestTrainingRewardCallback(check_freq=20, log_dir=log_dir, model_name=f"A2C_{num_neurons*2}_{num_neurons}_neurons"), progress_bar=True, tb_log_name=f"A2C_{num_neurons*2}_{num_neurons}_neurons", log_interval=4)
+        ppo_model = PPO(policy="MultiInputPolicy",
+                        learning_rate=1e-3,
+                        env=env,
+                        n_steps=24*8,
+                        policy_kwargs=dict(activation_fn=th.nn.ReLU, net_arch=[num_neurons*2, dict(vf=[num_neurons], pi=[num_neurons])]),
+                        tensorboard_log=tensorboard_log,
+                        seed=1337)
+        ppo_model.learn(100000, callback=SaveOnBestTrainingRewardCallback(check_freq=10, log_dir=log_dir, model_name=f"A2C_{num_neurons * 2}_{num_neurons}_neurons"), progress_bar=True, tb_log_name=f"A2C_{num_neurons * 2}_{num_neurons}_neurons", log_interval=1)
     else:
-        a2c_model = A2C.load(os.path.join(log_dir, 'latest.zip'))
-        env = make_training_env
-        venv = SubprocVecEnv(env_fns=[env] * 4)
+        ppo_model = PPO.load(os.path.join(log_dir, 'latest.zip'))
+        env = make_training_env(evaluate=True)
+        venv = SubprocVecEnv(env_fns=[env] * 6)
         venv = CustomVecMonitor(venv, log_dir, info_keywords=("num_scen",))
         env = VecNormalize.load(os.path.join(log_dir, 'latest_env'), venv=venv)
-        a2c_model.set_env(env)
-        a2c_model.learn(30000, callback=SaveOnBestTrainingRewardCallback(check_freq=20, log_dir=log_dir,
-                                                                        model_name=f"A2C_{num_neurons * 2}_{num_neurons}_neurons"),
-                        progress_bar=True, tb_log_name=f"A2C_{num_neurons * 2}_{num_neurons}_neurons", log_interval=4,
-                        reset_num_timesteps=False)
+        env.seed(1234)
+        ppo_model.set_env(env)
+        ppo_model.learn(50000, callback=SaveOnBestTrainingRewardCallback(check_freq=10, log_dir=log_dir, model_name=f"A2C_{num_neurons * 2}_{num_neurons}_neurons"), progress_bar=True, tb_log_name=f"A2C_{num_neurons * 2}_{num_neurons}_neurons", log_interval=1, reset_num_timesteps=False)
+

@@ -51,7 +51,6 @@ def create_cvar_gams_model_str(root: Node, alpha: float):
         for leaf in leaves
     }
     assert abs(sum(scenario_probabilities.values()) - 1) < 1e-4
-    logging.info("Built asset yields table")
     def get_siblings(root):
         if len(root.leaves) > 0:
             a = root.leaves[0]
@@ -74,7 +73,6 @@ def create_cvar_gams_model_str(root: Node, alpha: float):
     siblings['sorted_row'] = siblings['time'].astype(str) + siblings['sorted_row'].astype(str)
     siblings = siblings.drop_duplicates(subset="sorted_row")
     siblings = siblings.drop("sorted_row", axis=1)
-    logging.info("Got siblings set")
 
     sib = (
         siblings["node1"].astype(str)
@@ -161,6 +159,7 @@ nonanticipativityofx(i,s,ss,t)$(siblings(s,ss,t))..  x(i,s,t) =e= x(i,ss,t);
 Model problem / ALL /;
 
 problem.OptFile=1;
+problem.solveLink = 5;
 
 solve problem using LP minimising loss;
 """
@@ -169,26 +168,23 @@ solve problem using LP minimising loss;
 
 
 def calculate_mean_cvar_over_leaves(
-    root: Node, alpha, create_model_str_func: Callable = create_cvar_gams_model_str
+    root: Node, alpha, gams_workspace, create_model_str_func: Callable = create_cvar_gams_model_str
 ) -> float:
-    gms = GamsWorkspace(system_directory=r"C:\GAMS\40")
-    # with open('root.pickle', 'wb') as handle:
-    #     pickle.dump(root, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    logging.info("Creating Cvar model string")
+    gms = gams_workspace
     cvar_model_str = create_model_str_func(root, alpha)
-    with open("cvar_model_string.txt", "w") as text_file:
-        text_file.write(cvar_model_str)
+    # with open("cvar_model_string.txt", "w") as text_file:
+    #     text_file.write(cvar_model_str)
     output_stream = io.StringIO()
     job = gms.add_job_from_string(cvar_model_str)
-    logging.info("Solving Cvar model")
     job.run(output=output_stream)
     output = output_stream.getvalue()
-
+    output_stream.close()
     for rec in job.out_db["loss"]:
         loss = rec.level
     assert "Optimal solution found" in output or "** Feasible solution" in output
     assert "*** Status: Normal completion" in output
-    logging.info("Cvar model solved")
+    del output_stream
+    del job
     return loss
 
 
