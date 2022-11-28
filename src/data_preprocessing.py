@@ -38,14 +38,11 @@ def data_to_returns_iid(data: pd.DataFrame, branching: List[int]):
     """Convert weekly data to returns according to specified branching.
     The time period is constant, only the number of stages changes - returns
     need to be calculated based on the given number of stages."""
-    n_stages = len(branching) * 2
+    n_stages = len(branching) * 4
     first_date_in_dataset = data.index[0]
     last_date_in_dataset = data.index[-1]
     interval = date_intv(first_date_in_dataset, last_date_in_dataset, n_stages)
     timestamps = [first_date_in_dataset] + list(date_add(first_date_in_dataset, last_date_in_dataset, interval))
-
-    # interval = date_intv(LAST_VALID_DATE, LAST_VALID_DATE + relativedelta(years=10), n_stages)
-    # timestamps = list(date_add(FIRST_VALID_DATE, LAST_VALID_DATE, interval))
 
     nearest_dates = []
     for date in timestamps:
@@ -55,37 +52,9 @@ def data_to_returns_iid(data: pd.DataFrame, branching: List[int]):
     returns = data.pct_change() + 1
     #returns are calculated in such a way so that they can be multiplied together to get the final return
     returns = returns.dropna()
-    assert len(returns) == len(branching) * 2
+    assert len(returns) == len(branching) * 4
     return returns
 
 
 def _nearest_date(items, pivot):
     return min(items, key=lambda x: abs(x - pivot))
-
-
-# def preprocess_data(
-#     returns: pd.DataFrame, branching: List[int]
-# ) -> Dict[str, Dict[str, Union[pd.DataFrame, np.array]]]:
-#     n_stages = len(branching)
-#     equidistant_timestamps = list(date_range(FIRST_VALID_DATE, LAST_VALID_DATE, n_stages))
-#     available_data_up_to_timestamps = {
-#         timestamp: returns[:timestamp] for timestamp in equidistant_timestamps
-#     }
-#
-#     # this dictionary holds data from previous timestamp up to the current timestamp
-#     # where the dictionary key corresponds to current timestamp
-#     data_obtained_between_timestamps = {}
-#     previous_timestamp = None
-#     for timestamp, df in available_data_up_to_timestamps.items():
-#         if previous_timestamp is None:
-#             previous_timestamp = FIRST_VALID_DATE
-#         data_obtained_between_timestamps[timestamp] = {"df": df[previous_timestamp:]}
-#         if not data_obtained_between_timestamps[timestamp]["df"].empty:
-#             data_obtained_between_timestamps[timestamp].update(
-#                 get_TARMOM_and_R(data_obtained_between_timestamps[timestamp]["df"])
-#             )
-#         else:
-#             data_obtained_between_timestamps.pop(timestamp)
-#         previous_timestamp = timestamp
-#
-#     return data_obtained_between_timestamps

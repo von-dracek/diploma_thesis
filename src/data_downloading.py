@@ -79,10 +79,10 @@ class DataGetter:
         self.first_half_of_data = self.loaded_data[:len(self.loaded_data)//2]
         self.second_half_of_data = self.loaded_data[len(self.loaded_data)//2:]
 
-    def randomly_sample_data(self, random_generator: np.random.default_rng, train_or_test: str, defined_tickers: List[str]=None):
+    def randomly_sample_data(self, random_generator: np.random.default_rng, train_or_test: str, defined_tickers: List[str]=None, train_or_test_time:str="train"):
         """defined_tickers - list of tickers to choose from (not choosing randomly)"""
         tickers = train_tickers if train_or_test == "train" else (test_tickers if train_or_test=="test" else None)
-        data = self.first_half_of_data if train_or_test == "train" else (self.second_half_of_data if train_or_test=="test" else None)
+        data = self.first_half_of_data if train_or_test_time == "train" else (self.second_half_of_data if train_or_test_time=="test" else None)
         n_stocks = random_generator.integers(7,11)
         assert isinstance(tickers, List)
         chosen_tickers = list(random_generator.choice(tickers, n_stocks,replace=False))

@@ -21,11 +21,11 @@ configure()
 
 datagetter = DataGetter()
 
-def get_necessary_data(random_generator, train_or_test:str = "train", defined_tickers: List[str]=None):
-    data = datagetter.randomly_sample_data(random_generator, train_or_test, defined_tickers)
+def get_necessary_data(random_generator, train_or_test:str = "train", defined_tickers: List[str]=None, train_or_test_time:str = "train"):
+    data = datagetter.randomly_sample_data(random_generator, train_or_test, defined_tickers, train_or_test_time)
     return data
 
-def get_cvar_value(gams_workspace, branching: List[int], data, alpha: float = 0.95, train_or_test:str = "train") -> float:
+def get_cvar_value(gams_workspace, branching: List[int], data, alpha: float = 0.95) -> float:
     iid_returns = data_to_returns_iid(data, branching)
 
     TARMOM, R = get_TARMOM_and_R(iid_returns)

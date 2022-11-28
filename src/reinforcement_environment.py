@@ -1,19 +1,16 @@
 from typing import Callable, List
-
 import gym
 import numpy as np
 from gams import GamsWorkspace
 from gym import spaces
-# gridworld
-# possible branching - width - 3 - 7
-# depth - 3 - 5
 from main import get_cvar_value, get_necessary_data
-
 from src.configuration import MAX_NUMBER_LEAVES_IN_SCENARIO_TREE, MIN_NUMBER_LEAVES_IN_SCENARIO_TREE
-
 import os, shutil
+
 gams_tmpdir = "C:/Users/crash/Documents/Programming/diploma_thesis_merged/diploma_thesis_v2/gams_workdir/"
 
+# possible branching - width - 3 - 7
+# depth - 3 - 5
 
 
 
@@ -61,7 +58,11 @@ def _reward_func_pretraining(branching, data, alpha, train_or_test):
     raise NotImplementedError
     # return valid_action_reward
 
-def _reward_func_v2(gams_workspace, branching, data, alpha, train_or_test):
+penalty_func_none = lambda x:0
+#quadratic penalty - 0 at 300 scenarios, 0.1 at 100 and 700 scenarios
+penalty_func_quadratic = lambda x: (0.1/(300**2))*((x - 400)) ** 2
+
+def _reward_func_v2(gams_workspace, branching, data, alpha, penalty_func):
     """Calculates reward from chosen branching."""
     #the minus sign before the cvar value has to be added, since we
     #calculate cvar-alpha of the loss distribution - thus the smaller the
@@ -70,11 +71,11 @@ def _reward_func_v2(gams_workspace, branching, data, alpha, train_or_test):
     #higher value -> better reward and that is exactly what the
     #minus sign does here
     num_scenarios = np.prod(branching)
-    coef_minus_reward_scenario_tree_complexity = 1/1000
-    penalty_for_complexity = coef_minus_reward_scenario_tree_complexity*num_scenarios
-    value = get_cvar_value(gams_workspace, branching, data, alpha, train_or_test)
+    penalty_for_complexity = penalty_func(num_scenarios)
 
-    return - value - penalty_for_complexity #todo: add back
+    value = get_cvar_value(gams_workspace, branching, data, alpha)
+
+    return - value - penalty_for_complexity
 
 class TreeBuildingEnv(gym.Env):
     """
@@ -82,16 +83,20 @@ class TreeBuildingEnv(gym.Env):
     First choosing depth of tree, then each step chooses next branching.
     Reward is returned when the tree is completely built.
     The observation space is a 8*8 table, where the first row represents possible
-    depths of tree (only valid are 3-7), and successive rows represent
+    depths of tree (only valid are 3-5), and successive rows represent
     the brachings in each level (again only valid 3-7).
     """
 
-    def __init__(self, reward_fn: Callable, train_or_test:str = "train", defined_tickers:List[str]=None, defined_alpha:float=None, evaluate:bool = None):
+    def __init__(self, reward_fn: Callable, train_or_test:str = "train", defined_tickers:List[str]=None, defined_alpha:float=None, train_or_test_time: str = "train", penalty_func: Callable = penalty_func_none):
         super(TreeBuildingEnv, self).__init__()
 
         self.train_or_test = train_or_test
+        self.train_or_test_time = train_or_test_time
         self.height = 8
-
+        if penalty_func is None:
+            self.penalty_func = penalty_func_none
+        else:
+            self.penalty_func = penalty_func
         # first level in height is chosen depth of tree
         # next levels represent branching at each stage
         self.width = 8
@@ -137,7 +142,7 @@ class TreeBuildingEnv(gym.Env):
         self.S[y, x] = 1
         if self.current_y == np.argmax(self.S[0, :]) + 1: #all branchings have been chosen - end episode
             self.done = True
-            reward = self.reward_fn(self.gams_workspace, self.get_branching(), self.data, self.predictors[0], self.train_or_test)
+            reward = self.reward_fn(self.gams_workspace, self.get_branching(), self.data, self.predictors[0], self.penalty_func)
             print(f"Done, got reward {reward}")
             return self.get_current_observation_state(), reward, self.done, {"num_scen":self.current_num_scenarios, "terminal_observation":self.get_current_observation_state()}
         reward = 0
@@ -159,13 +164,13 @@ class TreeBuildingEnv(gym.Env):
         # return spaces.Discrete(9)
 
     def is_action_valid(self, action):
-        if action < 3 or action > 8: #in other states permit only actions 3 - 8
+        if action < 3 or action >= 8: #in other states permit only actions 3 - 8
             return False
         if (self.action_space is not None) and (self.depth > 0) and self.remaining_depth > 0:
             current_num_scenarios = self.current_num_scenarios
             if (
                     (current_num_scenarios * action * (3 ** (self.remaining_depth - 1))
-                < MAX_NUMBER_LEAVES_IN_SCENARIO_TREE) and (current_num_scenarios * action * (3 ** (self.remaining_depth - 1))
+                < MAX_NUMBER_LEAVES_IN_SCENARIO_TREE) and (current_num_scenarios * action * (5 ** (self.remaining_depth - 1))
                 > MIN_NUMBER_LEAVES_IN_SCENARIO_TREE)
             ):
                 return True
@@ -188,7 +193,7 @@ class TreeBuildingEnv(gym.Env):
         self.current_y = 0
         self.S = np.zeros((self.height, self.width))
         self.depth = 0
-        self.data = get_necessary_data(self.random_generator, self.train_or_test, self.defined_tickers)
+        self.data = get_necessary_data(self.random_generator, self.train_or_test, self.defined_tickers, self.train_or_test_time)
         self.predictors = _get_predictors_from_data(self.data, self.random_generator, self.defined_alpha)
         delete_files_in_temp_directory(self._seed)
 
