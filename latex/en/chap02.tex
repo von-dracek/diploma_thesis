@@ -18,6 +18,7 @@ where $\mathcal{L}=-\mathcal{R}$ is the loss random variable.
 %Notice that both variance and semivariance yield the same result whether the random variable $\mathcal{R}$ represents returns or losses of the portfolio.
 
 Let us now introduce the notion of a \textit{coherent measure of risk}, which was developed in \cite[Defintion 2.4.]{coherent_measures_of_risk} and aims to provide a set of properties that a “nice” risk measure should satistfy.
+\newpage
 \begin{defn}{Coherent measure of risk} \\
 Let $\mathcal{V}$ be the set of real random variables. We say that a risk measure $\rho: \mathcal{V} \rightarrow \R$ is coherent if it satisfies the following properties:
 \begin{enumerate}
@@ -67,7 +68,7 @@ CVaR_{\alpha}(x)=\frac{1}{1-\alpha}\int_{f(x,y) \geq VaR_{\alpha}(x)} f(x,y)p(y)
 \end{equation}
 \end{defn}
 Compared to value at risk, conditional value at risk is a coherent risk measure (for the proof, see \cite[Example 2.26.]{mcneil2015quantitative}), but since value at risk is present in its definition, optimizing a portfolio with regard to conditional value at risk according to this definition suffers from many of the same problems as optimizing a portfolio with regard to value at risk. Therefore, a new method has been developed in \cite{Rockafellar2000OptimizationOC} that allows optimization of conditional value at risk without computing value at risk using linear programming.
-
+\newpage
 \section{Minimising CVaR using scenarios}
 In this section, we closely follow the exposition provided in \cite[p. 275-278]{cornuejols_tutuncu_2006}.
 Let
