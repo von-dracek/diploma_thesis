@@ -4,7 +4,8 @@ from typing import List
 import logging
 import pandas as pd
 from stable_baselines3.common.vec_env import SubprocVecEnv, VecNormalize, VecEnv, DummyVecEnv, VecMonitor
-from src.reinforcement_environment import TreeBuildingEnv, _reward_func_pretraining, _reward_func_v2
+from src.reinforcement_environment import TreeBuildingEnv, _reward_func_pretraining, _reward_func_v2, \
+    penalty_func_quadratic
 from src.configuration import ASSET_SET_1
 from stable_baselines3 import A2C, PPO
 import torch as th
@@ -15,23 +16,28 @@ from src.CustomVecMonitor import CustomVecMonitor
 from src.reinforcement_agent_v3 import make_treebuilding_env
 import plotly.express as px
 
+dir_quaadratic_penalty = "./tensorboard_logging/gym_final_with_quadratic_penalty/agent_evaluation/"
+dir_no_penalty = "./tensorboard_logging/gym_final_final_final_without_penalty/agent_evaluation/"
+
+#choose directory here
+dir = dir_quaadratic_penalty
 
 if __name__ == '__main__':
 
-    log_dir = "./tensorboard_logging/gym_final_final_without_penalty/agent_evaluation/"
+    log_dir = dir
     os.makedirs(log_dir, exist_ok=True)
 
-    n_eval_episodes = 250
+    n_eval_episodes = 500
     start_evaluation = False
 
     for train_or_test_tickers in ["train", "test"]:
         for train_or_test_time in ["train", "test"]:
-            log_dir = "./tensorboard_logging/gym_final_final_without_penalty/agent_evaluation/"
+            log_dir = dir
 
             if start_evaluation:
                 current_time = datetime.now().strftime("%Y-%m-%d %H,%M,%S")
                 tensorboard_log = log_dir
-                env = make_treebuilding_env(train_or_test=train_or_test_tickers, train_or_test_time=train_or_test_time)
+                env = make_treebuilding_env(train_or_test=train_or_test_tickers, train_or_test_time=train_or_test_time, penalty_func=penalty_func_quadratic if dir == dir_quaadratic_penalty else None)
                 venv = DummyVecEnv(env_fns=[env] * 1)
                 venv = VecMonitor(venv, log_dir, info_keywords=("num_scen",))
                 env = VecNormalize.load(os.path.join(log_dir, 'latest_env'), venv=venv)
@@ -61,7 +67,7 @@ if __name__ == '__main__':
 
                 logging.info("Starting random agent")
 
-                env = make_treebuilding_env(train_or_test=train_or_test_tickers, train_or_test_time=train_or_test_time)
+                env = make_treebuilding_env(train_or_test=train_or_test_tickers, train_or_test_time=train_or_test_time,  penalty_func=penalty_func_quadratic if dir == dir_quaadratic_penalty else None)
                 venv = DummyVecEnv(env_fns=[env] * 1)
                 venv = VecMonitor(venv, log_dir, info_keywords=("num_scen",))
                 env = VecNormalize.load(os.path.join(log_dir, 'latest_env'), venv=venv)

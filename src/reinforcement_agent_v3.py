@@ -5,7 +5,7 @@ from stable_baselines3.common.callbacks import BaseCallback
 from stable_baselines3.common.monitor import load_results, Monitor
 from stable_baselines3.common.results_plotter import ts2xy
 from stable_baselines3.common.vec_env import SubprocVecEnv, VecNormalize
-from src.reinforcement_environment import TreeBuildingEnv, _reward_func_v2
+from src.reinforcement_environment import TreeBuildingEnv, _reward_func_v2, penalty_func_quadratic
 from src.configuration import ASSET_SET_1
 from stable_baselines3 import PPO
 import torch as th
@@ -88,7 +88,7 @@ if __name__ == '__main__':
     # if start_training:
 
     # Instantiate the env
-    env = make_treebuilding_env(train_or_test="train", train_or_test_time="train")
+    env = make_treebuilding_env(train_or_test="train", train_or_test_time="train", penalty_func=penalty_func_quadratic)
     venv = SubprocVecEnv(env_fns=[env] * 6)
     venv = CustomVecMonitor(venv, log_dir, info_keywords=("num_scen",))
     env = VecNormalize(venv, norm_obs_keys=["predictors"],clip_obs=1000, clip_reward=1000, norm_reward=False, norm_obs=True)
@@ -104,7 +104,7 @@ if __name__ == '__main__':
                     policy_kwargs=dict(activation_fn=th.nn.ReLU, net_arch=[num_neurons*2, dict(vf=[num_neurons], pi=[num_neurons])]),
                     tensorboard_log=tensorboard_log,
                     seed=1337)
-    ppo_model.learn(200000, callback=SaveOnBestTrainingRewardCallback(check_freq=10, log_dir=log_dir, model_name=f"A2C_{num_neurons * 2}_{num_neurons}_neurons"), progress_bar=True, tb_log_name=f"A2C_{num_neurons * 2}_{num_neurons}_neurons", log_interval=1)
+    ppo_model.learn(100000, callback=SaveOnBestTrainingRewardCallback(check_freq=10, log_dir=log_dir, model_name=f"PPO_{num_neurons * 2}_{num_neurons}_neurons_no_penalty"), progress_bar=True, tb_log_name=f"PPO_{num_neurons * 2}_{num_neurons}_neurons_no_penalty", log_interval=1)
     # else:
     #     ppo_model = PPO.load(os.path.join(log_dir, 'latest.zip'))
     #     env = make_treebuilding_env(train_or_test="train", train_or_test_time="train")
