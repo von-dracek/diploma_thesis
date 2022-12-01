@@ -1,39 +1,55 @@
 \chapter{Optimal scenario tree selection}
 \label{chapter4}
-In this chapter we propose an experiment to find the optimal scenario tree structure.
+In this chapter we propose an experiment to find out if it is possible to predict the optimal scenario tree structure with regard to the objective function and also propose a way to control for the complexity of the scenario tree using reinforcement learning. For this purpose, we implemented the moment matching method for generation of scenario trees, the multistage mean CVaR model and a reinforcement agent.
 \section{Methods}
-The whole implementation was programmed in Python \cite[Version 3.11]{python}, mathematical optimization problems were implemented in GAMS \cite[version]{GAMS} \todo{add version of gams} using the Python API. Data were sourced from \cite{yahoo} using the \cite[version 0.1.74]{yfinance} package. The reinforcement learning agent was implemented using the \textit{Stable~baselines~3} package \cite[version 1.6.2]{stable_baselines3} and the environment was implemented using the \textit{gym} package \cite[version 0.21.0]{openai_gym}.
+The whole implementation was programmed in Python (\cite[Version 3.11]{python}), mathematical optimization problems were implemented in GAMS (\cite[version 40.3.0]{GAMS}) using the Python API. Data were sourced from \cite{yahoo} using the \cite[version 0.1.74]{yfinance} package. The reinforcement agent was implemented using the \textit{Stable~baselines~3} package (\cite[version 1.6.2]{stable_baselines3}) and the environment was implemented using the \textit{gym} package (\cite[version 0.21.0]{openai_gym}).
 
 \section{Data}
-For our experiments, we used data obtained from \cite{yahoo} using the \cite[version 0.1.74]{yfinance} package. We downloaded historical asset price data from 1.1.2000 to 31.12.2019 for 49 financial stocks given in Table \ref{table:stock_tickers_used}. We split this data into four sets by splitting the data into two sets by time, set \textit{train} (from 1.1.2000 to 31.12.2009) and set \textit{test} (from 1.1.2009 to 31.12.2009) and splitting the stock tickers into set $A$, see Table \ref{table:stock_tickers_in_set_A} and set $B$, see Table \ref{table:stock_tickers_in_set_B}. This yielded us four distinct sets:
+For our experiments, we used data obtained from \cite{yahoo} using the \cite[version 0.1.74]{yfinance} package. We downloaded historical weekly asset price data from 1.1.2000 to 31.12.2019 for 49 financial stocks given in Table \ref{table:stock_tickers_used}. We split the data into two sets with regard to time, set \textit{train} (from 1.1.2000 to 31.12.2009) and set \textit{test} (from 1.1.2010 to 31.12.2019) and splitting the stock tickers into two asset sets, set $A$, see Table \ref{table:stock_tickers_in_set_A} and set $B$, see Table \ref{table:stock_tickers_in_set_B}. This yielded us four distinct sets:
 \begin{itemize}
-\item (\textit{train}, $A$),
-\item (\textit{test}, $A$),
-\item (\textit{train}, $B$),
-\item (\textit{test}, $B$).
+\item (\textit{train}, $A$), denoted $TrA$,
+\item (\textit{test}, $A$), denoted $TeA$,
+\item (\textit{train}, $B$), denoted $TrB$,
+\item (\textit{test}, $B$). denoted $TeB$
 \end{itemize}
-We trained the agent on the set (\textit{time train}, $A$) and evaluate its performance on the other three sets, to evaluate whether the agent is able to:
+and we write the set that contains all these sets as $\kappa=\{TrA, TeA, TrB, TeB\}$.
+We trained the agent on the set $TrA$ and evaluate its performance on all four sets, to evaluate whether the agent is able to:
 \begin{enumerate}
-\item generalise to unseen stocks in the same period,
-\item generalise to the same stocks in the future,
-\item generelise to unseen stocks in the future.
+\item learn something from the training data (performance on $TrA$),
+\item generalise to unseen assets in the same period (performance on $TrB$),
+\item generalise to the training assets in the future (performance on $TeA$),
+\item generalise to unseen assets in the future (performance on $TeB$).
 \end{enumerate}
 
-For the problem to make sense, we needed to obtain data for the moment matching method in such a way that the scenario trees were constructed in such a way that the investment horizon was the same independent of the depth. This was achieved by splitting the investment period into equisized parts based on the number of stages of the tree.
-The moment matching method uses estimated moments from the dataset. For a scenario tree with 3 stages, the approach outlined above would split the investment period into just 3 periods and we would thus obtain only 3 realisations of simple returns, which means that the sample moments would not be very precise. To counteract this effect, we chose to split the investment period into $4*number\_stages$ periods, calculate the simple returns and estimate the sample moments and correlations from this larger sample. Practically, this means that we have shortened the investment horizon from 10 years to 2.5 years. 
+We set the investment horizon to 2.5 years and from each set in $\kappa$, we needed to obtain data for the moment matching method in such a way that the scenario trees were constructed with the same investment horizon independent of the number of stages. This was achieved by splitting the investment horizon into equisized parts based on the number of stages of the tree.
+The moment matching method uses estimated moments from the dataset. For a scenario tree with a given number of stages (denoted as $T$), we split the investment period into $T$ equisized periods (we denote the length of these periods as $\mathcal{L}$), each corresponding to the given stage.
+
+We then used the whole available 10 years of data to estimate the distribution of returns in a period of length  $\mathcal{L}$ by splitting the 10 years of data into equisized parts of length $\mathcal{L}$, calculating simple returns (this yielded $4T$ observations), and calculating the first four sample moments and correlations between each of the assets. These moments and correlations were then used as input for the moment matching method, where the same moments and correlations were used for generating each stage of the scenario tree.
+
+\begin{rem}
+We considered only stagewise independent scenario trees. This is in line with the data preparation we used above, as financial returns are generally considered independent when taken over a period of time that is longer than a few days. The shortest period we used is over $4$ months (investment period of 2.5 years, 7 stages), which is much longer than a few days.
+\end{rem}
 
 \section{Environment}
 For the purposes of training the reinforcement agent to choose the best scenario tree structure, we adapted the well known GridWorld environment to represent iterative stage by stage building of the scenario tree.
 \begin{rem}
-The GridWorld environemnt is a well known introductory environment for training reinforcement learning agents. It consists of a $n$ by $n$ grid, where the agent starts on a given tile (a position on the grid, i.e. for example the bottom left corner) and must reach a target tile and upon reaching the tile, it receives a reward. The agent can perform 4 actions -- move up, move down, move left and move right. None of the tiles apart from the target tile return rewards. Optionally, if we want the agent to reach the target in the least moves possible, a small constant negative reward can be assigned to each step the agent takes.
+The GridWorld environment is a well known introductory environment for training reinforcement learning agents. It consists of a $n$ by $n$ grid, $n \in \N$, where the agent starts on a given tile (a position on the grid, i.e. for example the bottom left corner) and must reach a target tile and upon reaching the tile, it receives a reward. The agent can perform 4 actions -- move up, move down, move left and move right. None of the tiles apart from the target tile return rewards. An illustration of such an environment is given in Figure \ref{fig:gridworldenv_illustration}.
 \end{rem}
+
+\begin{figure}[H]
+\centering
+  \includegraphics[width=\linewidth / 3]{../img/gridworld_env_illustration.pdf}
+  \caption{Illustration of a 4 by 4 GridWorld environment. The agent starts at the Initial tile and must reach the Target tile to receive a reward.}
+  \label{fig:gridworldenv_illustration}
+\end{figure}
+
 We designed and implemented a custom GridWorld environment, which we call TreeBuildingEnv.
 
 \subsection{TreeBuildingEnv}
-TreeBuildingEnv is an adaptation of the GridWorld environment to allow the agent to build scenario trees based on given predictors. 
-The state is given as a 8 by 8 tree building grid (which starts filled with zeros only in the initial state) and the set of 9 predictors. The set of predictors is obtained at the beginning of each episode and is constant throughout the episode. Each row in the tree building grid represents part of the tree building process. The first row corresponds to the chosen depth of the tree. The following rows each represent the chosen branching (number of children) in each stage, from the first to last.
+TreeBuildingEnv is an adaptation of the GridWorld environment to allow the agent to build scenario trees based on given predictors, that consits of data on returns of the assets that are used to build the scenario tree. 
+The state is given as a 8 by 8 tree building grid (which starts filled with zeros only in the initial state) and the set of 9 predictors. The set of predictors is obtained at the beginning of each episode and is constant throughout the episode. Each row in the tree building grid represents a part of the tree building process. The first row corresponds to the chosen number of stages in the tree. The following rows each represent the chosen branching (number of children) in each stage, from the first to last.
 
- In each state, the agent can take any action in the set $\{3,4,5,6,7\}$, which we from now on refer to as \textit{action set}. In the initial state, we allow the agent to perform only actions $\{3,4,5\}$ from the action set to choose the depth of tree and upon performing any of these actions, 1 is placed at the corresponding position in the first row. If the agent chooses action 6 or 7, it is forced to perform action 5. \todo{add footnote that links to computational difficulties, why are we forcing the action?}
+ In each state, the agent can take any action in the set $\{3,4,5,6,7\}$, which we from now on refer to as \textit{action set}. In the initial state, we allow the agent to perform only actions $\{3,4,5\}$ from the action set to choose the depth of tree and upon performing any of these actions, 1 is placed at the corresponding position in the first row. If the agent chooses action 6 or 7, it is forced to perform action 5\footnote{We do not allow the number of stages to be 6 or 7, as the tree is then considerably more complex and building it based on historical data and solving the resulting mean CVaR model takes too much time for it to be practical for our experiments. The action 5 is forced for the reinforcement algorithm to be able to associate action 6 and 7 with the move to a state where action 5 was chosen.}.
 
 
 \begin{figure}[H]
@@ -43,25 +59,63 @@ The state is given as a 8 by 8 tree building grid (which starts filled with zero
 \end{figure}
 
 
-In the following states, where the agent chooses the branching in each stage, the agent can perform any action in the action set and again upon performing each action, 1 is placed at position action in the next row (if the action is valid). To obtain reasonable trees, we had to constrain the size of the tree the agent can take (the maximum number of scenarios). We always require that the tree must have atleast 100 scenarios and at most 700. In each model building stage, we check if it is possible to perform the chosen action such that a final tree that remains within these limits is possible. If it is not possible, the action is considered invalid and the agent is forced to take the maximum valid action (where valid action refers to any action for which building a tree that stays in the given limits is possible). In case the chosen action was invalid, 1 is placed at the position of the forced maximum valid action.
+In the following states, where the agent chooses the branching in each stage, the agent can perform any action in the action set and again upon performing each action, 1 is placed at position action in the next row (if the action is valid). 
 
-When the agent has taken as many actions as the chosen depth of tree, the episode ends, the mean CVaR problem is solved using the given scenario tree structure and the obtained reward is returned. An illustration of the environment can be found in Figure \ref{fig:treebuildingenv}.
+To obtain reasonable trees, we had to constrain the size of the tree the agent can take (the maximum number of scenarios). We always require that the tree must have atleast 100 scenarios and at most 700. In each state, we check if it is possible to perform the chosen action such that a final tree that remains within these limits is possible. If it is not possible, the action is considered invalid and the agent is forced to take the maximum valid action (where valid action refers to any action for which building a tree that stays in the given limits is possible). In case the chosen action was invalid, 1 is placed at the position of the forced maximum valid action.
+
+When the agent has taken as many actions as the chosen depth of tree, the episode ends, the mean CVaR problem is solved using the given scenario tree structure and the obtained reward is returned (\todo{Add reference to section how reward is calculated}). An illustration of the environment can be found in Figure \ref{fig:treebuildingenv}.
 
 \subsection{Predictors}
 \label{subsection:predictors}
 At the beginning of each episode, between 7 and 10 assets are randomly chosen (with uniform probabilities for the number of assets) from the training data and simple returns are calculated for the whole time range. $\alpha$ is randomly chosen uniformly from the set $\{0.8, 0.85, 0.9, 0.95\}$ and the following predictors are provided to the agent:
 \begin{enumerate}
 \item $\alpha$
-\item number of sampled assets
-\item maximum return
-\item minimum return
-\item 0.75 quantile of returns
-\item 0.5 quantile of returns
-\item 0.25 quantile of returns
-\item mean of returns
-\item variance of returns
+\item Number of sampled assets
+\item Sample maximum return
+\item Sample minimum return
+\item Sample 0.75 quantile of returns
+\item Sample 0.5 quantile of returns
+\item Sample 0.25 quantile of returns
+\item Sample mean of returns
+\item Sample variance of returns
 \end{enumerate}
 The predictors are then constant throught the entire episode.
+
+\section{Rewards}
+When the terminal state is reached and the episode ends, a reward is returned. We needed to specify the reward in such a way that a higher rewards corresponds to a more favourable value of the objective function obtained from the mean CVaR model solved using the scenario tree structure that is specified by the terminal state of the environment.
+
+We need to consider that the mean CVaR model as formulated in Equation \ref{eq:cvar_multistage_risk_aversion} if formulated using the distribution of loss. This means that actually, obtaining a smaller objective value from the mean CVaR model is beneficial. Denoting the obtained objective value from solving the problem in Equation \ref{eq:cvar_multistage_risk_aversion} as $\varsigma$, we have to write the reward given to the agent as
+\begin{equation*}
+r_{terminal} = -\varsigma(s_{terminal}),
+\end{equation*}
+where we add the subscript $terminal$ to emphasize, that this reward is calculated at the very last state of the episode and that the reward depends on the terminal state (which represents the scenario tree structure). The objective of the agent is then to maximise $r_{terminal}$.
+
+\subsection{Penalty}
+As was mentioned in Section \ref{section:curse_od_dimensionality}, choosing a scenario tree that has too many stages and too many descendants in each stage leads to a computationally intractable problem. On the other hand, choosing a scenario tree that is too small in terms of number of stages and with too few descendants in each stage may lead to a very rough approximation of the underlying continuous distributions, leading to erroneous results. 
+
+To ameliorate these problems, we propose to include a penalty term in the reward $r_{terminal}$ which penalizes such scenario trees. Particularly, we propose that the penalty be dependent on the number of scenarios in the tree in the last stage, i.e. the number of leaves in the tree. It is not straightforward to represent the complexity of a tree due to the multidimensional structure, but we consider that using the number of leaves provides a good proxy for the complexity of the scenario tree. 
+
+Denoting the number of leaves in the tree as $\Psi$ and the penalization function as $\delta(\Psi)$, we thus propose that the reward $r_{terminal}$ be penalized as follows
+\begin{equation*}
+r_{terminal} = -\varsigma(s_{terminal}) - \delta(\Psi(s_{terminal})),
+\end{equation*}
+where the dependence of $\Psi$ on $s_{terminal}$ stresses the fact that $\Psi(s_{terminal})$ is calculated from the scenario tree structure represented in $s_{terminal}$.
+
+To penalize the scenario tree that is too complex, we propose a linear penalization $\delta_1$
+\begin{equation*}
+\delta_1(\Psi) = c \frac{\Psi_{max}-\Psi}{\Psi_{max}},
+\end{equation*}
+where $c$ is a chosen coefficient (which must be chosen based on the magnitude of values obtained as solutions from solving the mean CVaR problem) and $\Psi_{max}$ is the maximum allowed number of leaves in the scenario tree.
+
+Penalisation $\delta_1$ penalizes the complexity, but does not take into account that a small number of leaves is also detrimental. We propose another penalisation function, denoted $\delta_2$, to deal with this problem:
+\begin{equation*}
+\delta_2(\Psi) = \frac{c}{\left[(\Psi_{max}-\Psi_{min})/2\right]^2} (\Psi - \frac{\Psi_{max}+\Psi_{min}}{2})^2,
+\end{equation*}
+where again $c$ is a parameter, $\Psi_{max}$ is the maximum allowed number of leaves in the scenario tree and $\Psi_{min}$ is the minimum allowed number of leaves in the scenario tree.
+
+The proposed $\delta_2$ penalisation is quadratic and centered at $(\Psi_{max}+\Psi_{min})/2$ where it is 0, $c$ is the maximum penalty achieved at points $\Psi_{max}$ and $\Psi_{min}$. $c$ again is a coefficient that must be chosen based on the desired magnitude of the penalty.
+
+Of course, these are just two possible penalization functions out of infinite possibilities. Perhaps, it would make more sense to make the penalisation function asymmetric, such that low number of leaves in the scenario tree is penalized less than a high number of leaves. The shape of the penalty function has to be adjusted based on the problem at hand (and also the parameter $c$ has to be adjusted as well).
 
 \section{Implementation}
 \subsection{Moment matching}
@@ -86,11 +140,11 @@ To counteract this effect, we added the constraint $p_j \geq 0.1$ to the impleme
 & \frac{1}{10} <= p_j <= 1, j=1,\dots,N. \nonumber
 \end{alignat}
 
-This means that we are generating stagewise independent balanced scenario trees, where the probabilities of each child node may vary, but are at least 0.1. This may lead to the fact that we are not able to account for scenarios with very small probability, which is a limitation, as financial data distributions are generally heavy tailed.
+This means that we are generating stagewise independent balanced scenario trees, where the probabilities of each child node may vary, but are at least 0.1. This may lead to the fact that we are not able to account for scenarios with very small probability, which is a limitation, as financial data distributions are generally heavy tailed. However, for the purposes of this thesis, this assumption is not too restrictive.
 
 
 \subsection{Mean CVaR model}
-The mean CVaR model was implemented exactly as given in Equation \ref{eq:cvar_multistage_risk_aversion} using the scenario tree generated from the moment matching method.
+The mean CVaR model was implemented exactly as given in Equation \ref{eq:cvar_multistage_risk_aversion} using the scenario tree generated from the moment matching method, where we used the risk aversion parameter $\lambda=0.3.$ \todo{how to justify choice of 0.3? Chosen by expert? @Milos Kopa}
 
 \subsection{Reinforcement agent}
 We chose to use a tried and tested implementation of state of the art algorithms in the \textit{Stable Baselines 3} \cite{stable_baselines3} library. We experimented with multiple architectures and algorithms implemented therein, particularly A2C and PPO, while eventually settling on using PPO in the results given in Section \ref{section:experimental_results}. Here we share our experience with training the reinforcement agent.
@@ -99,7 +153,7 @@ We first experimented with the algorithms using a toy environment (TreeBuildingE
 
 We also experimented with neural net architectures and found that even for very simple tasks (such as learning a different action based on the value of $\alpha$), a very nontrivial number of neurons in the hidden layers is required for the model to be able to solve the environment. Particularly, for a deterministic toy example where $\alpha$ was randomly sampled from the set $\{0.9, 0.95\}$ and based on the given $\alpha$ the best depth of tree to take was $3$ if $\alpha=0.9$ and $5$ if $\alpha=0.95$, the reinforcement agent didn't learn anything within hudreds of thousands of timesteps, unless we used an architecture with two hidden layers of 128 and 64 neurons respectively, where the second layer is separate for the actor and the critic heads (which estimate the policy and the action value). Furthermore, we used ReLu activations between each layer. 
 
-Due to the results obtained from the synthetic toy environment, we decided to use a very similar architecture as given above, where the only change is that we use 256 and 128 neurons in the hidden layers instead of 128 and 64, as the task we are trying to solve is much more difficult and stochastic.
+Due to the results obtained from the synthetic toy environment, we decided to use a very similar architecture as given above, where the only change is that we use 256 and 128 neurons in the hidden layers instead of 128 and 64, as the task we are trying to solve is much more difficult and stochastic. Unfortunately, due to the computational difficulties presented in Section \ref{section:computational_difficulties}, we couldn't experiment with multiple neural network architectures.
 
 \section{Experimental results}
 \label{section:experimental_results}

@@ -18,7 +18,6 @@ As we mentioned, the agent operates in an environment. The agent is aware of the
   \caption{Illustration of the agent environment interaction. Agent is in state $S_t$ and received reward $R_t$ for the last chosen action $A_{t-1}$, then $A_t$ is chosen by the agent and new state $S_{t+1}$ and reward $R_{t+1}$ are obtained. Image sourced from \cite[Figure 3.1.]{sutton2018reinforcement}.}
   \label{fig:agent_environment_interaction}
 \end{figure}
-\todo{should I write here explicitly that $S_t$, $A_t$ and $R_t$ are random variables?}
 
 We now introduce the notion of a \textit{Markov decision process}, which is a formalisation of the agent environment interaction discussed above. The following is heavily inspired by \cite[Chapter 3]{sutton2018reinforcement}
 \begin{defn}{Markov decision process} 
@@ -188,13 +187,13 @@ The advantage actor critic is a policy approximation algorithm that learns not o
 
 Denote the weights of the actor as $\theta$ and weights of the critic as $\theta_v$, thus the estimated policy can be written as $\pi(a|s;\theta)$, $a \in \mathcal{A}, s \in \mathcal{S}$. The performance measure $J$ that A2C maximises can be written as 
 \begin{equation*}
-\log (\pi(a_t|s_t;\theta))\widehat{A}(s_t,a_t;\theta,\theta_v),
+\log (\pi(a|s;\theta))\widehat{A}(s,a;\theta,\theta_v),
 \end{equation*}
 and the gradient of the performance measure can be written as
 \begin{equation*}
-\nabla_{\theta'} \log (\pi(a_t|s_t;\theta'))\widehat{A}(s_t,a_t;\theta,\theta_v),
+\mathbb{E}_b \nabla_{\theta'} \log (\pi(a_b|s_b;\theta'))\widehat{A}(s_b,a_b;\theta,\theta_v),
 \end{equation*}
-where the gradient is taken only with respect to the actor variables affecting the policy (the advantage can be thought of as constant with regard to the differentiation) and where we again add the time subscript $t$ and where $\widehat{A}(s_t,a_t;\theta,\theta_v)$ is the estimated advantage function (for details on how it can be estimated, see \cite[Section 4]{a3c_paper}). Note that this update only updates the policy and not the value function. A different updating scheme is used for the parameters of the critic, where a quadratic error between the estimated value function and observed rewards is minimised, the details ca be found in the original paper \cite[Algorithm S3]{a3c_paper}.
+where the gradient is taken only with respect to the actor variables affecting the policy (the advantage can be thought of as constant with regard to the differentiation) and where we add the subscript $b$ to $a_b$ and $s_b$ to indicate they they belong to a batch of samples and where $\widehat{A}(s_b,a_b;\theta,\theta_v)$ is the estimated advantage function (for details on how it can be estimated, see \cite[Section 4]{a3c_paper}). Note that this update only updates the policy and not the value function. A different updating scheme is used for the parameters of the critic, where a quadratic error between the estimated value function and observed rewards is minimised, the details can be found in the original paper \cite[Algorithm S3]{a3c_paper}.
 % given by 
 %\begin{equation}
 %\widehat{A_t}(s_t,a_t;\theta,\theta_v)=\sum_{i=0}^{k-1}\gamma^i r_{t+1} + \gamma^k V(s_{t+k};\theta_v) - V(s_{t};\theta_v),
@@ -222,35 +221,36 @@ $D_{KL}$ quantifies the difference between discrete probability distributions. M
 
 In practice, $D_{KL}(\pi_{A},\pi_{B})$ between two policies $\pi_{A}$ and $\pi_{B}$ is bounded from above using some parameter $\delta$. At each step, the optimization problem that is being solved to update the policy is given in Equation \ref{eq:TRPO}.
 \begin{alignat}{10}
-&  \underset{\theta_{\tau+1}}{\max} \, && \mathbb{E}_b \frac{\pi(a_t, s_t|\theta_{\tau+1})}{\pi(a_t, s_t|\theta_{\tau})} \widehat{A}(a_t, s_t) \label{eq:TRPO} \\
-s.t. & && \mathbb{E}_b D_{KL}(\pi(\cdot, s_t|\theta_{\tau}), \pi(\cdot, s_t|\theta_{\tau+1})) \leq \delta \nonumber,
+&  \underset{\theta_{\tau+1}}{\max} \, && \mathbb{E}_b \frac{\pi(a_b, s_b|\theta_{\tau+1})}{\pi(a_b, s_b|\theta_{\tau})} \widehat{A}(a_b, s_b) \label{eq:TRPO} \\
+s.t. & && \mathbb{E}_b D_{KL}(\pi(\cdot, s_b|\theta_{\tau}), \pi(\cdot, s_b|\theta_{\tau+1})) \leq \delta \nonumber,
 \end{alignat}
-where $\theta_{\tau+1}$ are the new parameters of the policy after the update and $\widehat{A}(a_t, s_t)$ is an estimate of the advantage function.
+where $\theta_{\tau+1}$ are the new parameters of the policy after the update and $\widehat{A}(a_b, s_b)$ is an estimate of the advantage function, where again the subscript $b$ is added to imply that $a_b$ and $s_b$ belong to a batch of samples.
 The objective function that is maximised here is a local approximation of a quantity that \textit{“represents the expected return
-of another policy $\pi(\cdot,\cdot|\theta_{\tau+1})$ in terms of the advantage over $\pi(\cdot,\cdot|\theta_{\tau})$”} \cite[Equation 1]{TRPO}. For details (such as how $\widehat{A}(a_t, s_t)$ is calculated\footnote{which we do not show, as it would require developing needlessly complex notation and it is not particularly relevant for our purposes}), see \cite[Section 2-4]{TRPO}.
+of another policy $\pi(\cdot,\cdot|\theta_{\tau+1})$ in terms of the advantage over $\pi(\cdot,\cdot|\theta_{\tau})$”} \cite[Equation 1]{TRPO}. For details (such as how $\widehat{A}(a_b, s_b)$ is calculated\footnote{which we do not show, as it would require developing needlessly complex notation and it is not particularly relevant for our purposes}), see \cite[Section 2-4]{TRPO}.
 
 \subsection{Proximal policy optimization}
-The Proximal policy optimization algorithm (PPO) was developed in \cite{proximal_policy_optimization} by combining a neural network used for estimation of action value function and the policy approximation with the trust region idea used in TRPO, we follow their exposition. Consider Equation \ref{eq:ppo}.
+The Proximal policy optimization algorithm (PPO) was developed in \cite{proximal_policy_optimization} by combining a neural network used for estimation of action value function and the policy approximation with the trust region idea (limiting the magnitude of change in KL diveregence) used in TRPO, we follow their exposition. Consider Equation \ref{eq:ppo}.
+\todo{Please verify this section is correct - the notation in the literature is kind of rough and I had a hard time bringing it all together to make sense. I think I did so correctly, but it would be great to double check.}
+
 \begin{equation}
 \label{eq:ppo}
 \footnotesize	
- L_{CLIP}(\theta_{\tau+1}, \theta_{\tau}) = \min(r_t(\theta_{\tau+1},\theta_{\tau})\widehat{A}(a_t, s_t), \, \mathrm{clip}(r_t(\theta_{\tau+1},\theta_{\tau}), 1-\delta, 1+\delta)\widehat{A}(a_t, s_t))),
+ L_{CLIP}(\theta_{\tau}', \theta_{\tau}) = \min(r(\theta_{\tau}',\theta_{\tau})\widehat{A}(a, s), \, \mathrm{clip}(r(\theta_{\tau}',\theta_{\tau}), 1-\delta, 1+\delta)\widehat{A}(a, s))),
 \end{equation}
-where $r_t(\theta_{\tau+1},\theta_{\tau}) = \frac{\pi(a_t, s_t|\theta_{\tau+1})}{\pi(a_t, s_t|\theta_{\tau})}$, $\delta$ is a hyperparameter and 
+where $r(\theta_{\tau}',\theta_{\tau}) = \frac{\pi(a, s|\theta_{\tau}')}{\pi(a, s|\theta_{\tau})}$, $\delta$ is a hyperparameter and 
 \begin{equation*}
 \mathrm{clip}(a, 1-\delta, 1+\delta) = \min(1+\delta, \max(a,1-\delta)), a \in R.
 \end{equation*}
 
-The first term in Equation \ref{eq:ppo} is the same as in the objective function of the TRPO method, see Equation \ref{eq:TRPO}. The second term in the minimum clips the ratio $r_t(\theta_{\tau+1},\theta_{\tau})$, which  has the effect of limiting the change of the policy so that the change is not too large (controlled by $\delta$). The minimum in Equation \ref{eq:ppo} is then taken to get a lower bound on the same objective as used in TRPO.
+The first term in Equation \ref{eq:ppo} is the same as in the objective function of the TRPO method, see Equation \ref{eq:TRPO}. The second term in the minimum clips the ratio $r(\theta_{\tau}',\theta_{\tau})$, which  has the effect of limiting the change of the policy so that the change is not too large (controlled by $\delta$). The minimum in Equation \ref{eq:ppo} is then taken to get a lower bound on the same objective as used in TRPO.
 
-$L_{CLIP}(\theta_{\tau+1}, \theta_{\tau})$ is then combined with a value function error term $L_{VF}(\theta_{\tau+1})$ and potentially also an entropy term (which is omitted in this exposition), giving rise to the following performance measure $L$ as given in \ref{eq:ppo_performance_measure}.
+$L_{CLIP}(\theta_{\tau}', \theta_{\tau})$ is then combined with a value function error term $L_{VF}(\theta_{\tau}')$ and potentially also an entropy term (which is omitted in this exposition), giving rise to the following performance measure $L$ as given in \ref{eq:ppo_performance_measure}.
 
 \begin{equation}
 \label{eq:ppo_performance_measure}
-L(\theta_{\tau+1}, \theta_{\tau}) =  L_{CLIP}(\theta_{\tau+1}, \theta_{\tau}) - c_1 L_{VF}(\theta_{\tau+1}),
+L(\theta_{\tau}', \theta_{\tau}) =  L_{CLIP}(\theta_{\tau}', \theta_{\tau}) - c_1 L_{VF}(\theta_{\tau}'),
 \end{equation}
-where $c_1$ is a hyperparameter and $L_{VF}(\theta_{\tau+1})=(v_{\theta_{\tau+1}}(s_{t_k})-v_{t_k}^{target})^2$, where $v_{t_k}^{target}$ is the observed cumulative return of the state $s_{t_k}$ obtained during training, $k=1,\dots,M,$ where $M$ is the batch size. This performance measure is then maximised using stochastic gradient ascent (note that for Equation \ref{eq:ppo_performance_measure} to make sense, particularly regarding the value of $L_{VF}(\theta_{\tau+1})$ which gives the error for a single state, the stochastic gradient ascent uses $\mathbb{E}_b L(\theta_{\tau+1}, \theta_{\tau})$, which is the average over a batch of samples of size $M$). Note that while the parameters $\theta_{\tau}$ are shared for the policy approximation and the value function approximation $v_{\theta_{\tau}}$, a similar shared neural net architecture as was used in the actor critic framework can be used here such that only some of the parameters are shared (such as a common first layer). Particularly, A2C is a special case of PPO as was shown in \cite{a2c_ppo_special_case}. 
-\todo{This last part is very rough - I am not really sure if it is written clearly. The literature does not give a very precise treatment to this particular part.} 
+where $c_1$ is a hyperparameter and $L_{VF}(\theta_{\tau}')=(v_{\theta_{\tau}'}(s)-v^{target})^2$, where $v^{target}$ is the observed cumulative return of the state $s$ obtained during training. This performance measure is then maximised using stochastic gradient ascent (again, the stochastic gradient ascent update is performed using $\mathbb{E}_b \nabla_{\theta_{\tau}'} L(\theta_{\tau}', \theta_{\tau})$, which is the average over a batch of samples). Note that while the parameters $\theta_{\tau}'$ are shared for the policy approximation and the value function approximation $v_{\theta_{\tau}'}$, a similar shared neural net architecture as was used in the actor critic framework can be used here such that only some of the parameters are shared (such as a common first layer). Particularly, A2C is a special case of PPO as was shown in \cite{a2c_ppo_special_case}. 
 
 Empirically, PPO performs better than A2C and TRPO and is more sample efficient (requires less timesteps to reach a given level of performance). Particularly, in a blogpost, OpenAI said that \textit{“it has become the default reinforcement learning algorithm they use due to its ease of use and good performance”}, see \cite{openaiblogpost}.
 
