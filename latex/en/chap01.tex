@@ -35,16 +35,16 @@
 %-Areas where stochastic programming is used
 %	-financial planning, airline scheduling, transportation (truck routes, daily milk delivery with random demand), management of power systems
 
-In this chapter, we give an introduction to the theory of stochastic programming with particular focus on multistage linear programs. Most of the content in this chapter is based on the material covered in \cite[Chapter 1]{stochasticprogrammingbible}, \cite[Chapters 1-3]{stochasticprogrammingbible2009} and \cite[Part 2]{dupacovastochasticprogramming} if not specified otherwise.
+In this chapter, we give an introduction to the theory of stochastic programming with particular focus on multistage linear programs. Most of the content in this chapter is based on the material covered in \cite[Chapter 1]{stochasticprogrammingbible}, \cite[Chapters 1-3]{stochasticprogrammingbible2009} and \cite[Part~2]{dupacovastochasticprogramming} if not specified otherwise.
 
 \section{Basic definitions}
-\begin{defn}{Mathematical program in $\R^n$}. \label{def:MathematicalProgramDef} \\
+\begin{defn}{Mathematical program in $\R^n$} \label{def:MathematicalProgramDef} \\
 \cite[p. 107]{dupacovastochasticprogramming} \\
 Let $p,m,n \in \N$. A mathematical program in $\R^n$ is defined as
 \begin{equation*}
 \mathrm{min} \{f(\mathbf{x}), \mathbf{x} \in \mathbf{M}\},
 \end{equation*}
-where $\mathbf{M} \subset \R^n$ and $f$ is a real function. The function $f$ is called the objective function and the set $\mathbf{M}$ is called the set of feasible solutions.
+where $\mathbf{M} \subset \R^n$ and $f:\mathbf{M} \rightarrow \R$. The function $f$ is called the objective function and the set $\mathbf{M}$ is called the set of feasible solutions.
 This set is usually defined by constraints as follows:
 \begin{equation*}
 	\mathbf{M} = \{\mathbf{x} \in \R^n: h_j(\mathbf{x})=0, \, j=1,\dots,p, \, g_k(\mathbf{x}) \leq 0, k=1,\dots,m \},
@@ -61,10 +61,9 @@ However, this definition of a Stochastic program is not well formulated. Conside
 \mathrm{min} \{\mathbb{E}\left[f(\mathbf{x}, \omega)\right], \mathbf{x} \in \mathbf{M}\},
 \end{equation*}
 where $\mathbb{E}$ is the expected value operator defined with respect to the probability measure $\mathcal{P}$. 
-\begin{rem}
-We consider only the case where only the function $f$ depends on $\omega$ and that the set $\mathbf{M}$ is deterministic.
-\end{rem}
- \todo{Are these definitions (mostly the probability measure stuff) correct? I think they are, just to check.}
+%\begin{rem}
+%We consider only the case where only the function $f$ depends on $\omega$ and	 the set $\mathbf{M}$ is deterministic.
+%\end{rem}
 
 
 \section{Multistage stochastic programming}
@@ -106,28 +105,30 @@ Following the notation established there, consider the following sequence of eve
 \mathrm{Decision} \,\, x_T,
 \end{gathered}
 \end{equation*}
-where $T$ is the number of stages, $x=(x_1,\dots,x_T)$ is called the decision process ($x_1$ is a non-random vector of variables), $\xi = (\xi_2,\dots,\xi_{T})$ is a stochastic data process ($\xi_1$ is assumed to be known before making the decision $x_1$ and can thus be considered deterministic).  The decision process $x$ represents the decisions made at each stage (i.e. for a portfolio optimization problem, $x_t$ may be a random vector of proportions of some assets in a portfolio at some intermediate stage\todo{is this clear? Maybe rewrite}) and $\xi_{t}$ is a random vector representing the data process in stage $t$ (i.e. it may be a vector of yearly asset returns). Furthermore, the probability distribution of $\xi$ is assumed to be known. Usually, one more observation from the stochastic data process, denoted as $\xi_{T+1}$, is considered to happen after the last decision $x_T$.
-\todo{make notation consistent regarding $\xi$}
+where $T$ is the number of decision stages, $x=(x_1,\dots,x_T)$ is called the decision process ($x_1$ is a non-random vector of variables), $\xi = (\xi_1,\xi_2,\dots,\xi_{T})$ is a stochastic data process ($\xi_1$ is assumed to be known before making the decision $x_1$ and can thus be considered deterministic).  The decision process $x$ represents the decisions made at each stage (i.e. for a portfolio optimization problem, $x_t$ may be a random vector of proportions of some assets in a portfolio in stage $t$) and $\xi_{t}$ is a random vector representing the data process in stage $t$ (i.e. it may be a vector of yearly asset returns). Furthermore, the probability distribution of $\xi$ is assumed to be known. Usually, one more observation from the stochastic data process, denoted as $\xi_{T+1}$, is considered to happen after the last decision $x_T$.
 \subsection{Nonanticipativity}
 Both processes $x$ and $\xi$ are random and thus depend on the realised $\omega \in \Omega$. In order for the program to be well defined, the decision process $x$ must not take into account future observations of either
 $\xi$ or decisions $x$, but only the past and present. This is formalised by the so called nonanticipativity constraints, which assure that the $x_t$ at time $t$ may depend only on $(x_1,\dots,x_{t-1})$ and $(\xi_1,...,\xi_{t})$.
 
 \begin{defn}{Nonanticipativity constraints} \label{def:nonanticipativity constraints}
 \\
-\cite[Section 3.3.]{stochasticprogrammingbible}. \\
+\cite[Ch. 1, Section 3.3., P. 35]{stochasticprogrammingbible} \\
 The decision process $x$ is termed nonanticipative if
 \begin{equation*}
 x_t=\mathbb{E}\left[x_t|\xi_1,\dots,\xi_t \right], t=1,\dots,T,
 \end{equation*}
-or equivalently, if $\mathcal{F}_t$ is the $\sigma$-algebra generated by $(\xi_1,\dots,\xi_t)$, then $x_t(\omega)$\todo{should ($\omega$) be here?} must be measurable with respect to $\mathcal{F}_t$, where $\mathcal{F}_1 \subset \mathcal{F}_2 \subset \dots \subset \mathcal{F}_T \subset \mathcal{F}$.
+or equivalently, if $\mathcal{F}_t$ is the $\sigma$-algebra generated by $(\xi_1,\dots,\xi_t)$, then $x_t$ must be measurable with respect to $\mathcal{F}_t$, where $\mathcal{F}_1 \subset \mathcal{F}_2 \subset \dots \subset \mathcal{F}_T \subset \mathcal{F}$.
 \end{defn}
 This is in contrast to general deterministic (multiperiod) programs, where all data are taken into account. Of course, this definition is not very practical from an implementation standpoint. We provide explicit formulation of nonanticipavity constraints in Section \ref{section:endofhorizoncvar_scenario_formulation}.
 
 \subsection{General multistage optimization problem formulation}
-We first present the nested problem formulation, see Definition \ref{eq:generalmultistageprogrammingformulation}, that arises by considering the optimization subproblems in each stage (in the reverse order, i.e. from the last stage to the first stage) recursively.
+Considering the single period optimization in each stage recursively (in the reverse order,  i.e. from the last stage to the first stage) leads to the following nested problem formulation, see Definition \ref{defn:generalmultistageprogrammingformulation}. This formulation is very similar to problems found in dynamic programming.
 
-\begin{defn}{Multistage nested problem formulation \cite[Section 3.1.1.]{stochasticprogrammingbible2009}} \\
-Let $\xi=(\xi_1,\dots,\xi_{T})$ be the data process as defined in the previous sections, \\ $x=(x_1,\dots,x_t)$ the decision vector, $n_t$ and $d_t$ be the dimensions of $x_t$ and $\xi_t$ respectively, $f_t: \R^{n_t} \times \R^{d_t} \rightarrow \R$ be continuous functions and $
+\begin{defn}{Multistage nested problem formulation} \label{defn:generalmultistageprogrammingformulation}
+\\ 
+\cite[Section 3.1.1.]{stochasticprogrammingbible2009}
+ \\
+Let $\xi=(\xi_1,\dots,\xi_{T})$ be the data process as defined in the previous sections, \\ $x=(x_1,\dots,x_t)$ the decision vector, $n_t$, $d_t \in \N$ be the dimensions of $x_t$ and $\xi_t$ respectively, $f_t: \R^{n_t} \times \R^{d_t} \rightarrow \R$ be continuous functions and $
 \mathcal{X}_t$ be the sets of constraints at each stage $t=1,\dots,T$. The general multistage optimization problem is then formulated as follows:
 \footnotesize
 \begin{equation}
@@ -135,51 +136,68 @@ Let $\xi=(\xi_1,\dots,\xi_{T})$ be the data process as defined in the previous s
 \underset{x_1 \in \mathcal{X}_1}{\mathrm{min}}
  f_1(x_1) + \mathbb{E}\left[ \underset{x_2 \in \mathcal{X}_2(x_1, \xi_2)}{\mathrm{inf}} f_2(x_2,\xi_2) + \mathbb{E}\left[\dots + \mathbb{E}\left[ \underset{x_T \in \mathcal{X}_T(x_{T-1}, \xi_T)}{\mathrm{inf}} f_T(x_T,\xi_T)\right] \right] \right],
 \end{equation}
-
 \normalsize
-where the sets $\mathcal{X}_t(x_{t-1},\xi_t)$ are random, since they dependend on $\xi_t$ and $x_{t-1}$, $t=2,\dots,T$.
-\todo{Check this is all correct}
+where the multifunctions $\mathcal{X}_t(x_{t-1},\xi_t)$ are random, since they dependend on $\xi_t$ and $x_{t-1}$, $t=2,\dots,T$.
+\todo{Please check this is all correct}
 \end{defn}
 
 
+
+\newpage
 \subsection{Linear programming formulation}
 If the functions $f_t$ and constraints defining the sets $\mathcal{X}_t$, $t=1,\dots,T$ are linear in Equation \ref{eq:generalmultistageprogrammingformulation}, then we say that the problem is a \textit{Multistage linear programming problem}, see Definition \ref{defn:nestedlinearmultistageprogrammingformulation}.
 
-\begin{defn}{Multistage nested linear problem formulation \cite[Ch. 1, p. 25]{stochasticprogrammingbible}}. \\
-\label{defn:nestedlinearmultistageprogrammingformulation}
-Let $f_1=c_1^Tx_1$, $\mathcal{X}_1=\{x:A_{1,1}x_1=b_1, x \geq 0 \}$, $f_t = {c_t}^tx_t$, $\mathcal{X}_t=\{x:A_{t,t-1}x_{t-1}+A_{t,t}x_t=b_t\, , x \geq 0\}$, $t=2,\dots,T$, where $A_{t,t}, A_{t,t-1}$ are matrices and $b_t, c_t$ are vectors of consistent dimensions. \todo{is this "matrices and vectors of consistent dimensions" enough or should I specify explicitly?} Assuming that all infima are attained and all expectations exist, rewriting Equation \ref{eq:generalmultistageprogrammingformulation}, we obtain:
-\footnotesize
+\begin{defn}{Multistage nested linear problem formulation} \label{defn:nestedlinearmultistageprogrammingformulation}
+\\
+\cite[Ch. 1, p. 25]{stochasticprogrammingbible}
+ \\
+Considering the notation in Definition \ref{defn:generalmultistageprogrammingformulation}, let 
+\begin{center}
+$f_1=c_1^Tx_1$, \\ $\mathcal{X}_1=\{x:A_{1,1}x_1=b_1, x \geq 0 \}$, \\ $f_t = {c_t}^T x_t$, \\ $\mathcal{X}_t=\{x:A_{t,t-1}x_{t-1}+A_{t,t}x_t=b_t\, , x \geq 0\}$,  \\  
+\end{center}
+$t=2,\dots,T$, where $A_{t,t}, A_{t,t-1}$ are matrices and $b_t, c_t$ are vectors of consistent dimensions with $x_t$ and $x_{t-1}$. \todo{is this "matrices and vectors of consistent dimensions" enough or should I specify explicitly?} Assuming that all infima are attained and all expectations exist, rewriting Equation \ref{eq:generalmultistageprogrammingformulation}, we obtain:
+\scriptsize
 \begin{equation}
 \label{eq:nestedlinearmultistageprogrammingformulation}
 \underset{\underset{x_1 \geq 0}{A_{1,1}x_1=b_1}}{\mathrm{min}}
- c_1^Tx_1 + \mathbb{E}\left[ \underset{\underset{x_{2} \geq 0}{A_{2,1}x_{1}+A_{2,2}x_2=b_2}}{\mathrm{min}} {c_2}^Tx_2 + \mathbb{E}\left[\dots + \mathbb{E}\left[ \underset{\underset{x_{T} \geq 0}{A_{T,T-1}x_{T-1}+A_{T,T}x_T=b_T}}{\mathrm{min}} {c_T}^Tx_T\right] \right] \right],
+ c_1^Tx_1 + \mathbb{E}\left[ \underset{\underset{x_{2} \geq 0}{A_{2,1}x_{1}+A_{2,2}x_2=b_2}}{\mathrm{min}} {c_2}^Tx_2 + \mathbb{E}\left[\dots + \mathbb{E}\left[ \underset{\underset{x_{T} \geq 0}{A_{T,T-1}x_{T-1}+A_{T,T}x_T=b_T}}{\mathrm{min}} {c_T}^Tx_T \right] \right] \right],
 \end{equation}
 \normalsize
-where the quantities $c_t, A_{t,t-1}, A_{t,t}, b_{t}$ are random, or according to notation established earlier, $\xi_t=(c_t, A_{t,t-1}, A_{t,t}, b_{t})$, $t=2,\dots,T$. \todo{should $t=2$ be here or $t=1$?}
+where the quantities $c_t, A_{t,t-1}, A_{t,t}, b_{t}$ are random, or according to notation established earlier, $\xi_t=(c_t, A_{t,t-1}, A_{t,t}, b_{t})$, $t=2,\dots,T$, while $c_1, A_{1,1}, b_{1}$ are known and deterministic.
 \end{defn}
 
-If we view the decision process $x_t$ (at time $t$) as a function of the part of the data process $\xi$ known up to time $t$, i.e. $x_t=x_t(\xi_1,\dots,\xi_t)$, we can properly rewrite the multistage linear programming problem (Equation \ref{eq:nestedlinearmultistageprogrammingformulation}) in the same general form as other linear programming problems:
+If we view the decision process $x_t$ (at time $t$) as a function of the part of the data process $\xi$ known up to time $t$, i.e. $x_t=x_t(\xi_1,\dots,\xi_t)$, we can properly rewrite the multistage linear programming problem (Equation \ref{eq:nestedlinearmultistageprogrammingformulation}) in the same general form as other linear programming problems, see Definition \ref{defn:staircaselinearprogrammingformulation}.
 \begin{defn}
-{Multistage linear problem formulation. \\ \cite[Ch. 1, p. 22]{stochasticprogrammingbible}} \todo{is formatting of this definition ok? Particularly the citation.}\\
+{Multistage linear problem formulation} 
+\label{defn:staircaselinearprogrammingformulation}
+\\ 
+\cite[Ch. 1, p. 22]{stochasticprogrammingbible}
+\\
 \footnotesize
 \begin{alignat}{10}
 \label{eq:staircaselinearprogrammingformulation}
-& &&  && \underset{x_1 \geq 0, x_2,\dots,x_T \overset{a.s.}{\geq} 0}{\mathrm{min}}  &&  \mathbb{E}\left[ c_1^Tx_1 + \dots +  c_T^Tx_T \right] && \\
-& s.t. \, && A_{1,1}x_1 && && && \,=b_1 \nonumber \\
-& && A_{2,1}x_1 +  && A_{2,2}x_2 && && \overset{a.s.}{=}b_2 \nonumber \\
-& && && A_{3,2}x_2  +  A_{3,3}x_3 && && \overset{a.s.}{=}b_3 \nonumber \\
+& &&  && \underset{x_1 \geq 0, x_2,\dots,x_T {\geq} 0}{\mathrm{min}}  &&  \mathbb{E}\left[ c_1^Tx_1 + \dots +  c_T^Tx_T \right] && \\
+& s.t. \, && A_{1,1}x_1 && && && {=} b_1 \nonumber \\
+& && A_{2,1}x_1 +  && A_{2,2}x_2 && && {=} b_2 \nonumber \\
+& && && A_{3,2}x_2  +  A_{3,3}x_3 && && {=} b_3 \nonumber \\
 & && && && && \vdots \nonumber \\
-& && && && A_{T,T-1}x_{T-1}  +  A_{T,T}x_T  && \overset{a.s.}{=}b_T, \nonumber
+& && && && A_{T,T-1}x_{T-1}  +  A_{T,T}x_T  && {=} b_T, \nonumber \\
+& && && &&  x_t  \geq 0, t=1,\dots,T, &&  \nonumber
 \end{alignat}
 \normalsize
 \end{defn}
+\begin{flushleft}
 where the nonanticipativity constraints are included implicitly.
+\end{flushleft}
+\begin{rem}
+The decision process $x$ is also called \textit{policy} in the literature. Particularly \cite[p. 95, Definition 29]{stochasticprogrammingbible} define that $x$ is called an \textit{implementable policy} if $x_t$ is a function of the part of the data process known up to time $t$, i.e. $(\xi_1,\dots,\xi_t)$. Furthermore, if the implementable policy satisfies all constraints, it is called a \textit{feasible policy}.
+\end{rem}
 
-All aforementioned stochastic programming problems may involve general distributions, which, in particular, may be continuous. The literature suggests that while formulating such multistage stochastic programs is possible, solving such programs is not feasible. Particularly \cite{pflugscenariotreegeneration} mentions that this is \textit{due to the fact that the decisions are functions, making the problem a functional optimization problem, which cannot be numerically solved as it is}. To get around this problem, the continuous distributions can be approximated using discrete distributions. We need to keep in mind that the resulting formulation is only approximate and solving it thus provides an estimate of the true objective value (and true decision variables).
+All aforementioned stochastic programming problems contain random variables that may follow general distributions, which, in particular, may be continuous. The literature suggests that while theoretically formulating such multistage stochastic programs is possible, solving such programs is not feasible. Particularly \cite{pflugscenariotreegeneration} mentions that this is “\textit{due to the fact that the decisions are functions, making the problem a functional optimization problem, which cannot be numerically solved as it is}”. To get around this problem, the continuous distributions can be approximated using discrete distributions. We need to keep in mind that the resulting formulation is only approximate and solving it thus provides an estimate of the true objective value (and true decision variables).
 \subsubsection{Formulation using scenario trees}
 To obtain a solvable program, we must obtain a suitable approximation of the underlying continuous distribution. This approximation may be a discrete distribution with a finite number of atoms (scenarios) $\xi^i, i=1,\dots,S$ where $S$ is the number of scenarios. The scenarios are usually organised in tree form as shown in Figures \ref{fig:balanced_scenario_tree} and \ref{fig:unbalanced_scenario_tree}. The following description of scenario tree formulation is heavily inspired by \cite[Section 2]{dupacova_scenarios_for_multistage_stochastic_programs}.
 
-Consider a multistage program with $T$ stages. In each of these stages, we need to find a discretization of the underlying distribution, particularly the marginal distribution in the first stage and the conditional distributions in the intermediate stages. The number of atoms in each of these stages need not be the same. If the number of children is the same for each node in a given stage and this property holds for all stages, the scenario tree is termed \textit{balanced}, see Figure \ref{fig:balanced_scenario_tree}. If the probabilities of each child are equal for any node in the balanced tree, the tree is termed \textit{regular}. \todo{is this definition of a regular tree correct?}
+Consider a multistage program with $T$ stages. In each of these stages, we need to find a discretization of the underlying distribution, particularly the marginal distribution in the first stage and the conditional distributions in the following stages. The number of atoms in each of these stages need not be the same. If the number of children is the same for each node in a given stage and this property holds for all stages, the scenario tree is termed \textit{balanced}, see Figure \ref{fig:balanced_scenario_tree}.
 
 \begin{figure}
   \includegraphics[width=\linewidth]{../img/scenario_tree_balanced.pdf}
@@ -195,32 +213,48 @@ Consider a multistage program with $T$ stages. In each of these stages, we need 
 \end{figure}
 
 Define \textit{scenario at stage} $t$ as $\xi_{[:t]} = (\xi_1,\dots,\xi_t)$.
-Let $S_t(\xi_{[:t-1]})$ be the finite support of the conditional probability distribution of $\xi_t, \, t=3,\dots,T$ and denote $S_2(\xi_{2})$ the finite support of the marginal probability distribution of $\xi_2$. Naturally, we only want to consider sensible scenarios in the set $\mathcal{S}=\{\xi|\xi_t \in S_t(\xi_{[:t-1]}), t=2,\dots,T\}$. Let us now define the probabilities associated with each scenario. Let $P(\xi_{[:T]}^i)$ be the probability of scenario $i$ at the very last stage, i.e.
+Let $S_t(\xi_{[:t-1]})$ be the finite support of the conditional probability distribution of $\xi_t, \, t=3,\dots,T$ and denote $S_2(\xi_{1})$ the finite support of the marginal probability distribution of $\xi_2$. Naturally, we only want to consider sensible scenarios in the set 
+\begin{equation*}
+\mathcal{S}=\{\xi|\xi_t \in S_t(\xi_{[:t-1]}), t=2,\dots,T\}.
+\end{equation*} 
+Let us now define the probabilities associated with each scenario. Let $P(\xi_{[:T]}^i)$ be the probability of scenario $i$ at the very last stage, i.e.
 \begin{equation}
+\label{eq:scenario_probabilities}
 P(\xi_{[:T]}^i)=p_i=P(\xi_2^i)\prod_{t=3}^{T}P(\xi_t^i|\xi_{[:t-1]}), i=1,\dots,S,
 \end{equation}
-where $S$ (which earlier represented the number of scenarios of a given distribution) now represents the number of scenarios in the very last stage, $P(\xi_2^i)$ is the unconditional marginal probability on $S_2$ in the first stage and $P(\xi_t^i|\xi_{[:t-1]})$ are the conditional probabilities on $S_t(\xi_{[:t-1]})$ in the intermediate stages. The probabilities $P(\xi_2^i)$ and $P(\xi_t^i|\xi_{[:t-1]})$ are termed \textit{arc probabilities} and their products
+where $S$ (which earlier represented the number of scenarios of a given distribution) now represents the number of scenarios in the very last stage, i.e. the number of leaves of the scenario tree), $P(\xi_2^i)$ is the unconditional marginal probability on $S_2$ in the first stage and $P(\xi_t^i|\xi_{[:t-1]})$ are the conditional probabilities on $S_t(\xi_{[:t-1]})$ in the following stages of scenario $i$. The probabilities $P(\xi_2^i)$ and $P(\xi_t^i|\xi_{[:t-1]})$ are termed \textit{arc probabilities} and their products
 \begin{equation}
 P(\xi_{[:t]}^i)=P(\xi_2^i)\prod_{\tau=3}^{t}P(\xi_\tau^i|\xi_{[:\tau-1]}), i=1,\dots,S, t=3,\dots,T,
 \end{equation}
-are called \textit{path probabilities}. Obviously, the path probability of scenario $i$ at time $T$ coincides with $p_i$. 	 \todo{We assume that $\xi_1$ is known - make notation consistent! Here we use $P(\xi_1^i)$, which should therefore be $P(\xi_2^i)$}
+are called \textit{path probabilities}. Obviously, the path probability of scenario $i$ at time $T$ coincides with $p_i$.
 
-Two special cases of a scenario tree relevant to this text exist:
+We define two special cases of a scenario tree:
 \begin{enumerate}
 \item Interstage independent tree
 	\begin{itemize}
 		\item If $P(\xi_t^i|\xi_{[:t-1]})=P(\xi_t^i)$ (the conditional probabilities are equal to the marginal probabilities), then the tree is termed \textit{interstage independent}.
 	\end{itemize}
 \item Fan of scenarios
-\todo{add picture of a fan of scenarios}
 	\begin{itemize}
-		\item If $S_2(\xi_2)$ and $S_t(\xi_{[:t-1]}), t=3,\dots,T$ are singletons, the tree collapses into a 		\textit{fan of scenarios}.
+		\item If $S_2(\xi_1)$ and $S_t(\xi_{[:t-1]}), t=3,\dots,T$ are singletons, the tree collapses into a 		\textit{fan of scenarios}, see Figure \ref{fig:fan_of_scenarios_clustering}.
 	\end{itemize}
 \end{enumerate}
-Having defined the necessary notation for the scenario tree structure, we can now formulate a multistage linear program using a scenario tree. Let $\mathcal{K}_t, t=1,\dots,T$ be disjoint sets of indices enumerating nodes in each stage of the scenario tree ($\mathcal{K}_1=\{1\}$ corresponds to the root node, if the root node has two descendants, then $\mathcal{K}_2=\{2,3\}$ enumerates the descendants and so on).
+Having defined the necessary notation for the scenario tree structure, we can now formulate a multistage linear program using a scenario tree. Let $\mathcal{K}_t, t=1,\dots,T$ be disjoint sets of indices enumerating nodes in each stage of the scenario tree.
+% ($\mathcal{K}_1=\{1\}$ corresponds to the root node, if the root node has two descendants, then $\mathcal{K}_2=\{2,3\}$ enumerates the nodes in the second stage and so on). 
+This is best illustrated using Figure \ref{fig:balanced_scenario_tree_illustration_sets_kt}, where $\mathcal{K}_1=\{1\}$, $\mathcal{K}_2=\{2,3\}$ and $\mathcal{K}_3=\{4,5,6,7,8,9\}$. This leads to Definition \ref{defn:arborescent_linear_programming_formulation}.
+
+\begin{figure}
+  \includegraphics[width=\linewidth]{../img/scenario_tree_balanced_kt_enumeration.pdf}
+  \caption{Balanced scenario tree illustration for how sets $\mathcal{K}_t$ are constructed.}
+  \label{fig:balanced_scenario_tree_illustration_sets_kt}
+\end{figure}
+
 \newpage
-\begin{defn}{Arborescent form of a scenario based linear program \cite[p. 3]{dupacova_scenarios_for_multistage_stochastic_programs}}.
-\label{eq:arborescent_linear_programming_formulation}
+\begin{defn}{Arborescent form of a scenario based linear program}
+\label{defn:arborescent_linear_programming_formulation}
+\\
+\cite[p. 3]{dupacova_scenarios_for_multistage_stochastic_programs}
+\\
 \footnotesize
 \begin{equation}
 \mathrm{min} \, c_1^Tx_1 + \sum_{k_2=2}^{K_2}p_{k_2}c_{k_2}^Tx_{k_2} + \sum_{k_3=k_2+1}^{K_3}p_{k_3}c_{k_3}^Tx_{k_3} + \dots +  \sum_{k_T=k_{T-1}+1}^{K_T}p_{k_T}c_{k_T}^Tx_{k_T} \\
@@ -235,22 +269,23 @@ Having defined the necessary notation for the scenario tree structure, we can no
 \end{alignat}
 \vspace{-0.5cm}
 \begin{align*}
-& l_t \leq x_{k_t} \leq u_t, k_t=K_{t-1}+1,\dots,K_t, \, t=1,\dots,T,  \nonumber
+& x_{k_t} \geq 0, k_t \in \mathcal{K}_t, \, t=1,\dots,T,  \nonumber
 \end{align*}
 \normalsize
-where $K_1=1$, $\mathcal{K}_t=\{K_{t-1}+1,\dots,K_t\}, \, t=2,\dots,T$, where $a(k_t)$ denotes the predecessor of $k_t$ and where we explicitly set the upper and lower bound ($u_t$ and $k_t$) for the decision variables $x_{k_t}$.
+where $K_1=1$, $\mathcal{K}_t=\{K_{t-1}+1,\dots,K_t\}, \, t=2,\dots,T$, $a(k_t)$ denotes the predecessor of $k_t$ and $\mathcal{K}_t, \, t=1,\dots,T$ are disjoint sets of indices enumerating nodes in stage $t$ of the scenario tree.
 \end{defn}
-In definition \ref{eq:arborescent_linear_programming_formulation}, the nonanticipativity constraints are again included implicitly. With the explicit inclusion of nonanticipativity constraints and by taking the expectation over all scenarios, we arrive at a formulation that is more suitable for practical use, see Definition~\ref{eq:scenario_splitted_linear_programming_formulation}. This is the formulation that we will use in the rest of this text as basis for formulating and solving scenario based multistage linear programs.
+In definition \ref{defn:arborescent_linear_programming_formulation}, the nonanticipativity constraints are again included implicitly. With the explicit inclusion of nonanticipativity constraints and by taking the expectation over all scenarios, we arrive at a formulation that is more suitable for practical use, see Definition~\ref{eq:scenario_splitted_linear_programming_formulation}. This is the formulation that we will use in the rest of this text as basis for formulating and solving scenario based multistage linear programs.
+\newpage
 \begin{defn}
 \label{eq:scenario_splitted_linear_programming_formulation}
 {Scenario splitted form of a scenario based linear program \\ \cite{defourny_scenario_trees_scenario_splitted_formulation}}.
 \footnotesize
 \begin{equation*}
-\mathrm{min} \, \sum_{i=1}^S p_i \left[ c_1^Tx_1^i + (c_2^i)^Tx_2^i + \dots + (c_T^i)^Tx_T^i  \right]
+\mathrm{min} \, \sum_{i=1}^S p_i \left[ (c_1^T)x_1^i + (c_2^i)^Tx_2^i + \dots + (c_T^i)^Tx_T^i  \right]
 \end{equation*}
 \vspace{-0.5cm}
 \begin{alignat}{10}
-& s.t. && \, && A_{1,1}x_1 && && \,&&=b_1 \nonumber \\
+& s.t. && \, && A_{1,1}x_1^i && && \,&&=b_1 \nonumber \\
 & && && A_{2,1}^ix_1^i  + &&A_{2,2}^ix_2^i && &&=b_2^i \nonumber \\
 & && && && A_{3,2}^ix_{2}^i  + && A_{3,3}^ix_{3}^i &&=b_3^i \nonumber \\
 & && && && && &&  \, \, \, \vdots \nonumber \\
@@ -260,25 +295,27 @@ In definition \ref{eq:arborescent_linear_programming_formulation}, the nonantici
 \begin{align}
 \label{eq:scenario_splitted_nonanticipativity_constraints}
 & i=1,\dots,S \nonumber \\
-& l_t \leq x_{t}^i \leq u_t, i=1,\dots,S, \, t=1,\dots,T,  \nonumber \\
+&  x_{t}^i \geq 0, i=1,\dots,S, \, t=1,\dots,T,  \nonumber \\
 & x_t^j=x_t^k, \, \mathrm{if} \, \xi_{[:t]}^j=\xi_{[:t]}^k \, j,k \in \{1,\dots,S\} , t=1,\dots,T,
 \end{align}
 \normalsize
-where Equation \ref{eq:scenario_splitted_nonanticipativity_constraints} represents the nonanticipativity constraints and obviously, the nonanticipativity constraints hold for $t=1$, since $\xi_1$ is deterministic and common to all scenarios.
-\todo{define what are quantities $A^i, x^i, c^i, b^i$ under scenario $i$.}
+where $p_i$ is the probability of scenario $i$ as defined in Equation \ref{eq:scenario_probabilities}, $x_t^i, A_{t,t-1}^i, A_{t,t}^i, b_{t}^i$ are respectively the decision variables, matrices and vector of constraints in scenario $i$, $t=1,\dots,T$. Equation \ref{eq:scenario_splitted_nonanticipativity_constraints} represents the nonanticipativity constraints and obviously, the nonanticipativity constraints hold for $t=1$, since $\xi_1$ is deterministic and common to all scenarios.
 \end{defn}
 \subsection{Methods for generation of scenario trees}
-There is a plethora of literature on the methods for scenario tree generation. In this section, we aim to present the most basic methods (of which only the moment matching method is relevant for the purposes of this text in later chapters). Prior to generating a scenario tree, we need to decide the structure of the tree, particularly the number of (decision) stages and the branching structure of the tree (i.e. how many descendants should each node have). This is in general not an easy task, which we will come back to in Section \todo{add reference to curse of dimensionality}.
-\subsubsection{Moment matching}
-\cite{hoyland_wallace_moment_matching} presented a novel method of generating a scenario tree from historical data that matches some statistical properties of the data, particularly by minimising the distance between moments and correlations calculated from historical data and the moments and correlations calculated from the scenario tree. They formulated a nonlinear optimization program to solve this task. In practical use, this method can be very time demanding and this led to development of a heuristic method for generating scenario trees using moment matching in \cite{hoyland_wallace_moment_matching_heuristic}.  \cite{moment_matching_agarwal} further improved on top of the non-heuristic method and proposed a way to also include empirical cumulative distribution function matching in the program. We will follow the notation established in \cite{moment_matching_agarwal} and describe the optimization program used for generating a simple scenario tree that consists only of a root and $N$ child nodes using the moment matching method.
-\begin{rem}
-For the purposes of this thesis, we can restrict the theory only to this simple case, as we will be working with stagewise independent balanced scenario trees. Further details on how the moment matching method is used are described in \todo{add reference to chapter where i explain how it all comes together and link specific equation here}. For the more complex case, see \cite{hoyland_wallace_moment_matching}.
-\end{rem}
-\begin{defn}{Moment matching problem (simple formulation) \cite[p. 9]{moment_matching_agarwal}.}
+There is a plethora of literature on the methods for scenario tree generation. In this section, we aim to present a summary of the basic methods, of which only the moment matching method is relevant for the purposes of this text in later chapters (due to reasons explained in Section \ref{section:computational_difficulties}) and is therefore treated in much more detail. 
 
-Let the scenario tree consist of only one stage, i.e. a root and $N$ child nodes. Let $I$ be the set of outcomes to be generated for each scenario, $K$ be the number of moments to be matched, $\mathcal{K}=\{1,\dots,K\}$, $M_{i_k}$ the $k$-th moment calculated from historical data of $i$-th outcome, $C_{i,i'}$ be the correlation calculated from historical data between $i$-th and $i'$-th outcomes. Then the moment matching problem can be formulated as follows:
+Prior to generating a scenario tree, we need to decide the structure of the tree, particularly the number of stages and the branching structure of the tree (i.e. how many descendants should each node have). This is in general not an easy task, which we will come back to in Section \ref{section:curse_od_dimensionality}.
+\subsubsection{Moment matching}
+\cite{hoyland_wallace_moment_matching} presented a novel method of generating a scenario tree from historical data that matches some statistical properties of the data, particularly by minimising the distance between moments and correlations calculated from historical data and the moments and correlations calculated from the scenario tree. They formulated a nonlinear optimization program to solve this task. In practical use, this method can be very time demanding and this led to development of a heuristic method for generating scenario trees using moment matching in \cite{hoyland_wallace_moment_matching_heuristic}.  \cite{moment_matching_agarwal} further improved on top of the non-heuristic method and proposed a way to also include empirical cumulative distribution function matching in the program. We will follow the notation established in \cite{moment_matching_agarwal} and describe the optimization program used for generating a simple one stage scenario tree that consists only of a root and $N$ child nodes using the moment matching method (without the cumulative distribution function matching).
+\begin{rem}
+For the purposes of this thesis, we can restrict the theory only to this simple case, as we will be working with stagewise independent balanced scenario trees and thus use the moment matching method sequentially in each stage. Further details on how the moment matching method is used are described in \todo{add reference to chapter where i explain how it all comes together and link specific equation here in chapter 4}. For the more complex case, where the whole tree is generated at once (which is in principle the same as presented here, only with more complex notation), see \cite{hoyland_wallace_moment_matching}.
+\end{rem}
+\begin{defn}{Moment matching \cite[p. 9]{moment_matching_agarwal}}
+\label{defn:moment_matching_method}
+\\
+Let the scenario tree consist of only one stage, i.e. a root and $N$ children. Let $I$ be the set of assets, $K$ be the number of moments to be matched, \\ $\mathcal{M}=\{1,\dots,K\}$, $M_{i,k}$ the $k$-th sample moment calculated from historical data of $i$-th asset, $C_{i,i'}$ be the sample correlation calculated from historical data between $i$-th and $i'$-th assets. Then the moment matching problem can be formulated as follows:
 \begin{alignat}{10}
-& && && \sum_{i\in I} \sum_{k\in \mathcal{K}} \left(m_{i,k} - M_{i,k}\right)^2 + \sum_{(i, i') \in I, i < i'}(c_{i,i'}-C_{i,i'})^2 \nonumber \\
+& && && \underset{\substack{p_j, x_{i,j}, \\ j \in \{1,...,N\}, i \in I}}{\min} \sum_{i\in I} \sum_{k\in \mathcal{M}} \left(m_{i,k} - M_{i,k}\right)^2 + \sum_{(i, i') \in I, i < i'}(c_{i,i'}-C_{i,i'})^2 \nonumber \\
 & s.t. && \sum_{j=1}^N p_j&&=1 \nonumber \\
 & && m_{i,1}&&=\sum_{j=1}^N p_jx_{i,j}, i \in I \nonumber \\
 & && m_{i,k}&&=\sum_{j=1}^N p_j(x_{i,j}-m_{i,1})^k, i \in I, k>1 \nonumber \\
@@ -289,52 +326,55 @@ Let the scenario tree consist of only one stage, i.e. a root and $N$ child nodes
 & x_{i,j}^L<=x_{i,j}<=x_{i,j}^U, i \in I, j=1,\dots,N, \nonumber \\
 & 0 <= p_j <= 1, j=1,\dots,N, \nonumber
 \end{alignat}
-where $m_{i,k}$ are the moments and $c_{i,i'}$ are the correlations between outcome $i$ and $i'$ calculated from the tree and $p_j$ are the probabilities of each node.
+where $m_{i,k}$ are the moments and $c_{i,i'}$ are the correlations between asset $i$ and $i'$ calculated from the tree, $p_j$ are the probabilities of each child and $x_{i,j}^L$ and $x_{i,j}^U$ are the lower and upper bounds on the decision variable $x_{i,j}$.
 \end{defn}
 
-\todo{Add moment matching method}
-\todo{Add my own experience with different solvers}
-\todo{Add difference between sequential and whole tree approach, see the citation below}
-%Gülpinar N, Rustem G, Settergren R, Simulation and Optimization Ap-
-%%proaches to Scenario Generatin, Journal of Economic Dynamics & Control,
-%vol. 28, Elsevier Science, 2004 - Moment matching - sequential vs whole tree
 
-\subsubsection{Simulation and clustering}
-For the sake of completeness of this text, the other simple way to generate a scenario tree is to use a parametric model for the underlying process, simulate multiple trajectories of such process and then use a clustering procedure to group similar trajectories in each stage together to obtain a valid scenario tree, see e.g. \cite[Section 3]{dupacova_scenarios_for_multistage_stochastic_programs} or \cite[Section 3]{kmeans_clustering}. In this section we present the basic theory for Geometric Brownian motion.
-\subsubsection{Geometric Brownian motion}
-In this section, we mostly follow \cite[Section 3.2.3.]{glasserman2004monte}. The geometric brownian motion is a fundamental model in asset pricing, its first use in finance dates back to the 1960s and it as been the centerpiece of many groudbreaking models, particularly the Black-Scholes model \cite{black_scholes}. We dive right in to the multivariate case, for the basics, see \cite[Section 3.2.]{glasserman2004monte}.
-\begin{defn}{Multidimensional Geometric Brownian motion \cite[p. 104]{glasserman2004monte}.}
+\subsubsection{Simulation and reduction}
+For the sake of completeness of this text, another common approach to generate a scenario tree is to use a parametric model for the underlying process, simulate multiple trajectories of such process and then use a reduction procedure to obtain a valid tree. 
 
-A $D$-dimensional random process is called Geometric Brownian motion if it is the solution to the following system of stochastic differential equations:
-\begin{equation}
-\frac{\mathrm{d} S_i(t)}{S_i(t)}=\mu_i \mathrm{d}t + \sigma_i \mathrm{d}X_t(t), S_i(0)>0, i=1,\dots,D,
-\end{equation}
-where each $X_i$ is a standard Brownian motion and $\mathrm{corr}(X_i(t),X_j(t))=\rho_{i,j}$. Define matrix $\Sigma$ by its elements as $\Sigma_{i,j}=\sigma_i\sigma_j\rho_{i,j}, i, j = 1,\dots,D$ and $\mu=(\mu_1,\dots,\mu_D)$, then the process $S=(S_1,\dots,S_D)$ is called $D$-dimensional Geometric Brownian motion with drift vector $\mu$ and covariance matrix $\Sigma$, denoted by $S\sim\mathrm{GBM}(\mu, \Sigma)$.
-\end{defn}
-Using stochastic calculus, an explicit solution to the system of stochastic differential equations can be derived, see Equation \ref{eq:gbm_explicit}.
-\begin{equation}
-\label{eq:gbm_explicit}
-S_i(t)=S_i(0)e^{(\mu_i-\frac{1}{2}\sigma_i^2)t+\sigma_iX_i(t)},i=1,\dots,D.
-\end{equation}
-\subsubsection{Simulating paths}
-Let $A$ be the square root matrix of $\Sigma$, i.e. $\Sigma=AA^T$ (since $\Sigma$ is a covariance matrix, it is positive definite and thus the square root matrix exists and is unique).	 The matrix $A$ is usually obtained by Cholesky decomposition. \cite[Section 3.2.3.]{glasserman2004monte} gives a recurrence relation for simulating the paths of Multidimensional Geometric Brownian motion by using Equation \ref{eq:gbm_recurrence}
-\begin{equation}
-\label{eq:gbm_recurrence}
-S_i(t_{k+1})=S_i(t_k)e^{(\mu_i-\frac{1}{2}\sigma_i^2)(t_{k+1}-t_k)+\sqrt{t_{k+1}-t_k}\sum_{j=1}^DA_{i,j}Z_{k+1,j}},i=1,\dots,D,
-\end{equation}
-where $Z_k=(Z_{k1},\dots,Z_{kD})\sim N(0,I_D)$ (where $I_D$ is the identity matrix of dimension $D$) and $Z_k$ are independent, $k=1,\dots,N$ and where $t_{i}$ are discrete times such that $0=t_0<t_{i}<t_{i+1}$ for $i=0,\dots,N-1$.
+Many reduction methods can be considered, examples include clustering of similar trajectories together, nodal and scenario extraction methods and distance based methods, which find a smaller tree that is in some sense close to the original (based on a given metric). For an exhaustive summary, we recommend \cite{kopa_evaluation_of_scenario_reduction_algorithms}. 
+
+To demonstrate the procedure, we give an overview of the clustering method.
+%, see e.g. \cite[Section 3]{dupacova_scenarios_for_multistage_stochastic_programs} or \cite[Section 3]{kmeans_clustering}. 
+%\subsubsection{Geometric Brownian motion}
+%In this section, we mostly follow \cite[Section 3.2.3.]{glasserman2004monte}. The geometric brownian motion is a fundamental model in asset pricing, its first use in finance dates back to the 1960s and it as been the centerpiece of many groudbreaking models, particularly the Black-Scholes model \cite{black_scholes}. We dive right in to the multivariate case, for the basics, see \cite[Section 3.2.]{glasserman2004monte}.
+%\begin{defn}{Multidimensional Geometric Brownian motion \cite[p. 104]{glasserman2004monte}.}
+%
+%A $D$-dimensional random process is called Geometric Brownian motion if it is the solution to the following system of stochastic differential equations:
+%\begin{equation}
+%\frac{\mathrm{d} S_i(t)}{S_i(t)}=\mu_i \mathrm{d}t + \sigma_i \mathrm{d}X_t(t), S_i(0)>0, i=1,\dots,D,
+%\end{equation}
+%where each $X_i$ is a standard Brownian motion and $\mathrm{corr}(X_i(t),X_j(t))=\rho_{i,j}$. Define matrix $\Sigma$ by its elements as $\Sigma_{i,j}=\sigma_i\sigma_j\rho_{i,j}, i, j = 1,\dots,D$ and $\mu=(\mu_1,\dots,\mu_D)$, then the process $S=(S_1,\dots,S_D)$ is called $D$-dimensional Geometric Brownian motion with drift vector $\mu$ and covariance matrix $\Sigma$, denoted by $S\sim\mathrm{GBM}(\mu, \Sigma)$.
+%\end{defn}
+%Using stochastic calculus, an explicit solution to the system of stochastic differential equations can be derived, see Equation \ref{eq:gbm_explicit}.
+%\begin{equation}
+%\label{eq:gbm_explicit}
+%S_i(t)=S_i(0)e^{(\mu_i-\frac{1}{2}\sigma_i^2)t+\sigma_iX_i(t)},i=1,\dots,D.
+%\end{equation}
+%\subsubsection{Simulating paths}
+%Let $A$ be the square root matrix of $\Sigma$, i.e. $\Sigma=AA^T$ (since $\Sigma$ is a covariance matrix, it is positive definite and thus the square root matrix exists and is unique).	 The matrix $A$ is usually obtained by Cholesky decomposition. \cite[Section 3.2.3.]{glasserman2004monte} gives a recurrence relation for simulating the paths of Multidimensional Geometric Brownian motion by using Equation \ref{eq:gbm_recurrence}
+%\begin{equation}
+%\label{eq:gbm_recurrence}
+%S_i(t_{k+1})=S_i(t_k)e^{(\mu_i-\frac{1}{2}\sigma_i^2)(t_{k+1}-t_k)+\sqrt{t_{k+1}-t_k}\sum_{j=1}^DA_{i,j}Z_{k+1,j}},i=1,\dots,D,
+%\end{equation}
+%where $Z_k=(Z_{k1},\dots,Z_{kD})\sim N(0,I_D)$ (where $I_D$ is the identity matrix of dimension $D$) and $Z_k$ are independent, $k=1,\dots,N$ and where $t_{i}$ are discrete times such that $0=t_0<t_{i}<t_{i+1}$ for $i=0,\dots,N-1$.
 %Kaut M, Wallace SW, Evaluation of Scenario Generation Methods for
 %Stochastic Programming, 2003 - Clustering with GBM
+%\subsubsection{Clustering}
+
 \subsubsection{Clustering}
-After a sufficient number of paths generated from a parametric model are obtained, we are faced with a fan of scenarios (see the top left illustration in Figure \ref{fig:fan_of_scenarios_clustering}.). To obtain a valid scenario tree, we need to cluster similar paths together in each stage, while preserving the tree structure. This is done by applying a clustering algorithm that partitions the given set of observations in the first stage into several groups (and then applying the algorithm again on each group recursively). An algorithm that may be useful for this task is the $k$-means algorithm, originally developed in \cite{kmeans}. A precise description of the process can be found in \cite[Section 3]{kmeans_clustering}.
+After a sufficient number of paths generated from a parametric model are obtained, we are faced with a fan of scenarios (see the top left illustration in Figure~\ref{fig:fan_of_scenarios_clustering}.). To obtain a valid scenario tree, we need to cluster similar paths together in each stage while preserving the tree structure. This is done by applying a clustering algorithm that partitions the given set of observations in the first stage into several groups (and then applying the algorithm again on each group recursively). An algorithm that may be useful for this task is the $k$-means algorithm, originally developed in \cite{kmeans}. A precise description of the process can be found in \cite[Section 3]{kmeans_clustering}.
 
 \begin{figure}
   \includegraphics[width=\linewidth]{../img/fan_of_scenarios_clustering.png}
   \caption{Illustration of a clustering procedure applied to a fan of scenarios which generates an unbalanced scenario tree.  Image sourced from \cite[Figure 5]{fan_of_scenarios}.}
   \label{fig:fan_of_scenarios_clustering}
 \end{figure}
- \todo{maybe rewrite the stages here - the number of periods in the tree is 5.}
 \subsection{Curse of dimensionality}
-In machine learning in general, the curse of dimensionality is a phenomenon where increasing the complexity (dimension) of a problem leads to much higher (often exponentially higher) computational and memory demands, many times so large that the problem becomes unsolvable. A particularly relevant example is dynamic programming, where all states of a system are (usually recursively) explored to obtain the optimal solution. This means that increasing the dimensionality of the problem exponentially increases the number of states, leading to a unsolvable problem.
+\label{section:curse_od_dimensionality}
+The curse of dimensionality is a phenomenon where increasing the complexity (dimension) of a problem leads to much higher (often exponentially higher) computational and memory demands, many times so large that the problem becomes unsolvable. A particularly relevant example is dynamic programming, where all states of a system are (usually recursively) explored to obtain the optimal solution. This means that increasing the dimensionality of the problem exponentially increases the number of states, leading to a unsolvable problem.
 
-The scenario approach to stochastic optimization suffers from the curse of dimensionality aswell, since the number of scenarios grows with the number of decision stages and the number of descendants in each stage. Many methods have been developed to reduce the number of scenarios (e.g. trimming, reduction, and aggregation methods to obtain trees that are solvable in finite time (we refer the interested reader to \cite[p. 6]{dupacova_scenarios_for_multistage_stochastic_programs})). However, all these methods take the already generated large tree (with predefined branching structure) as input and return a potentially smaller tree that should have similar properties (particularly, the optimal solution of the program based on the smaller tree should not be significantly different than the one obtained by solving the program using the	 larger tree). This may not be the optimal approach, as it is possible that the tree has been made overly large in the first place and a smaller tree would suffice. However, the problem of choosing an optimal scenario tree by choosing the number of stages and branching structure in each stage remains largery unexplored in the literature. \todo{This may not be exactly correct - maybe we should focus more on a large number of time steps and then the other methods fail due to large number of scenarios.}
+The scenario tree approach to stochastic optimization suffers from the curse of dimensionality aswell, since the number of scenarios grows with the number of decision stages and the number of descendants in each stage. Many methods have been developed to reduce the number of scenarios (as explained in the previous section). However, \todo{is it true that the branching structure is predefined?} many of these methods take the already generated fan of scenarios as input and return a tree with predefined branching structure. The branching structure is usually chosen ad hoc or by an expert opinion. This may not be the optimal approach, as a different tree structure (different discretization of the randomness) may yield better results in terms of the objective function. Particularly choosing a tree with too many stages and many children in each stage leads to a computationally intractable problem.
+
+This is the main question we explore in this thesis -- what is the dependence of the objective function on the tree structure and can we find a scenario tree structure that is optimal with regard to the objective function and potentially also with regard to the size of the scenario tree?
