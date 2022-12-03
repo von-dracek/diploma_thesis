@@ -1,2 +1,7 @@
 \chapter*{Conclusion}
 \addcontentsline{toc}{chapter}{Conclusion}
+In this thesis, we explored the dependence of multistage scenario models on the chosen scenario tree structure.
+
+We proposed an experiment to explore the dependence of the value of the objective function of mean CVaR model on the structure of a scenario tree that was built using the moment matching method using reinforcement learning. We trained several reinforcement agents and evaluated their performance, finding that it is possible to train such an agent to aid in the task of choosing a scenario tree structure and most importantly of all, we experimentally validated the usual choice of scenario tree structure that is being utilised in practice. This is our most notable contribution. We further explored how to penalise the reward function in such a way that the agent learns to consider scenario trees that are not too complex.
+
+This thesis could be extended in several ways. Due to computational limitations, we had to constrain ourselves only to a small set of trees. It would be interesting to extend the experiment such that more stages and more branchings our allowed. Moreover, other scenario tree building methods than moment matching could be explored. Both of these extensions would however come at significant computational cost with the current implementation.

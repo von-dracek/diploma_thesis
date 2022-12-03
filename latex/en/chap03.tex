@@ -86,9 +86,9 @@ Let $\pi$ be a policy and $s \in \mathcal{S}$ and $a \in \mathcal{A}$. Denote th
  A_{\pi}(s,a) = q_{\pi}(s,a) - v_{\pi}(s).
 \end{equation*}
 \end{defn}
-The advantage represents the gain that is obtained by taking action $a$ in state $s$ compared to the average action.
+The advantage represents the gain that is obtained by taking action $a$ in state $s$ compared to following policy $\pi$.
 
-Our aim is to obtain a policy that maximises the expected cumulative discoutned reward. We thus define the \textit{optimal policy}, \textit{optimal value function} and \textit{optimal action value function}, see Definition \ref{defn:optimal_definitions}.
+Our aim is to obtain a policy that maximises the expected cumulative discounted reward. We thus define the \textit{optimal policy}, \textit{optimal value function} and \textit{optimal action value function}, see Definition \ref{defn:optimal_definitions}.
 
 \begin{defn}{Optimal policy, value function and action value function} 
 \label{defn:optimal_definitions} 
@@ -112,7 +112,7 @@ respectively for $s \in \mathcal{S}$ and $a \in \mathcal{A}$.
 
 \section{Exploration vs exploitation}
 \label{section:explo_vs_exploit}
-The optimal policy, value function and action value function must be learned by interacting with the environment. The agent now faces a dillema -- either to maximise his known reward (act greedily, but potentially get stuck in a local optimum) or explore the environment and update the policy in order to get the globally optimal policy. This exploration-exploitation tradeoff is always present with reinforcement learning and many approaches for dealing with it exist. An example are the $\epsilon$-greedy methods, where the agent acts greedily $1-\epsilon \, \%$ of the time and performs a random action $\epsilon \, \%$ of the time. $\epsilon$ is usually set to a value close to 1 at the beginning of training and decreased over time, the final threshold at which $\epsilon$ is kept constant is usually somewhere in $[0,0.1]$. For more information, we refer the reader to \cite[Section 2.7.]{sutton2018reinforcement}.
+The optimal policy, value function and action value function must be learned by interacting with the environment. The agent now faces a dillema -- either to maximise his known reward (act greedily, but potentially get stuck with a policy that is not optimal) or explore the environment and update the policy in order to get the (globally) optimal policy. This exploration-exploitation tradeoff is always present with reinforcement learning and many approaches for dealing with it exist. An example are the $\epsilon$-greedy methods, where the agent acts greedily $(1-\epsilon) \, \%$ of the time and performs a random action $\epsilon \, \%$ of the time. $\epsilon$ is usually set to a value close to 1 at the beginning of training and decreased over time, the final threshold at which $\epsilon$ is kept constant is usually somewhere in $[0,0.1]$. For more information, we refer the reader to \cite[Section 2.7.]{sutton2018reinforcement}.
 
 \section{Algorithm classes}
 In this section, we aim to present a basic summary of current reinforcement learning methods with particular focus on policy-gradient methods.
@@ -193,7 +193,7 @@ and the gradient of the performance measure can be written as
 \begin{equation*}
 \mathbb{E}_b \nabla_{\theta'} \log (\pi(a_b|s_b;\theta'))\widehat{A}(s_b,a_b;\theta,\theta_v),
 \end{equation*}
-where the gradient is taken only with respect to the actor variables affecting the policy (the advantage can be thought of as constant with regard to the differentiation) and where we add the subscript $b$ to $a_b$ and $s_b$ to indicate they they belong to a batch of samples and where $\widehat{A}(s_b,a_b;\theta,\theta_v)$ is the estimated advantage function (for details on how it can be estimated, see \cite[Section 4]{a3c_paper}). Note that this update only updates the policy and not the value function. A different updating scheme is used for the parameters of the critic, where a quadratic error between the estimated value function and observed rewards is minimised, the details can be found in the original paper \cite[Algorithm S3]{a3c_paper}.
+where the gradient is taken only with respect to the actor variables affecting the policy (the advantage can be thought of as constant with regard to the differentiation) and where we add the subscript $b$ to $a_b$ and $s_b$ to indicate that they belong to a batch of samples and where $\widehat{A}(s_b,a_b;\theta,\theta_v)$ is the estimated advantage function (for details on how it can be estimated, see \cite[Section 4]{a3c_paper}). Note that this update only updates the policy and not the value function. A different updating scheme is used for the parameters of the critic, where a quadratic error between the estimated value function and observed rewards is minimised, the details can be found in the original paper \cite[Algorithm S3]{a3c_paper}.
 % given by 
 %\begin{equation}
 %\widehat{A_t}(s_t,a_t;\theta,\theta_v)=\sum_{i=0}^{k-1}\gamma^i r_{t+1} + \gamma^k V(s_{t+k};\theta_v) - V(s_{t};\theta_v),

@@ -142,7 +142,6 @@ where the multifunctions $\mathcal{X}_t(x_{t-1},\xi_t)$ are random, since they d
 \end{defn}
 
 
-
 \newpage
 \subsection{Linear programming formulation}
 If the functions $f_t$ and constraints defining the sets $\mathcal{X}_t$, $t=1,\dots,T$ are linear in Equation \ref{eq:generalmultistageprogrammingformulation}, then we say that the problem is a \textit{Multistage linear programming problem}, see Definition \ref{defn:nestedlinearmultistageprogrammingformulation}.
@@ -199,14 +198,14 @@ To obtain a solvable program, we must obtain a suitable approximation of the und
 
 Consider a multistage program with $T$ stages. In each of these stages, we need to find a discretization of the underlying distribution, particularly the marginal distribution in the first stage and the conditional distributions in the following stages. The number of atoms in each of these stages need not be the same. If the number of children is the same for each node in a given stage and this property holds for all stages, the scenario tree is termed \textit{balanced}, see Figure \ref{fig:balanced_scenario_tree}.
 
-\begin{figure}
+\begin{figure}[H]
   \includegraphics[width=\linewidth]{../img/scenario_tree_balanced.pdf}
   \caption{Balanced scenario tree.}
   \label{fig:balanced_scenario_tree}
 \end{figure}
 
 
-\begin{figure}
+\begin{figure}[H]
   \includegraphics[width=\linewidth]{../img/scenario_tree_unbalanced.pdf}
   \caption{Unbalanced scenario tree.}
   \label{fig:unbalanced_scenario_tree}
@@ -249,7 +248,6 @@ This is best illustrated using Figure \ref{fig:balanced_scenario_tree_illustrati
   \label{fig:balanced_scenario_tree_illustration_sets_kt}
 \end{figure}
 
-\newpage
 \begin{defn}{Arborescent form of a scenario based linear program}
 \label{defn:arborescent_linear_programming_formulation}
 \\
@@ -308,10 +306,11 @@ Prior to generating a scenario tree, we need to decide the structure of the tree
 \subsubsection{Moment matching}
 \cite{hoyland_wallace_moment_matching} presented a novel method of generating a scenario tree from historical data that matches some statistical properties of the data, particularly by minimising the distance between moments and correlations calculated from historical data and the moments and correlations calculated from the scenario tree. They formulated a nonlinear optimization program to solve this task. In practical use, this method can be very time demanding and this led to development of a heuristic method for generating scenario trees using moment matching in \cite{hoyland_wallace_moment_matching_heuristic}.  \cite{moment_matching_agarwal} further improved on top of the non-heuristic method and proposed a way to also include empirical cumulative distribution function matching in the program. We will follow the notation established in \cite{moment_matching_agarwal} and describe the optimization program used for generating a simple one stage scenario tree that consists only of a root and $N$ child nodes using the moment matching method (without the cumulative distribution function matching).
 \begin{rem}
-For the purposes of this thesis, we can restrict the theory only to this simple case, as we will be working with stagewise independent balanced scenario trees and thus use the moment matching method sequentially in each stage. Further details on how the moment matching method is used are described in \todo{add reference to chapter where i explain how it all comes together and link specific equation here in chapter 4}. For the more complex case, where the whole tree is generated at once (which is in principle the same as presented here, only with more complex notation), see \cite{hoyland_wallace_moment_matching}.
+For the purposes of this thesis, we can restrict the theory only to this simple case, as we will be working with stagewise independent balanced scenario trees and thus use the moment matching method sequentially in each stage. Further details on how the moment matching method is used are described in Section \ref{subsection:moment_matching}. For the more complex case, where the whole tree is generated at once (which is in principle the same as presented here, only with more complex notation), see \cite{hoyland_wallace_moment_matching}.
 \end{rem}
-\begin{defn}{Moment matching \cite[p. 9]{moment_matching_agarwal}}
-\label{defn:moment_matching_method}
+\begin{defn}{Moment matching \label{defn:moment_matching_method}
+\\
+\cite[p. 9]{moment_matching_agarwal}}
 \\
 Let the scenario tree consist of only one stage, i.e. a root and $N$ children. Let $I$ be the set of assets, $K$ be the number of moments to be matched, \\ $\mathcal{M}=\{1,\dots,K\}$, $M_{i,k}$ the $k$-th sample moment calculated from historical data of $i$-th asset, $C_{i,i'}$ be the sample correlation calculated from historical data between $i$-th and $i'$-th assets. Then the moment matching problem can be formulated as follows:
 \begin{alignat}{10}

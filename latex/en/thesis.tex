@@ -53,6 +53,7 @@
 \usepackage[textsize=tiny]{todonotes}
 \usepackage{algorithm}
 \usepackage{algpseudocode}
+\usepackage{subcaption}
 
 
 
@@ -66,7 +67,7 @@
 \def\ThesisAuthor{Bc. Jakub Vondráček}
 
 % Year when the thesis is submitted
-\def\YearSubmitted{2022}
+\def\YearSubmitted{2023}
 
 % Name of the department or institute, where the work was officially assigned
 % (according to the Organizational Structure of MFF UK in English,
@@ -84,12 +85,14 @@
 
 % Study programme and specialization
 \def\StudyProgramme{Probability, mathematical statistics and econometrics}
-\def\StudyBranch{\textcolor{red}{study branch}}
+\def\StudyBranch{MPSP}
 
 % An optional dedication: you can thank whomever you wish (your supervisor,
 % consultant, a person who lent the software, etc.)
 \def\Dedication{%
-I am infinitely grateful to my supervisor doc.~RNDr.~Ing.~Miloš~Kopa,~Ph.D. for his expertise, patience and all the time and effort spent supervising my thesis. I also thank my consultant RNDr.~Karel~Kozmík for always being ready to help whenever I needed guidance and infinitely many great ideas and suggestions.
+I am infinitely grateful to my supervisor doc.~RNDr.~Ing.~Miloš~Kopa,~Ph.D. for his expertise, patience and all the time and effort spent supervising my thesis and for providing the necessary GAMS license. 
+
+I am also deeply indebted to my consultant RNDr.~Karel~Kozmík for infinitely many great ideas, suggestions and always being ready to help whenever I needed guidance.
 
 I dedicate this thesis to my grandmother and my mother, as without them, I would be nowhere near as far along in life as I am today. Thank you.
 }
@@ -164,7 +167,7 @@ Abstract.
 \appendix
 \chapter{Attachments}
 
-\section{First Attachment}
+\section{Definitions of asset sets}
 \begin{center}
 \begin{table}[H]
 \centering
@@ -215,10 +218,42 @@ ALL &   BK &  ACGL &  FDS &  ZION &  TROW \\
 \label{table:stock_tickers_in_set_B}
 \end{table}
 
-
-
 \end{center}
 
+\section{Auxilliary plots}
+\subsection{No penalty}
+\label{attachment:nopenalty}
+\begin{figure}[H]
+\centering
+\begin{subfigure}[t]{.48\textwidth}
+  \includegraphics[width=\linewidth]{../img/no_penalty/evaluation_3_train_train_no_penalty.pdf}
+  \label{fig:histogram_no_penalty_tra}
+  \caption{Histogram of number of leaves in the scenario tree for reinforcement agent without penalty evaluated on $TrA$.}
+\end{subfigure}
+\begin{subfigure}[t]{.48\textwidth}
+  \includegraphics[width=\linewidth]{../img/no_penalty/evaluation_5_train_train_no_penalty.pdf}
+  \label{fig:boxplots_no_penalty_tra}
+  \caption{Boxplots of achieved rewards by number of stages in the scenario tree for reinforcement agent without penalty evaluated on $TrA$. Note that there are only very few observations for the reinforcement agent with 4 stages.}
+\end{subfigure}
+\caption{Evaluation of reinforcement agent without penalty on $TrA$.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}[t]{.48\textwidth}
+  \includegraphics[width=\linewidth]{../img/no_penalty/evaluation_3_train_test_no_penalty.pdf}
+  \label{fig:histogram_no_penalty_tra}
+  \caption{Histogram of number of leaves in the scenario tree for reinforcement and random agent without penalty evaluated on $TrB$.}
+\end{subfigure}
+\begin{subfigure}[t]{.48\textwidth}
+  \includegraphics[width=\linewidth]{../img/no_penalty/evaluation_5_train_test_no_penalty.pdf}
+  \label{fig:boxplots_no_penalty_tra}
+  \caption{Boxplots of achieved rewards by number of stages in the scenario tree for reinforcement  and random agent without penalty evaluated on $TrB$. Note that there are only very few observations with 4 stages. This figure implies that the agent indeed chose the three stage trees correctly to maximise the reward.}
+\end{subfigure}
+\caption{Evaluation of reinforcement and random agent without penalty on $TrB$.}
+\end{figure}
+
+\subsection{Penalty}
 
 
 
