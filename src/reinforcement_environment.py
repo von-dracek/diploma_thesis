@@ -60,7 +60,8 @@ def _reward_func_pretraining(branching, data, alpha, train_or_test):
 
 penalty_func_none = lambda x:0
 #quadratic penalty - 0 at 300 scenarios, 0.1 at 100 and 700 scenarios
-penalty_func_quadratic = lambda x: (0.1/(300**2))*((x - 400)) ** 2
+penalty_func_quadratic = lambda x: (0.1/(550**2))*((x - 650)) ** 2
+penalty_func_linear = lambda x: 0.025*(x-MIN_NUMBER_LEAVES_IN_SCENARIO_TREE)/(MAX_NUMBER_LEAVES_IN_SCENARIO_TREE-MIN_NUMBER_LEAVES_IN_SCENARIO_TREE)
 
 def _reward_func_v2(gams_workspace, branching, data, alpha, penalty_func):
     """Calculates reward from chosen branching."""
@@ -164,13 +165,13 @@ class TreeBuildingEnv(gym.Env):
         # return spaces.Discrete(9)
 
     def is_action_valid(self, action):
-        if action < 3 or action >= 8: #in other states permit only actions 3 - 8
+        if action < 3 or action >= 8: #in other states permit only actions 3 - 7
             return False
         if (self.action_space is not None) and (self.depth > 0) and self.remaining_depth > 0:
             current_num_scenarios = self.current_num_scenarios
             if (
                     (current_num_scenarios * action * (3 ** (self.remaining_depth - 1))
-                < MAX_NUMBER_LEAVES_IN_SCENARIO_TREE) and (current_num_scenarios * action * (5 ** (self.remaining_depth - 1))
+                < MAX_NUMBER_LEAVES_IN_SCENARIO_TREE) and (current_num_scenarios * action * (7 ** (self.remaining_depth - 1))
                 > MIN_NUMBER_LEAVES_IN_SCENARIO_TREE)
             ):
                 return True

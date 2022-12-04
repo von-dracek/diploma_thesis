@@ -39,7 +39,7 @@ Table TARCORR(i,s)
 ;
 x.l(i,j)=1*uniform(0,2);
 p.l(j)=1/card(j);
-p.lo(j)=0.1;
+p.lo(j)=0.03;
 **minimum probability of 10 percent
 variance.l(i)=0.01;
 

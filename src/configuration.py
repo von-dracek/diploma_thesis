@@ -7,7 +7,7 @@ DOWNLOAD_DATA = True
 RETURNS_FILE = "returns"
 
 MIN_NUMBER_LEAVES_IN_SCENARIO_TREE = 100
-MAX_NUMBER_LEAVES_IN_SCENARIO_TREE = 700
+MAX_NUMBER_LEAVES_IN_SCENARIO_TREE = 1200
 
 TICKERS = ['ACGL', 'AFL', 'AIG', 'AJG', 'ALL', 'AON', 'AXP', 'BAC', 'BEN', 'BK', 'BLK', 'BRO', 'C', 'CB', 'CINF', 'CMA', 'COF', 'FDS', 'FITB', 'GL', 'GS', 'HBAN', 'HIG', 'IVZ', 'JPM', 'KEY', 'L', 'LNC', 'MCO', 'MMC', 'MS', 'MTB', 'NTRS', 'PGR', 'PNC', 'RE', 'RF', 'RJF', 'SCHW', 'SIVB', 'SPGI', 'STT', 'TFC', 'TROW', 'TRV', 'USB', 'WFC', 'WRB', 'ZION']
 #randomly samples train and test tickers
