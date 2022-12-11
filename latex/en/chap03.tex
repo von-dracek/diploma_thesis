@@ -129,10 +129,10 @@ The most famous example of a value based method is $Q$ learning.
 Let $q^*(s,a)$ denote the optimal action value function as defined in Definition \ref{defn:optimal_definitions} and let $Q(s,a)$ be an estimate of $q^*(s,a), s \in \mathcal{S}, a \in \mathcal{A}$. If the sets $\mathcal{S}$ and $\mathcal{A}$ are finite, then the values of $Q(s,a)$ can be represented by a table and updated according to the updating rule presented in Equation \ref{eq:q_learning_updating_rule}.
 
 \begin{equation}
-Q(s_t, a_t) \leftarrow Q(s_t, a_t) + \alpha \left[r_{t+1} + \gamma \underset{a \in \mathcal{A}}{\max}Q(s_{t+1}, a) - Q(s_t, a_t) \right],
+Q(s_t, a_t) \leftarrow Q(s_t, a_t) + \varphi \left[r_{t+1} + \gamma \underset{a \in \mathcal{A}}{\max}Q(s_{t+1}, a) - Q(s_t, a_t) \right],
 \label{eq:q_learning_updating_rule}
 \end{equation}
-where $\alpha$ is the learning rate, $\gamma$ is the discount factor, $s_t, a_t$ are the current state and current chosen action respectively, $s_{t+1}$ is the next state following action $a_t$, $r_{t+1}$ is the reward obtained by choosing action $a_t$ and the subscript $t$ is added to emphasize the transition between current and next step.
+where $\varphi$ is the learning rate, $\gamma$ is the discount factor, $s_t, a_t$ are the current state and current chosen action respectively, $s_{t+1}$ is the next state following action $a_t$, $r_{t+1}$ is the reward obtained by choosing action $a_t$ and the subscript $t$ is added to emphasize the transition between current and next step.
 The whole algorithm can be summarised as follows:
 
 \renewcommand{\algorithmicrequire}{\textbf{Input:}}
@@ -143,7 +143,7 @@ The whole algorithm can be summarised as follows:
 \small
 \caption{Vanilla Q-learning \cite[p. 131]{sutton2018reinforcement}}\label{alg:q_learning}
 \begin{algorithmic}
-\Require{Choose the learning rate $\alpha \in (0,1]$ and exploration parameter $\epsilon>0$, number of episodes, initialise $Q(s, a) \, \mathrm{randomly}, s \in \{s \, \mathrm{for} \,  s \, \mathrm{in} \, \mathcal{S} \, \mathrm{if} \, s \, \mathrm{is \, not \, terminal}\}$ and $Q(s,a)=0$ for $s$ terminal, $a \in \mathcal{A}$ (terminal state of the environment means that the episode is finished).}
+\Require{Choose the learning rate $\varphi \in (0,1]$ and exploration parameter $\epsilon>0$, number of episodes, initialise $Q(s, a) \, \mathrm{randomly}, s \in \{s \, \mathrm{for} \,  s \, \mathrm{in} \, \mathcal{S} \, \mathrm{if} \, s \, \mathrm{is \, not \, terminal}\}$ and $Q(s,a)=0$ for $s$ terminal, $a \in \mathcal{A}$ (terminal state of the environment means that the episode is finished).}
 \For{episode in $\{$1,...,number of episodes$\}$}
 \State $s_t \leftarrow s_0$ Reset environment state 
 \While{$s_t$ is not terminal}
@@ -166,9 +166,9 @@ Policy approximation methods assume that the policy $\pi(a|s;\theta), a \in \mat
 %
 \begin{equation*}
 \label{eq:policy_approximation_updating_rule}
-\theta_{\tau+1}=\theta_{\tau}+\alpha \mathbb{E}_b\widehat{\nabla_{\theta_{\tau}} J(\theta_{\tau})},
+\theta_{\tau+1}=\theta_{\tau}+\varphi \mathbb{E}_b\widehat{\nabla_{\theta_{\tau}} J(\theta_{\tau})},
 \end{equation*}
-where $\alpha$ is the learning rate.
+where $\varphi$ is the learning rate.
 % and $\widehat{\nabla_{\theta_{\tau}} J(\theta_{\tau})}$ is the estimate of the gradient of the performance measure $J$ with respect to $\theta_{\tau}$. 
 Due to the aforementioned updating rule, these methods are also often called \textit{policy gradient methods}. 
 

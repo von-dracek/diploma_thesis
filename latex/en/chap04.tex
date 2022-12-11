@@ -1,6 +1,6 @@
 \chapter{Optimal scenario tree selection}
 \label{chapter4}
-In this chapter we propose an experiment to find out if it is possible to predict the optimal scenario tree structure with regard to the objective function and also propose a way to control for the complexity of the scenario tree using reinforcement learning. For this purpose, we implemented the moment matching method for generation of scenario trees, the multistage mean CVaR model and a reinforcement agent.
+In this chapter we propose an experiment to find out if it is possible to predict the optimal scenario tree structure with regard to the objective function and also propose a way to control for the complexity of the scenario tree using reinforcement learning. For this purpose, we implemented the moment matching method for generation of scenario trees, the multistage mean-CVaR model and a reinforcement learning agent.
 \section{Methods}
 The whole implementation was programmed in Python (\cite[Version 3.11]{python}), mathematical optimization problems were implemented in GAMS (\cite[version 40.3.0]{GAMS}) using the Python API. Data were sourced from \cite{yahoo} using the \cite[version 0.1.74]{yfinance} package. The reinforcement agent was implemented using the \textit{Stable~baselines~3} package (\cite[version 1.6.2]{stable_baselines3}) and the environment was implemented using the \textit{gym} package (\cite[version 0.21.0]{openai_gym}).
 
@@ -11,7 +11,7 @@ For our experiments, we used data obtained from \cite{yahoo} using the \cite[ver
 \item (\textit{train}, $A$), denoted $TrA$,
 \item (\textit{test}, $A$), denoted $TeA$,
 \item (\textit{train}, $B$), denoted $TrB$,
-\item (\textit{test}, $B$). denoted $TeB$
+\item (\textit{test}, $B$). denoted $TeB$,
 \end{itemize}
 and we write the set that contains all these sets as $\kappa=\{TrA, TeA, TrB, TeB\}$.
 We trained the agent on the set $TrA$ and evaluate its performance on all four sets, to evaluate whether the agent is able to:
@@ -53,9 +53,13 @@ We designed and implemented a custom GridWorld environment, which we call TreeBu
 \subsection{TreeBuildingEnv}
 \label{section:treebuildingenv}
 TreeBuildingEnv is an adaptation of the GridWorld environment to allow the agent to build scenario trees based on given predictors, which consist of return data of the assets that are used to build the scenario tree. 
-The state is given as a 8 by 8 tree building grid (which starts filled with zeros only in the initial state) and the set of 9 predictors. At the beginning of each episode, between 7 and 10 assets are randomly chosen (with uniform probabilities for the number of assets) from the provided data (a set from $\kappa$) and the set of predictors is obtained at the beginning of each episode using the return data for the chosen assets for the whole investment horizon and is constant throughout the episode. Each row in the tree building grid represents a part of the tree building process. The first row corresponds to the chosen number of stages in the tree. The following rows each represent the chosen branching (number of children) in each stage, from the first to last.
+The state is given as a 8 by 8 tree building grid (which starts filled with zeros only in the initial state) and the set of 9 predictors. 
 
-In each state, the agent can take any action in the set $\{3,4,5,6,7\}$, which we from now on refer to as \textit{action set}. In the initial state, we allow the agent to perform only actions $\{3,4,5\}$ from the action set to choose the depth of tree and upon performing any of these actions, 1 is placed at the corresponding position in the first row. If the agent chooses action 6 or 7, it is forced to perform action 5\footnote{We do not allow the number of stages to be 6 or 7, as the tree is then considerably more complex and building it based on historical data and solving the resulting mean CVaR model takes too much time for it to be practical for our experiments. The action 5 is forced for the reinforcement algorithm to be able to associate action 6 and 7 with the move to a state where action 5 was chosen.}.
+At the beginning of each episode, between 7 and 10 assets are randomly chosen (with uniform probabilities for the number of assets) from the provided data (a set from $\kappa$) and the set of predictors is obtained at the beginning of each episode using the return data for the chosen assets for the whole time period and is constant throughout the episode. 
+
+Each row in the tree building grid represents a part of the tree building process. The first row corresponds to the chosen number of stages in the tree. The following rows each represent the chosen branching (number of descendants of each node) in each stage, from the first to last.
+
+In each state, the agent can take any action in the set $\{3,4,5,6,7\}$, which we from now on refer to as \textit{action set}. In the initial state, we allow the agent to perform only actions $\{3,4,5\}$ from the action set to choose the depth of tree and upon performing any of these actions, 1 is placed at the corresponding position in the first row. If the agent chooses action 6 or 7, it is forced to perform action 5\footnote{We do not allow the number of stages to be 6 or 7, as the tree is then considerably more complex and building it based on historical data and solving the resulting mean-CVaR model takes too much time for it to be practical for our experiments. The action 5 is forced for the reinforcement algorithm to be able to associate action 6 and 7 with the move to a state where action 5 was chosen.}.
 
 
 \begin{figure}[H]
@@ -65,42 +69,43 @@ In each state, the agent can take any action in the set $\{3,4,5,6,7\}$, which w
 \end{figure}
 
 
-In the following states, where the agent chooses the branching in each stage, the agent can perform any action in the action set and again upon performing each action, 1 is placed at position action in the next row (if the action is valid, see below). 
+In the following states, where the agent chooses the branching (the number of descendants) in each stage, the agent can perform any action in the action set and again upon performing each action, 1 is placed at the position of the chosen action in the next row (if the action is valid, see below). 
 
-To obtain reasonable trees, we had to constrain the size of the tree the agent can take (the maximum number of scenarios). We always require that the tree must have at least 100 scenarios and at most 1200. In each state, we check if it is possible to perform the chosen action such that a final tree that remains within these limits is possible. If it is not possible, the action is considered invalid and the agent is forced to take the maximum valid action (where valid action refers to any action for which building a tree that stays in the given limits is possible). In case the chosen action was invalid, 1 is placed at the position of the forced maximum valid action.
+To obtain reasonable trees, we had to constrain the size of the tree the agent can take (the maximum number of scenarios). We always require that the tree must have at least 100 scenarios and at most 1200. In each state, we check if it is possible to perform the chosen action such that a final tree that remains within these limits is possible. If it is not possible, the action is considered invalid and the agent is forced to take the maximum\footnote{we use the maximum valid action, rather than a random action, so that the agent is able to associate that an invalid action results in taking a large branching in the given stage} valid action (where valid action refers to any action for which building a tree that stays in the given limits is possible). In case the chosen action was invalid, 1 is placed at the position of the forced maximum valid action.
 
-When the agent has taken as many actions as the chosen depth of tree, the episode ends, the mean CVaR problem is solved using the given scenario tree structure and the obtained reward is returned (see Section \ref{section:rewards}). An illustration of the environment can be found in Figure \ref{fig:treebuildingenv}.
+When the agent has taken as many actions as the chosen depth of tree, the episode ends, the mean-CVaR problem is solved using the given scenario tree structure and the obtained reward is returned (see Section \ref{section:rewards}). An illustration of the environment can be found in Figure \ref{fig:treebuildingenv}.
 
 \subsection{Predictors}
 \label{subsection:predictors}
-At the beginning of each episode, between 7 and 10 assets are randomly chosen (with uniform probabilities for the number of assets) from the provided data and simple returns are calculated for the whole time range. $\alpha$ is randomly chosen uniformly from the set $\{0.8, 0.85, 0.9, 0.95\}$ and the following predictors are provided to the agent:
+At the beginning of each episode, between 7 and 10 assets are randomly chosen (with uniform probabilities for the number of assets) from the provided data and simple returns are calculated for the whole time range. $\alpha$ is randomly chosen with uniform probabilities from the set $\{0.8, 0.85, 0.9, 0.95\}$ and the following predictors are provided to the agent:
 \begin{enumerate}
-\item $\alpha$
-\item Number of sampled assets
-\item Sample maximum return
-\item Sample minimum return
-\item Sample 0.75 quantile of returns
-\item Sample 0.5 quantile of returns
-\item Sample 0.25 quantile of returns
-\item Sample mean of returns
-\item Sample variance of returns
+\item $\alpha$,
+\item Number of sampled assets,
+\item Sample maximum return,
+\item Sample minimum return,
+\item Sample 0.75 quantile of returns,
+\item Sample 0.5 quantile of returns,
+\item Sample 0.25 quantile of returns,
+\item Sample mean of returns,
+\item Sample variance of returns.
 \end{enumerate}
 The predictors are then constant throught the entire episode.
 
 \section{Rewards}
 \label{section:rewards}
-A reward is returned after every action the agents takes, which is 0 for every action in states that are not terminal and at the end of the episode, in the terminal state, a reward is returned based on the solved mean CVaR problem using the scenario tree structure that is specified by the terminal state. 
+A reward is returned after every action the agents takes, which is 0 for every action in states that are not terminal and at the end of the episode, in the terminal state, a reward is returned based on the solved mean-CVaR problem using the scenario tree structure that is specified by the terminal state. 
 \begin{rem}
 Note that the fact that the reward is sparse (reward 0 is returned when not in a terminal state) is actually quite a common occurence in reinforcement learning. Reinforcement learning is, after all, designed exactly to handle such problems.
 \end{rem}
 
-We need to specify the reward in such a way that a higher reward corresponds to a more favourable value of the objective function. We need to consider that the mean CVaR model as formulated in Equation \ref{eq:cvar_multistage_risk_aversion} is formulated using the distribution of loss. This means that obtaining a smaller objective value from the mean CVaR model is beneficial. Denoting the obtained objective value from solving the problem in Equation \ref{eq:cvar_multistage_risk_aversion} as $\varsigma$, we have to write the reward given to the agent as
+We need to specify the reward in such a way that a higher reward corresponds to a more favourable value of the objective function. We need to consider that the mean-CVaR model, as formulated in Equation \ref{eq:cvar_multistage_risk_aversion}, is formulated using the distribution of loss. This means that obtaining a smaller objective value from the mean-CVaR model is beneficial. Denoting the obtained objective value from solving the problem in Equation \ref{eq:cvar_multistage_risk_aversion} as $\varsigma$, we have to write the reward given to the agent as
 \begin{equation*}
 r_{terminal} = -\varsigma(s_{terminal}),
 \end{equation*}
-where we add the subscript $terminal$ to emphasize, that this reward is calculated at the terminal state of the episode and that the reward depends on the terminal state (which represents the scenario tree structure). The objective of the agent is then to maximise $r_{terminal}$.
+where we add the subscript $terminal$ to emphasize that this reward is calculated at the terminal state of the episode and that the reward depends on the terminal state (which represents the scenario tree structure). The objective of the agent is then to maximise $r_{terminal}$.
 
 \subsection{Penalty}
+\label{subsection:penalty_subsection}
 As was mentioned in Section \ref{section:curse_od_dimensionality}, choosing a scenario tree that has too many stages and too many descendants in each stage leads to a computationally intractable problem. On the other hand, choosing a scenario tree that is too small in terms of number of stages and with too few descendants in each stage may lead to a very rough approximation of the underlying continuous distributions, leading to results with high variability. 
 
 To ameliorate these problems, we propose to include a penalty term in the reward $r_{terminal}$ which penalizes such scenario trees. Particularly, we propose that the penalty be dependent on the number of scenarios in the tree in the last stage, i.e. the number of leaves in the tree. It is not straightforward to represent the complexity of a tree due to the multidimensional structure, but we consider that using the number of leaves provides a good enough proxy for the complexity of the scenario tree, while being simple to implement. 
@@ -115,7 +120,7 @@ To penalize the scenario tree that is too complex, we propose a linear penalizat
 \begin{equation*}
 \delta_1(\Psi) = c \frac{\Psi - \Psi_{min}}{\Psi_{max} - \Psi_{min}},
 \end{equation*}
-where $c$ is a chosen coefficient (which must be chosen based on the magnitude of values obtained as solutions from solving the mean CVaR problem) and $\Psi_{max}$ and $\Psi_{min}$ are the maximum and minimum allowed number of leaves in the scenario tree respectively.
+where $c$ is a chosen coefficient (which must be chosen based on the magnitude of values obtained as solutions from solving the mean-CVaR problem) and $\Psi_{max}$ and $\Psi_{min}$ are the maximum and minimum allowed number of leaves in the scenario tree respectively.
 
 %Penalisation $\delta_1$ penalizes the complexity, but does not take into account that a small number of leaves is also detrimental. We propose another penalisation function, denoted $\delta_2$, to deal with this problem:
 %\begin{equation*}
@@ -127,7 +132,7 @@ where $c$ is a chosen coefficient (which must be chosen based on the magnitude o
 
 Of course, this is just one possible penalization function out of infinite possibilities. The shape of the penalty function can be adjusted based on the problem at hand (and the parameter $c$ has to be adjusted as well).
 
-In this section, we proposed only a penalization function that penalizes tree that are too complex. It might make sense to penalise also trees that are too simple, but we do not use such a penalisation in this thesis, as we already have a lower bound set on the number of leaves in the tree in the environment (the lower bound is 100 scenarios).
+In this section, we proposed only a penalization function that penalizes trees that are too complex. It might make sense to penalise also trees that are too simple, but we do not use such a penalisation in this thesis, as we already have a lower bound set on the number of leaves in the tree in the environment (the lower bound is 100 scenarios).
 
 \section{Implementation}
 \subsection{Moment matching}
@@ -137,7 +142,7 @@ In this section, we proposed only a penalization function that penalizes tree th
 %vol. 28, Elsevier Science, 2004 - Moment matching - sequential vs whole tree
 We used the moment matching method in the form given in Definition \ref{defn:moment_matching_method} sequentially on each stage using the first four sample moments and correlations which were estimated as explained in Section \ref{section:data} with one small adjustment. 
 
-When looking at the generated scenarios for larger number of descendants, we noticed that usually, only 3 scenarios with positive probabilities were generated and the rest had almost zero probability. This would fundamentally change the properties of scenario trees that we want to explore (dependence of objective function on tree size), since then we might think we are using a large tree, which in reality is much smaller due to the scenarios with zero probability. 
+When looking at the generated scenarios for larger numbers of descendants, we noticed that usually, only 3 scenarios with positive probabilities were generated and the rest had almost zero probability. This would fundamentally change the properties of scenario trees that we want to explore (dependence of objective function on tree size), since then we might think we are using a large tree, which in reality is much smaller due to the scenarios with zero probability. 
 
 To counteract this effect, we added the constraint $p_j \geq 0.03$ to the implementation of Definition \ref{defn:moment_matching_method}, which solved the problem. With the notation developed in Definition \ref{defn:moment_matching_method}, the model now reads
 \begin{alignat}{10}
@@ -149,24 +154,27 @@ To counteract this effect, we added the constraint $p_j \geq 0.03$ to the implem
 \end{alignat}
 \vspace{-0.5cm}
 \begin{alignat}{10}
-& x_{i,j}^L<=x_{i,j}<=x_{i,j}^U, i \in I, j=1,\dots,N, \nonumber \\
-& \frac{3}{100} <= p_j <= 1, j=1,\dots,N. \nonumber
+& 0  \leq x_{i,j}, i \in I, j=1,\dots,N, \nonumber \\
+& \frac{3}{100} \leq p_j \leq 1, j=1,\dots,N. \nonumber
 \end{alignat}
 
 This means that we are generating stagewise independent balanced scenario trees, where the probabilities of each child node may vary, but are at least 0.03. This may lead to the fact that we are not able to account for scenarios with very small probability, which is a limitation, as financial data distributions are generally heavy tailed. However, for the purposes of this thesis, this assumption is not too restrictive.
 
 
-\subsection{Mean CVaR model}
-The mean CVaR model was implemented exactly as given in Equation \ref{eq:cvar_multistage_risk_aversion} using the scenario tree generated from the moment matching method, where we used the risk aversion parameter $\lambda=0.3.$ \todo{how to justify choice of 0.3? Chosen by expert? @Milos Kopa}
+\subsection{Mean-CVaR model}
+The mean-CVaR model was implemented exactly as given in Equation \ref{eq:cvar_multistage_risk_aversion} using the scenario tree generated from the moment matching method, where we used the risk aversion parameter $\lambda=0.3.$ \todo{how to justify choice of 0.3? Chosen by expert? @Milos Kopa}
 
 \subsection{Reinforcement agent}
 We chose to use a tried and tested implementation of state of the art algorithms in the \textit{Stable Baselines 3} library (\cite{stable_baselines3}). We experimented with multiple architectures and algorithms implemented therein, particularly A2C and PPO, while eventually settling on using PPO in the results given in Section \ref{section:experimental_results}. Here we share our experience with training the reinforcement agent.
 
 We first experimented with the algorithms using a toy environment (TreeBuildingEnv with synthetic predictors and rewards) to obtain some semblance of how long it takes to obtain a reward better than random guessing. We experimented with several neural net architectures and found out that PPO usually outperformed A2C (converged much faster) with the same neural net architecture. 
 
-We also experimented with neural net architectures and found that even for very simple tasks (such as learning a different action based on the value of a single predictor $p$), a very nontrivial number of neurons in the hidden layers is required for the model to be able to solve the environment. Particularly, for a deterministic toy example where $p$ was randomly sampled from the set $\{0.1, 0.2\}$ and based on the given $p$ the best depth of tree to take was $3$ if $p=0.1$ and $5$ if $p=0.2$, the reinforcement agent didn't learn anything within hudreds of thousands of timesteps, unless we used an architecture with at least two hidden layers of 128 and 64 neurons respectively, where the second layer is separate for the actor and the critic (which estimate the policy and the action value). Furthermore, we used ReLu activations between each layer. 
+We also experimented with neural net architectures and found that even for very simple tasks (such as learning a different action based on the value of a single predictor $p$), a very nontrivial number of neurons in the hidden layers is required for the model to be able to solve the environment. Particularly, for a deterministic toy example where $p$ was randomly sampled from the set $\{0.1, 0.2\}$ and based on the given $p$ the best number of stages to take was $3$ if $p=0.1$ and $5$ if $p=0.2$, the reinforcement agent didn't learn anything within hudreds of thousands of timesteps, unless we used an architecture with at least two hidden layers of 128 and 64 neurons respectively, where the second layer is separate for the actor and the critic (which estimate the policy and the action value). Furthermore, we used ReLu activations between each layer. 
 
 Due to the results obtained from the synthetic toy environment, we decided to use a very similar architecture as given above, where the only change is that we use 256 and 128 neurons in the hidden layers instead of 128 and 64, as the task we are trying to solve is much more difficult and stochastic. Unfortunately, due to the computational difficulties presented in Section \ref{section:computational_difficulties}, we couldn't experiment with multiple neural network architectures by doing hyperparameter optimization on the number of neurons in each layer. The final neural net architecture that we use is visualised in Figure \ref{fig:neuralnet}. 
+
+
+With regard to the hyperparameters, we used the learning rate $\varphi=0.001$, discount factor $\gamma=1$ (which is used for the calculation of $\widehat{A}(a,s)$, see \cite[Section 5]{proximal_policy_optimization}) so that the agent is not penalised for using trees with more stages and performed $192$ timesteps per update of the parameters of the neural network. Otherwise, we used the default hyperparameters, particularly $c_1=0.5$, where $c_1$ is the value function coefficient given in Equation \ref{eq:ppo_performance_measure}).
 
 \begin{figure}[H]
   \centering
@@ -177,95 +185,15 @@ Due to the results obtained from the synthetic toy environment, we decided to us
 
 \section{Experimental results}
 \label{section:experimental_results}
-In this section, we present the results from evaluating the reinforcement agent. We trained two agents, one without any penalty term and the other with including a penalty term to penalize the complexity of the scenario trees. The results are given in Sections \ref{subsection:nopenalty} and \ref{subsection:somepenalty} respectively.
- 
-The main aim in this section is to compare the reinforcement agent to an agent that chooses the tree structure at random, evaluate the performance in constrast to the random agent and also investigate the structure of scenario trees chosen by the reinforcement agent. For this purpose, we ran the reinforcement agent and a random agent in the TreeBuildingEnv each for 500 episodes\footnote{which means that the reinforcement agent and the random agent both generated exactly 500 trees} for each of the sets in $\kappa$. We used the same random seed for initialising the environment for the reinforcement agent and the random agent, which means that both agents have been evaluated on the same samples from the given set in $\kappa$.
+\input{experimental_results}
 
-
-\subsection{No penalty}
-\label{subsection:nopenalty}
-Figures \ref{fig:ep_rew_mean_no_penalty} and \ref{fig:ep_len_mean_no_penalty} show the training curves (mean reward and mean episode length) over the last 100 episodes for the reinforcement agent with no penalty. Notice that in Figure \ref{fig:ep_rew_mean_no_penalty}, after about 15k timesteps the agent reached the maximum mean reward and didn't improve much from there. On the other hand, in Figure \ref{fig:ep_len_mean_no_penalty}, notice that at the start of training the agent quite quickly (within 20k timesteps) favored to use only 3 stage trees and then gradually started using also larger trees without a significant improvement in performance.
-\begin{figure}[H]
-\centering
-\begin{subfigure}[t]{.49\textwidth}
-  \includegraphics[width=\linewidth ]{../img/no_penalty/ep_rew_mean_no_penalty.pdf}
-  \caption{Reward training curve. Mean reward over last 100 episodes.}
-  \label{fig:ep_rew_mean_no_penalty}
-\end{subfigure}
-\begin{subfigure}[t]{.49\textwidth}
-  \includegraphics[width=\linewidth ]{../img/no_penalty/ep_len_mean_no_penalty.pdf}
-  \caption{Mean training episode length over last 100 episodes. The length equals number of stages in the tree + 1, since the agent has to choose also the number of stages.}
-  \label{fig:ep_len_mean_no_penalty}
-\end{subfigure}
-\caption{Training curves for reinforcement agent with no penalty. Timestep corresponds to a single state (acting on a single action) of the environment. An episode consists of multiple timesteps (particularly 4 for 3 stage trees, 5 for 4 stage trees and 6 for 5 stage trees).}
-\end{figure}
-
-
-\begin{table}[H]
-\footnotesize
-\begin{tabular}{rrrr}
-\hline
-Dataset & Reinforcement agent & Random agent& Relative improvement of Reinforcement \\
-& mean reward & mean reward &  agent over Random agent 
-\\
-\hline
-$TrA$ & 2.2045              & 2.1035       & 104.80\%                                                                                        \\
-$TrB$ & 2.033               & 1.775        & 114.54\%                                                                                        \\
-$TeA$ & 2.0259              & 2.017        & 100.44\%                                                                                        \\
-$TeB$ & 2.0388              & 2.0341       & 100.23\%                                                                                       
-\\
-\hline
-\end{tabular}
-\caption{Mean rewards of the reinforcement agent and random agent on every set in $\kappa$ evaluated over 500 scenario trees. Last column is the relative mean performance of the reinforcement agent compared to the random agent, calculated as e.g. $2.2045/2.1035 \approx 1.0480 \rightarrow 104.80\%                                                                                       $ in the first row (set $TrA$). The performance of the random agent is considered to be $100\%                                                                              $.}
-\label{tab:performance_no_penalty}
-\end{table}
-
-Table \ref{tab:performance_no_penalty} shows the absolute performance (mean reward over 500 evaluation episodes) of the reinforcement agent and the random agent and also shows the relative performance (relative improvement in the mean reward) of the reinforcement agent compared to the random agent. Notice, that the reinforcement agent outperformed the random agent on datasets $TrA$ and $TrB$. This shows that it is possible to train an agent to choose a scenario tree structure that is better than the random agent. Furthermore, notice that the outperformance is quite significant on sets $TrA$ and $TrB$, while we refrain from making any claims about outperformance in the cases of $TeA$ and $TeB$ (at least we can say that the agent performs about the same as random guessing and doesn't underperform). 
-
-It is not surprising that the reinforcement agent has outperformed the random agent on set $TrA$, since this is the set that it was trained on and it has seen the distribution of the underlying data. On the other hand, the sizable outperformance on $TrB$ is quite surprising, since it seems that the agent has learned a policy that fit very well to the distribution of assets in $TrB$. We provide a histogram of the number of leaves and boxplots of the achieved reward in the Attachment in Section \ref{attachment:nopenalty}. 
-
-The fact that the performance of the reinforcement agent is comparable to the random agent on sets $TeA$ and $TeB$ can be explained by the fact that the distribution of the underlying data has shifted. This is not surprising, as the sets $TrA$ and $TrB$ contain data from the years 2000--2009, while the sets $TeA$ and $TeB$ contain data for the period 2010--2019. As is well known, there were several crises affecting the markets (and financial stocks in particular) in the 2000--2009 period, while the 2010--2019 period contained an unprecedented bull run. We thus conclude that the agent we trained does not generalise into the future, while the explanation for why that is that we give is only a single one out of infinite possibilities. 
-
-\subsubsection{Structure of predicted scenario trees}
-In this section, we analyse the structure of the scenario trees chosen by the reinforcement agent. We must be particularly careful here, as the construction of the environment as given in Section \ref{section:treebuildingenv} constraints the built trees in such a way that forces a particular structure on the chosen branching in each successive stage. Particularly, since we require that the tree must have at least 100 leaves in the last stage, a 3 stage tree, where the first chosen branching was low (e.g. 3) will be forced to take a large branching in the next stages to actually end up with at least 100 scenarios at the end. The same holds for trees with 5 stages, where the choice of a large branching in stage 1 will lead to forcing low branching in the last few stages to stay below 1200 scenarios. 
-
-
-We must thus interpret the results given here in the comparison to the random agent, which shows the mean branching (mean number of descendants) given the constraints discussed above. Consider Figure \ref{fig:mean_branching_no_penalty_tra}. First thing to notice is that the reinforcement agent chooses trees with 3 stages much more frequently than trees with 5 stages and trees with 4 stages are chosen only very infrequently. 
-
-
-A peculiar thing is visible in the very bottom plot of Figure \ref{fig:mean_branching_no_penalty_tra}, which shows the mean branching of 5 stage trees chosen by the reinforcement agent and the random agent. It is immediately noticable that the reinforcement agent has a particularly strong propensity to choose a large branching in the first and second stages and then choose a lower branching in the successive stages. We must stress that this interpretation is considered with regard to the mean branching chosen by the random agent, as the generally decreasing manner is caused by the constraints on the size of the trees as discussed above. 
-
-
-\begin{figure}[H]
-\centering
-  \includegraphics[width=0.8\linewidth]{../img/no_penalty/evaluation_6_train_train_no_penalty.pdf}
-  \caption{Mean branching (mean number of descendants) in each stage by number of stages on dataset $TrA$. Bars are crosshatched when the number of observations is less than 10, indicating that the bars cannot be interpreted due to the low number of observations.}
-  \label{fig:mean_branching_no_penalty_tra}
-\end{figure}
-
-This is a very important result indeed, as it gives some validation to the structure of scenario trees that are usually used in practice today. Particularly, in practice, the trees are usually chosen with as many stages as is possible to calculate in reasonable time and exactly with the structure shown above -- a large branching in the first stages which then decreases in the successive stages. This kind of structure was discovered ad hoc and we experimentally validated that it actually may have some merit.
-
-A similar effect can perhaps be seen in the top plot of Figure \ref{fig:mean_branching_no_penalty_tra}, which shows the mean branching of 3 stage trees, but it is much more subtle. It is much more evident in Figure \ref{fig:mean_branching_no_penalty_trb} which shows the mean branchings obtained on set $TrB$, where the agent favoured 3 stage trees much more rather than the 5 stage trees and didn't even choose a single 4 stage tree. A similar effect as described above is seen, while particularly interesting are the mean branchings of the 3 stage trees, where the agent chose a very large branching in the first stage and second stage respectively on average, which probably means that the constraints in the last stage were not so strong and therefore the agent was able to choose smaller branching in the last stage.
-
-\begin{figure}[H]
-\centering
-  \includegraphics[width=0.8\linewidth]{../img/no_penalty/evaluation_6_train_test_no_penalty.pdf}
-  \caption{Mean branching (mean number of descendants) in each stage by number of stages on dataset $TrB$.}
-  \label{fig:mean_branching_no_penalty_trb}
-\end{figure}
-
-Our results validate the decreasing structure of the scenario trees that is usually used in practice, but are in disagreement with the fact that the trees are usually chosen with the largest possible number of stages, as our agent has a significant propensity for the trees with the smallest number of stages. Perhaps if we were able to train the agent for many more timesteps (as in Figure \ref{fig:ep_len_mean_no_penalty} we can see that the mean length of the episode is increasing, i.e. the mean number of stages is increasing), it would reach a point where it chooses more 5 stage trees than 3 stage trees. Of course, there is no guarantee this would happen and if it would be beneficial in terms of the obtained reward, as we do not see any significant gain in performance with the increasing mean length of episode in Figure \ref{fig:ep_len_mean_no_penalty}, only maybe increased variability. Unfortunately, training the agent for longer was not possible due to computational difficulties (see Section \ref{section:computational_difficulties}).
-
-\subsection{Penalty}
-\label{subsection:somepenalty}
-
-
+\newpage
 \section{Computational difficulties}
 \label{section:computational_difficulties}
 The writing of this thesis has been plagued by computational difficulties from the start and we wish to share our experience with implementing all parts of this thesis here. 
 
 First of all, the moment matching method, which seems quite easy to implement, required a significant amount of experimentation and trying different optimization frameworks and solvers to actually obtain a working implementation. We have tried several python packages with open source solvers (most notably \textit{SciPy} (\cite{scipy}) , \textit{Mystic} (\cite{mystic}) and \textit{Gekko} (\cite{gekko}) and the IPOPT solver) and none of them produced a suitable result despite correct implementation due to low strength of the open source solvers. We finally settled on using GAMS with the CONOPT solver which worked out quite nicely. This however required us to connect our Python code to GAMS using the GAMS Python API, which meant that we could not use a compute cluster due to licensing limitations. 
 
-Since we already had the dependence on GAMS, we also implemented the mean CVaR model in GAMS using the CPLEX solver. While the implementation itself in GAMS was not terribly difficult, bending all data in the correct way and formulating the nonanticipativity constraints correctly took significant effort.
+Since we already had the dependence on GAMS, we also implemented the mean-CVaR model in GAMS using the CPLEX solver. While the implementation itself in GAMS was not terribly difficult, bending all data in the correct way and formulating the nonanticipativity constraints correctly took significant effort.
 
 Lastly, the reinforcement learning part. This part was plagued by slow training and therefore a significant amount of time was spent on training the models, since the dependence on GAMS didn't allow training the reinforcement agent on a compute cluster with hundreds of cores, but we were rather constrained to a personal computer with 6 cores. This was a significant limitation, since training reinforcement agents is usually very computationally intensive (e.g. the state of the art models mentioned in the beginning of Chapter \ref{chapter3} were usually trained for months on hundreds of machines).

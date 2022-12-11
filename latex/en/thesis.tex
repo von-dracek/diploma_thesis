@@ -61,7 +61,7 @@
 %%% Basic information on the thesis
 
 % Thesis title in English (exactly as in the formal assignment)
-\def\ThesisTitle{Optimal choice of scenario tree using Reinforcement learning}
+\def\ThesisTitle{Optimal Choice of Scenario Tree using Reinforcement Learning}
 
 % Author of the thesis
 \def\ThesisAuthor{Bc. Jakub Vondráček}
@@ -165,15 +165,13 @@ Abstract.
 %%% should be uploaded to SIS and optionally also included in the thesis on a~CD/DVD.
 %%% Allowed file formats are specified in provision of the rector no. 72/2017.
 \appendix
-\chapter{Attachments}
-
-\section{Definitions of asset sets}
+\chapter{Definitions of asset sets}
+%\section{Definitions of asset sets}
 \begin{center}
 \begin{table}[H]
 \centering
 \begin{tabular}{lllllll}
 \toprule
-        &     &      &      &      &      \\
  ACGL &   AFL &  AIG &   AJG &   ALL &   AON &   AXP \\
   BAC &   BEN &   BK &   BLK &   BRO &     C &    CB \\
  CINF &   CMA &  COF &   FDS &  FITB &    GL &    GS \\
@@ -218,44 +216,22 @@ ALL &   BK &  ACGL &  FDS &  ZION &  TROW \\
 \label{table:stock_tickers_in_set_B}
 \end{table}
 
+\begin{table}[H]
+\centering
+\scalebox{0.75}{
+\begin{tabular}{l|llllllllll}
+\toprule
+Asset set 1 & ALL & BK  & ACGL & FDS & ZION & TROW & STT & RJF  & SPGI & AON \\
+\toprule
+Asset set 2 & LNC & USB & AXP  & AIG & AJG  & BLK  & RE  & SIVB & NTRS & CB  \\
+\toprule
+Asset set 3 & WRB & BRO & L    & IVZ & BAC  & GS   & WFC & MTB  & MMC  & BEN \\
+\bottomrule
+\end{tabular}
+}
+\caption{Specification of which stock tickers belong to which asset set.}
+\label{table:asset_sets}
+\end{table}
 \end{center}
-
-\section{Auxilliary plots}
-\subsection{No penalty}
-\label{attachment:nopenalty}
-\begin{figure}[H]
-\centering
-\begin{subfigure}[t]{.48\textwidth}
-  \includegraphics[width=\linewidth]{../img/no_penalty/evaluation_3_train_train_no_penalty.pdf}
-  \label{fig:histogram_no_penalty_tra}
-  \caption{Histogram of number of leaves in the scenario tree for reinforcement agent without penalty evaluated on $TrA$.}
-\end{subfigure}
-\begin{subfigure}[t]{.48\textwidth}
-  \includegraphics[width=\linewidth]{../img/no_penalty/evaluation_5_train_train_no_penalty.pdf}
-  \label{fig:boxplots_no_penalty_tra}
-  \caption{Boxplots of achieved rewards by number of stages in the scenario tree for reinforcement agent without penalty evaluated on $TrA$. Note that there are only very few observations for the reinforcement agent with 4 stages.}
-\end{subfigure}
-\caption{Evaluation of reinforcement agent without penalty on $TrA$.}
-\end{figure}
-
-\begin{figure}[H]
-\centering
-\begin{subfigure}[t]{.48\textwidth}
-  \includegraphics[width=\linewidth]{../img/no_penalty/evaluation_3_train_test_no_penalty.pdf}
-  \label{fig:histogram_no_penalty_tra}
-  \caption{Histogram of number of leaves in the scenario tree for reinforcement and random agent without penalty evaluated on $TrB$.}
-\end{subfigure}
-\begin{subfigure}[t]{.48\textwidth}
-  \includegraphics[width=\linewidth]{../img/no_penalty/evaluation_5_train_test_no_penalty.pdf}
-  \label{fig:boxplots_no_penalty_tra}
-  \caption{Boxplots of achieved rewards by number of stages in the scenario tree for reinforcement  and random agent without penalty evaluated on $TrB$. Note that there are only very few observations with 4 stages. This figure implies that the agent indeed chose the three stage trees correctly to maximise the reward.}
-\end{subfigure}
-\caption{Evaluation of reinforcement and random agent without penalty on $TrB$.}
-\end{figure}
-
-\subsection{Penalty}
-
-
-
 \openright
 \end{document}
