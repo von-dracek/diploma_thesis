@@ -4,14 +4,13 @@ from typing import List, Callable
 from stable_baselines3.common.callbacks import BaseCallback
 from stable_baselines3.common.monitor import load_results, Monitor
 from stable_baselines3.common.results_plotter import ts2xy
-from stable_baselines3.common.vec_env import SubprocVecEnv, VecNormalize
+from stable_baselines3.common.vec_env import SubprocVecEnv, VecNormalize, VecEnv, DummyVecEnv
 from src.reinforcement_environment import TreeBuildingEnv, _reward_func_v2, penalty_func_quadratic, penalty_func_linear
 from src.configuration import ASSET_SET_1
 from stable_baselines3 import PPO
 import torch as th
 from datetime import datetime
 import numpy as np
-
 from src.CustomVecMonitor import CustomVecMonitor
 
 #tensorboard --logdir C:\Users\crash\Documents\Programming\diploma_thesis_merged\diploma_thesis_v2\tensorboard_logging\gym
@@ -60,8 +59,8 @@ class SaveOnBestTrainingRewardCallback(BaseCallback):
                   if self.verbose > 0:
                     print(f"Saving new best model after {self.n_calls} calls to {self.save_path}_{self.n_calls}, {current_time}.zip")
                   self.model.save(self.save_path + f"_{self.n_calls}, {current_time}")
-              self.model.save(os.path.join(self.log_dir, 'checkpoint') + f"_{self.n_calls}, {current_time}")
-              self.model.env.save(os.path.join(self.log_dir, 'checkpoint_env') + f"_{self.n_calls}, {current_time}")
+              # self.model.save(os.path.join(self.log_dir, 'checkpoint') + f"_{self.n_calls}, {current_time}")
+              # self.model.env.save(os.path.join(self.log_dir, 'checkpoint_env') + f"_{self.n_calls}, {current_time}")
               self.model.save(os.path.join(self.log_dir, 'latest'))
               self.model.env.save(os.path.join(self.log_dir, 'latest_env'))
 
@@ -85,16 +84,17 @@ if __name__ == '__main__':
     current_time = datetime.now().strftime("%Y-%m-%d %H,%M,%S")
     tensorboard_log = log_dir
 
+
     # if start_training:
 
     # Instantiate the env
     env = make_treebuilding_env(train_or_test="train", train_or_test_time="train", penalty_func=penalty_func_linear)
+    # venv = DummyVecEnv(env_fns=[env] * 1)
     venv = SubprocVecEnv(env_fns=[env] * 6)
     venv = CustomVecMonitor(venv, log_dir, info_keywords=("num_scen",))
-    env = VecNormalize(venv, norm_obs_keys=["predictors"],clip_obs=1000, clip_reward=1000, norm_reward=False, norm_obs=True)
-
+    env = VecNormalize(venv, norm_obs_keys=["predictors"], clip_obs=1000, clip_reward=1000, norm_reward=False,
+                       norm_obs=True)
     env.seed(1337)
-
 
     #not normalising advantage - should have no effect, see https://github.com/DLR-RM/stable-baselines3/issues/485
     ppo_model = PPO(policy="MultiInputPolicy",
@@ -103,8 +103,10 @@ if __name__ == '__main__':
                     n_steps=24*8,
                     policy_kwargs=dict(activation_fn=th.nn.ReLU, net_arch=[num_neurons*2, dict(vf=[num_neurons], pi=[num_neurons])]),
                     tensorboard_log=tensorboard_log,
-                    seed=1337)
+                    seed=1337,
+                    gamma=1)
     ppo_model.learn(100000, callback=SaveOnBestTrainingRewardCallback(check_freq=10, log_dir=log_dir, model_name=f"PPO_{num_neurons * 2}_{num_neurons}_neurons_no_penalty"), progress_bar=True, tb_log_name=f"PPO_{num_neurons * 2}_{num_neurons}_neurons_no_penalty", log_interval=1)
+
     # else:
     #     ppo_model = PPO.load(os.path.join(log_dir, 'latest.zip'))
     #     env = make_treebuilding_env(train_or_test="train", train_or_test_time="train")

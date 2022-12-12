@@ -168,12 +168,12 @@ if __name__ == '__main__':
             with open(f'{plot_string}.pickle', 'rb') as handle:
                 data = pickle.load(handle)
                 data = pd.DataFrame(data)
-                fig.add_trace(go.Box(fillcolor="white", marker=dict(color='grey',line=dict(width=2, color='DarkSlateGrey')), boxpoints="all", x=list(data[2].apply(len)), y=list(data[1])), row=i+1, col=1)
+                fig.add_trace(go.Box(fillcolor="white", marker=dict(color='grey',line=dict(width=2, color='black')), boxpoints="all", x=list(data[2].apply(len)), y=list(data[1])), row=i+1, col=1)
         fig.update_layout(template="simple_white")
         for i in range(1,4):
             for j in range(1,3):
                 if j == 1:
-                    fig.update_xaxes(title_text="Stage", row=i, col=j)
+                    fig.update_xaxes(title_text="Number of stages", row=i, col=j)
                     fig.update_yaxes(title_text="Reward", row=i, col=j)
         # fig.show()
         fig.update(layout_showlegend=False)

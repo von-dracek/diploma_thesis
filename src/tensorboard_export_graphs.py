@@ -80,12 +80,15 @@ def convert_tb_data(root_dirs, sort_by=None):
 
 if __name__ == "__main__":
     # dir_path = ["./tensorboard_logging/gym_final_final_final_without_penalty/", "./tensorboard_logging/gym_final_with_quadratic_penalty/"]
-    dir_path = ["./tensorboard_logging/gym_1200_without_penalty_003/"]
+    # dir_path = ["./tensorboard_logging/gym_1200_with_linear_penalty_003_penalty_005/", "./tensorboard_logging/gym_1200_with_linear_penalty_003_penalty_0025/"]
+
+    dir_path = ["./tensorboard_logging/gym_linear_005/", "./tensorboard_logging/gym_linear_0075/", "./tensorboard_logging/gym_linear_01/"]
 
     df = convert_tb_data(dir_path)
     df = df.sort_values("step")
-    df.loc[df["run"]=="gym_final_with_quadratic_penaltyPPO_256_128_neurons_no_penalty_1","run"] = "Reinforcement agent - quadratic penalty"
-    df.loc[df["run"]=="gym_1200_without_penalty_003PPO_256_128_neurons_no_penalty_1","run"] = "Reinforcement agent - no penalty"
+    df.loc[df["run"]=="gym_linear_005PPO_256_128_neurons_no_penalty_1","run"] = "Reinforcement agent - penalty, c=0.05"
+    df.loc[df["run"]=="gym_linear_0075PPO_256_128_neurons_no_penalty_1","run"] = "Reinforcement agent - penalty, c=0.075"
+    df.loc[df["run"]=="gym_linear_01PPO_256_128_neurons_no_penalty_1","run"] = "Reinforcement agent - penalty, c=0.1"
     df_groupby = df.groupby("name")
     for idx, group in df_groupby:
         logging.info(f"Generating graph {idx}")
@@ -102,37 +105,43 @@ if __name__ == "__main__":
 
         fig.update_traces(patch={"line": {"color": "black", "width": 2}})
         fig.update_traces(patch={"line": {"color": "rgb(117, 116, 111)", "width": 2, "dash": 'dot'}},
-                          selector={"legendgroup": "Reinforcement agent - quadratic penalty"})
+                          selector={"legendgroup": "Reinforcement agent - penalty, c=0.075"})
+        fig.update_traces(patch={"line": {"color": "rgb(117, 116, 111)", "width": 2, "dash": 'dash'}},
+                          selector={"legendgroup": "Reinforcement agent - penalty, c=0.1"})
 
         fig.update_layout(
             xaxis_title="# timesteps", yaxis_title=yaxis_value, legend_title="",
 
         )
-        fig.layout.xaxis.tickfont.size = 18
-        fig.layout.yaxis.tickfont.size = 18
+        fig.layout.xaxis.tickfont.size = 20
+        fig.layout.yaxis.tickfont.size = 20
         full_path = f"./tensorboard_logging/graphs/{idx}.html"
         if not os.path.exists(full_path):
             index = full_path.rfind("/")
             if not os.path.exists(full_path[:index]):
                 os.makedirs(full_path[:index])
-        fig.update_layout(height=500, width=500)
+        fig.update_layout(height=800, width=800)
         fig.update_layout(legend=dict(
             orientation="h",
             yanchor="bottom",
-            y=1.035,
+            y=0.93,
             xanchor="right",
-            x=1
+            x=1,
+            traceorder="normal"
         ))
         fig.update_layout(
             font=dict(
-                size=12,  # Set the font size here
+                size=18,  # Set the font size here
             ),
             title=dict(
                 font=dict(
-                    size=18,
+                    size=20,
                 )
             ),
         )
+        fig.layout.legend.font.size = 20
+
+        fig.data = sorted(fig.data, key=lambda x: x.name)
         fig.write_html(full_path)
         time.sleep(0.5)
         fig.write_image(full_path[:-5] + ".pdf")

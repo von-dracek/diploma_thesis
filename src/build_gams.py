@@ -3,7 +3,7 @@ import io
 import pandas as pd
 from gams import GamsWorkspace
 from tabulate import tabulate
-
+import numpy as np
 #
 # sys.path.append("/opt/gams/gams40.2_linux_x64_64_sfx/apifiles/Python/api_38")
 # sys.path.append("/opt/gams/gams40.2_linux_x64_64_sfx/apifiles/Python/gams")
@@ -24,7 +24,7 @@ Set       j        / node1*node{n_nodes} /
           k        / 1*4 /;
 Alias(i,s);
 
-Variables x(i,j);
+Positive Variables x(i,j);
 Variables loss;
 Variables mean(i), variance(i), third(i), fourth(i), corr(i,s);
 Positive Variables p(j);
@@ -95,4 +95,5 @@ def build_mm_model(n_nodes, TARMOM, R, gams_workspace):
     p = pd.Series(p)
     x = x.to_numpy()
     p = p.to_numpy()
+    assert np.all(x >= 0)
     return x, p
