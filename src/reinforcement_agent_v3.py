@@ -1,12 +1,18 @@
+"""
+Script used for training agents in sections 4.6.2 and 4.6.3
+Note that to train each agent, the penalty func must be adjusted
+and particularly for the linear penalty, the coefficient c must also b adjusted in reinforcement_environment.py
+in global variable penalty_func_linear
+"""
+
 import os
 from typing import List, Callable
 
 from stable_baselines3.common.callbacks import BaseCallback
 from stable_baselines3.common.monitor import load_results, Monitor
 from stable_baselines3.common.results_plotter import ts2xy
-from stable_baselines3.common.vec_env import SubprocVecEnv, VecNormalize, VecEnv, DummyVecEnv
-from src.reinforcement_environment import TreeBuildingEnv, _reward_func_v2, penalty_func_quadratic, penalty_func_linear
-from src.configuration import ASSET_SET_1
+from stable_baselines3.common.vec_env import SubprocVecEnv, VecNormalize
+from src.reinforcement_environment import TreeBuildingEnv, _reward_func_v2, penalty_func_linear
 from stable_baselines3 import PPO
 import torch as th
 from datetime import datetime
@@ -77,15 +83,11 @@ if __name__ == '__main__':
     log_dir = "./tensorboard_logging/gym/"
     os.makedirs(log_dir, exist_ok=True)
 
-    # start_training = True
     num_neurons = 128
 
 
     current_time = datetime.now().strftime("%Y-%m-%d %H,%M,%S")
     tensorboard_log = log_dir
-
-
-    # if start_training:
 
     # Instantiate the env
     env = make_treebuilding_env(train_or_test="train", train_or_test_time="train", penalty_func=penalty_func_linear)
@@ -106,13 +108,3 @@ if __name__ == '__main__':
                     seed=1337,
                     gamma=1)
     ppo_model.learn(100000, callback=SaveOnBestTrainingRewardCallback(check_freq=10, log_dir=log_dir, model_name=f"PPO_{num_neurons * 2}_{num_neurons}_neurons_no_penalty"), progress_bar=True, tb_log_name=f"PPO_{num_neurons * 2}_{num_neurons}_neurons_no_penalty", log_interval=1)
-
-    # else:
-    #     ppo_model = PPO.load(os.path.join(log_dir, 'latest.zip'))
-    #     env = make_treebuilding_env(train_or_test="train", train_or_test_time="train")
-    #     venv = SubprocVecEnv(env_fns=[env] * 6)
-    #     venv = CustomVecMonitor(venv, log_dir, info_keywords=("num_scen",))
-    #     env = VecNormalize.load(os.path.join(log_dir, 'latest_env'), venv=venv)
-    #     env.seed(1234)
-    #     ppo_model.set_env(env)
-    #     ppo_model.learn(200000, callback=SaveOnBestTrainingRewardCallback(check_freq=10, log_dir=log_dir, model_name=f"A2C_{num_neurons * 2}_{num_neurons}_neurons"), progress_bar=True, tb_log_name=f"A2C_{num_neurons * 2}_{num_neurons}_neurons", log_interval=1, reset_num_timesteps=False)

@@ -3,7 +3,7 @@ from typing import Any, List, Tuple
 import numpy as np
 from anytree import LevelOrderGroupIter, Node
 
-from src.build_gams import build_mm_model
+from src.moment_matching_model import build_mm_model
 
 
 def create_empty_tree(sub_tree_structure: List, parent: Node = None) -> Node:

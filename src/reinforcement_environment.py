@@ -1,9 +1,12 @@
+"""
+Implementation of the environment
+"""
 from typing import Callable, List
 import gym
 import numpy as np
 from gams import GamsWorkspace
 from gym import spaces
-from main import get_cvar_value, get_necessary_data
+from src.utils import get_cvar_value, get_necessary_data
 from src.configuration import MAX_NUMBER_LEAVES_IN_SCENARIO_TREE, MIN_NUMBER_LEAVES_IN_SCENARIO_TREE
 import os, shutil
 
@@ -211,86 +214,86 @@ class TreeBuildingEnv(gym.Env):
 
 
 
-
-class DepthChoosingEnv(gym.Env):
-    """
-    Adaptation of gridworld environment for tree building purposes.
-    First choosing depth of tree, then each step chooses next branching.
-    Reward is returned when the tree is completely built.
-    The observation space is a 8*8 table, where the first row represents possible
-    depths of tree (only valid are 3-7), and successive rows represent
-    the brachings in each level (again only valid 3-7).
-    """
-
-    def __init__(self, reward_fn: Callable, train_or_test:str = "train", defined_tickers:List[str]=None, defined_alpha:float=None, evaluate:bool = None):
-        super(DepthChoosingEnv, self).__init__()
-        self.train_or_test = train_or_test
-        self.height = 1
-        # first level in height is chosen depth of tree
-        # next levels represent branching at each stage
-        self.width = 8
-        # self.observation_space = spaces.Dict(state=spaces.MultiDiscrete([2]*self.height*self.width), predictors=spaces.Box(shape=(9,), low=0, high=1000))
-        self.observation_space = spaces.Box(shape=(9,), low=0, high=1000)
-        self.reward_fn = reward_fn
-        self.defined_tickers = defined_tickers
-        #defined_tickers is a list of tickers to choose - do not apply random sampling, always choosing this set
-        #not used when training agent - only used for graphs
-        self.defined_alpha = defined_alpha #if you wish to fix alpha, use this paramater
-        self.valid_action_reward = 0.1 if evaluate is None else 0
-        self.invalid_action_reward = -self.valid_action_reward
-        # self.reset()
-        # begin in start state
-
-    def seed(self, seed):
-        if seed is not None:
-            self._seed = seed
-            print(f"random seed is {seed} \n")
-            self.random_generator = np.random.default_rng(seed)
-            self.gams_workspace = GamsWorkspace(system_directory=r"C:\GAMS\40", working_directory=gams_tmpdir + str(seed))
-        else:
-            return self._seed
-
-    def step(self, action):
-        """
-        Takes a step in the environment according to a chosen action.
-        If invalid depth of tree is chosen, episode is ended with large negative reward.
-        If invalid branching is chosen (according to maximum number of scenarios),
-        the agent is forced to take the maximum possible branching in current stage and
-        receives small negative reward.
-        """
-        if action not in self.action_space:
-            raise NotImplementedError
-        action = action + 3
-        if self.done:
-            raise NotImplementedError
-        x = action
-        self.S[0, x] = 1
-        self.done = True
-        reward = self.reward_fn(self.gams_workspace, self.get_branching(), self.data, self.predictors[0], self.train_or_test)
-        print(f"Done, got reward {reward}")
-        return self.get_current_observation_state(), reward, self.done, {"terminal_observation":self.get_current_observation_state()}
-
-    @property
-    def action_space(self):
-        return spaces.Discrete(3)
-
-
-    def reset(self):
-        self.done = False
-        self.S = np.zeros((self.height, self.width))
-        self.data = get_necessary_data(self.train_or_test, self.defined_tickers)
-        self.predictors = _get_predictors_from_data(self.data, self.random_generator, self.defined_alpha)
-
-        return self.get_current_observation_state()
-
-    def get_current_observation_state(self):
-        return np.array(self.predictors)
-
-    def get_branching(self):
-        action = np.argmax(self.S)
-        if action == 3:
-            return [5] * action #125
-        elif action == 4:
-            return [4,4,4,3] #192
-        else:
-            return [3] * np.argmax(self.S)
+#
+# class DepthChoosingEnv(gym.Env):
+#     """
+#     Adaptation of gridworld environment for tree building purposes.
+#     First choosing depth of tree, then each step chooses next branching.
+#     Reward is returned when the tree is completely built.
+#     The observation space is a 8*8 table, where the first row represents possible
+#     depths of tree (only valid are 3-7), and successive rows represent
+#     the brachings in each level (again only valid 3-7).
+#     """
+#
+#     def __init__(self, reward_fn: Callable, train_or_test:str = "train", defined_tickers:List[str]=None, defined_alpha:float=None, evaluate:bool = None):
+#         super(DepthChoosingEnv, self).__init__()
+#         self.train_or_test = train_or_test
+#         self.height = 1
+#         # first level in height is chosen depth of tree
+#         # next levels represent branching at each stage
+#         self.width = 8
+#         # self.observation_space = spaces.Dict(state=spaces.MultiDiscrete([2]*self.height*self.width), predictors=spaces.Box(shape=(9,), low=0, high=1000))
+#         self.observation_space = spaces.Box(shape=(9,), low=0, high=1000)
+#         self.reward_fn = reward_fn
+#         self.defined_tickers = defined_tickers
+#         #defined_tickers is a list of tickers to choose - do not apply random sampling, always choosing this set
+#         #not used when training agent - only used for graphs
+#         self.defined_alpha = defined_alpha #if you wish to fix alpha, use this paramater
+#         self.valid_action_reward = 0.1 if evaluate is None else 0
+#         self.invalid_action_reward = -self.valid_action_reward
+#         # self.reset()
+#         # begin in start state
+#
+#     def seed(self, seed):
+#         if seed is not None:
+#             self._seed = seed
+#             print(f"random seed is {seed} \n")
+#             self.random_generator = np.random.default_rng(seed)
+#             self.gams_workspace = GamsWorkspace(system_directory=r"C:\GAMS\40", working_directory=gams_tmpdir + str(seed))
+#         else:
+#             return self._seed
+#
+#     def step(self, action):
+#         """
+#         Takes a step in the environment according to a chosen action.
+#         If invalid depth of tree is chosen, episode is ended with large negative reward.
+#         If invalid branching is chosen (according to maximum number of scenarios),
+#         the agent is forced to take the maximum possible branching in current stage and
+#         receives small negative reward.
+#         """
+#         if action not in self.action_space:
+#             raise NotImplementedError
+#         action = action + 3
+#         if self.done:
+#             raise NotImplementedError
+#         x = action
+#         self.S[0, x] = 1
+#         self.done = True
+#         reward = self.reward_fn(self.gams_workspace, self.get_branching(), self.data, self.predictors[0], self.train_or_test)
+#         print(f"Done, got reward {reward}")
+#         return self.get_current_observation_state(), reward, self.done, {"terminal_observation":self.get_current_observation_state()}
+#
+#     @property
+#     def action_space(self):
+#         return spaces.Discrete(3)
+#
+#
+#     def reset(self):
+#         self.done = False
+#         self.S = np.zeros((self.height, self.width))
+#         self.data = get_necessary_data(self.train_or_test, self.defined_tickers)
+#         self.predictors = _get_predictors_from_data(self.data, self.random_generator, self.defined_alpha)
+#
+#         return self.get_current_observation_state()
+#
+#     def get_current_observation_state(self):
+#         return np.array(self.predictors)
+#
+#     def get_branching(self):
+#         action = np.argmax(self.S)
+#         if action == 3:
+#             return [5] * action #125
+#         elif action == 4:
+#             return [4,4,4,3] #192
+#         else:
+#             return [3] * np.argmax(self.S)

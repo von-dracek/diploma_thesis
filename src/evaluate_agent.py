@@ -1,3 +1,11 @@
+"""
+Script used to evaluate the trained agents and generate plots
+in sections 4.6.2. and 4.6.3.
+Note that setting start_evaluation=True actually performs the whole evaluation (this takes a long time,
+as we are generating 500x4 trees)
+Setting start_evaluation=False generates graphs
+Note that the penalty func must be adjusted manually for each specific agent using the dir variable
+"""
 import os
 import pickle
 import time

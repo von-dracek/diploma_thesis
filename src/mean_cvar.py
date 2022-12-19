@@ -1,3 +1,6 @@
+"""
+Script used to implement the mean cvar model
+"""
 import io
 from typing import Callable
 
@@ -11,7 +14,7 @@ import logging
 specified_row_name_length = 20
 
 
-def create_cvar_gams_model_str(root: Node, alpha: float):
+def create_cvar_gams_model_str(root: Node, alpha: float) -> str:
     leaves = root.leaves
 
     scenarios = []
@@ -168,7 +171,7 @@ solve problem using LP minimising loss;
 
 
 def calculate_mean_cvar_over_leaves(
-    root: Node, alpha, gams_workspace, create_model_str_func: Callable = create_cvar_gams_model_str
+    root: Node, alpha: float, gams_workspace: GamsWorkspace, create_model_str_func: Callable = create_cvar_gams_model_str
 ) -> float:
     gms = gams_workspace
     cvar_model_str = create_model_str_func(root, alpha)

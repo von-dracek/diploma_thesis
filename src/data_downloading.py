@@ -1,3 +1,7 @@
+"""
+This script can be used to download the necessary data. The used data are however located
+in data/Downloaded_Adjusted_Close_prices_latest.pckl
+"""
 import datetime
 import pickle
 from typing import Iterator, Tuple, List
@@ -95,5 +99,5 @@ class DataGetter:
 
 
 if __name__ == "__main__":
-    """Start here."""
+    """Download data"""
     download_data(FIRST_VALID_DATE, LAST_VALID_DATE, TICKERS)

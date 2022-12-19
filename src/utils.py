@@ -1,5 +1,8 @@
-"""DOCSTRING"""
-
+"""
+Utilities
+-get data from datagetter
+-get cvar value from mean cvar model
+"""
 import logging
 import random
 from typing import List
@@ -34,10 +37,3 @@ def get_cvar_value(gams_workspace, branching: List[int], data, alpha: float = 0.
     tree_root = create_empty_tree(branching)
     root = fill_empty_tree_with_scenario_data_moment_matching(TARMOM, R, tree_root, branching, gams_workspace)
     return calculate_mean_cvar_over_leaves(root, alpha, gams_workspace)
-
-
-if __name__ == "__main__":
-    """Start here."""
-    branching = [2,3]
-    data = get_necessary_data()
-    print(get_cvar_value(branching, data))

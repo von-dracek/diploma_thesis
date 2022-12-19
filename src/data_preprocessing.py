@@ -38,6 +38,7 @@ def data_to_returns_iid(data: pd.DataFrame, branching: List[int]):
     """Convert weekly data to returns according to specified branching.
     The time period is constant, only the number of stages changes - returns
     need to be calculated based on the given number of stages."""
+    #the multiplication below is here so that we obtain a nontrivial number of return observations
     n_stages = len(branching) * 4
     first_date_in_dataset = data.index[0]
     last_date_in_dataset = data.index[-1]

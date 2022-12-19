@@ -1,3 +1,5 @@
+"""Script used for checking generating figures in Section 4.6.1 -- Exploratory analysis"""
+
 import logging
 import pickle
 import pandas as pd
@@ -40,9 +42,8 @@ if __name__ == '__main__':
                         valid_actions = list(valid_actions.index)
                         action = np.random.choice(valid_actions) - 3
                         obs, reward, done, info = env.step(action)
-                    if not (reward == -10):
-                        i += 1
-                        rewards.append((env.current_num_scenarios,reward, env.get_branching()))
+                    i += 1
+                    rewards.append((env.current_num_scenarios,reward, env.get_branching()))
 
 
                 with open(f'reward_distribution_from_mean_cvar_{env_name}_{asset_set_index}.pickle', 'wb') as handle:

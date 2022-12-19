@@ -1,3 +1,7 @@
+"""
+Custom implementation of VecMonitor to report also the number of scenarios
+(Not really important)
+"""
 import time
 import warnings
 from typing import Optional, Tuple

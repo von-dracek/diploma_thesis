@@ -9,7 +9,7 @@ import numpy as np
 # sys.path.append("/opt/gams/gams40.2_linux_x64_64_sfx/apifiles/Python/gams")
 
 
-def prepare_moment_matching_model_str(n_nodes, TARMOM, R):
+def prepare_moment_matching_model_str(n_nodes: int, TARMOM: np.ndarray, R: np.ndarray):
     n_stocks = R.shape[0]
     headers = [f"stock{n+1}" for n in range(n_stocks)]
     rowIDs = ["1", "2", "3", "4"]
@@ -71,7 +71,7 @@ solve problem using NLP minimising loss;
 # and Distribution Matching
 # Bruno A. Calfa∗, Anshul Agarwal†, Ignacio E. Grossmann∗, John M. Wassick†
 
-def build_mm_model(n_nodes, TARMOM, R, gams_workspace):
+def build_mm_model(n_nodes: int, TARMOM: np.ndarray, R: np.ndarray, gams_workspace:GamsWorkspace):
     gms = gams_workspace
     model_str = prepare_moment_matching_model_str(n_nodes, TARMOM, R)
     output_stream = io.StringIO()

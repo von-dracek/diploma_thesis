@@ -1,3 +1,6 @@
+"""
+Script used to export graphs from tensorboard
+"""
 import logging
 import os.path
 import time
