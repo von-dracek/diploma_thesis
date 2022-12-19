@@ -22,9 +22,21 @@ def configure(level: str = "INFO") -> None:
         "version": 1,
         "loggers": {
             "": {"level": level, "handlers": ["error_console"]},
-            "sanic.error": {"level": level, "handlers": ["error_console"], "propagate": 0},
-            "sanic.root": {"level": level, "handlers": ["error_console"], "propagate": 0},
-            "sanic.access": {"level": level, "handlers": ["error_console"], "propagate": 0},
+            "sanic.error": {
+                "level": level,
+                "handlers": ["error_console"],
+                "propagate": 0,
+            },
+            "sanic.root": {
+                "level": level,
+                "handlers": ["error_console"],
+                "propagate": 0,
+            },
+            "sanic.access": {
+                "level": level,
+                "handlers": ["error_console"],
+                "propagate": 0,
+            },
             "kafka": {"level": level, "handlers": ["error_console"]},
         },
         "handlers": {
