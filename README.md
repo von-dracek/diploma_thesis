@@ -1,6 +1,8 @@
 # Diploma thesis
 ## Optimal choice of scenario tree using Reinforcement learning
 
+The aim of this thesis is to explore how the scenario tree structure affects the value of objective 
+function in Multistage linear programming, particularly using the mean-CVaR model.
 ### Current progress
 * [x] Preprocess data - Download (adjusted) price data from yahoo finance, setup equidistant stage wise data splitting
 * [x] Implement scenario generation using moment matching
