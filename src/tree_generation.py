@@ -27,6 +27,7 @@ def calculate_path_probabilities(root: Node):
     for child in root.children:
         calculate_path_probabilities(child)
 
+
 def fill_empty_tree_with_scenario_data_moment_matching(
     TARMOM: np.ndarray, R: np.ndarray, root: Node, branching: List[int], gams_workspace
 ) -> Node:
@@ -41,7 +42,9 @@ def fill_empty_tree_with_scenario_data_moment_matching(
         # generating children from one node of current level and then copying these children
         # to other nodes on the current level
         # generate childrenvalues
-        generated_returns, generated_probs = build_mm_model(current_branching, TARMOM, R, gams_workspace)
+        generated_returns, generated_probs = build_mm_model(
+            current_branching, TARMOM, R, gams_workspace
+        )
         # set values to children
         for current_node in level:
             children = current_node.children

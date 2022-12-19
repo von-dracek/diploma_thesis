@@ -7,8 +7,12 @@ import warnings
 from typing import Optional, Tuple
 
 import numpy as np
-
-from stable_baselines3.common.vec_env.base_vec_env import VecEnv, VecEnvObs, VecEnvStepReturn, VecEnvWrapper
+from stable_baselines3.common.vec_env.base_vec_env import (
+    VecEnv,
+    VecEnvObs,
+    VecEnvStepReturn,
+    VecEnvWrapper,
+)
 
 
 class CustomVecMonitor(VecEnvWrapper):
@@ -64,7 +68,9 @@ class CustomVecMonitor(VecEnvWrapper):
 
         if filename:
             self.results_writer = ResultsWriter(
-                filename, header={"t_start": self.t_start, "env_id": env_id}, extra_keys=info_keywords
+                filename,
+                header={"t_start": self.t_start, "env_id": env_id},
+                extra_keys=info_keywords,
             )
         else:
             self.results_writer = None
@@ -88,7 +94,11 @@ class CustomVecMonitor(VecEnvWrapper):
                 episode_return = self.episode_returns[i]
                 episode_length = self.episode_lengths[i]
                 # episode_num_scenarios = num_scenarios[i]
-                episode_info = {"r": episode_return, "l": episode_length, "t": round(time.time() - self.t_start, 6)}
+                episode_info = {
+                    "r": episode_return,
+                    "l": episode_length,
+                    "t": round(time.time() - self.t_start, 6),
+                }
                 # for key in self.info_keywords:
                 #     episode_info[key] = info[key]
                 info["episode"] = episode_info

@@ -1,9 +1,10 @@
 import io
 
+import numpy as np
 import pandas as pd
 from gams import GamsWorkspace
 from tabulate import tabulate
-import numpy as np
+
 #
 # sys.path.append("/opt/gams/gams40.2_linux_x64_64_sfx/apifiles/Python/api_38")
 # sys.path.append("/opt/gams/gams40.2_linux_x64_64_sfx/apifiles/Python/gams")
@@ -16,7 +17,9 @@ def prepare_moment_matching_model_str(n_nodes: int, TARMOM: np.ndarray, R: np.nd
     TARMOM = tabulate(
         TARMOM, showindex=rowIDs, headers=headers, tablefmt="plain", numalign="right"
     )
-    R = tabulate(R, showindex=headers, headers=headers, tablefmt="plain", numalign="right")
+    R = tabulate(
+        R, showindex=headers, headers=headers, tablefmt="plain", numalign="right"
+    )
     return f"""Option NLP=CONOPT;
 Option Seed=1337;
 Set       j        / node1*node{n_nodes} /
@@ -65,13 +68,15 @@ solve problem using NLP minimising loss;
         """  # noqa: E501
 
 
-
 # https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.497.113&rep=rep1&type=pdf
 # Data-Driven Multi-Stage Scenario Tree Generation via Statistical Property
 # and Distribution Matching
 # Bruno A. Calfa∗, Anshul Agarwal†, Ignacio E. Grossmann∗, John M. Wassick†
 
-def build_mm_model(n_nodes: int, TARMOM: np.ndarray, R: np.ndarray, gams_workspace:GamsWorkspace):
+
+def build_mm_model(
+    n_nodes: int, TARMOM: np.ndarray, R: np.ndarray, gams_workspace: GamsWorkspace
+):
     gms = gams_workspace
     model_str = prepare_moment_matching_model_str(n_nodes, TARMOM, R)
     output_stream = io.StringIO()

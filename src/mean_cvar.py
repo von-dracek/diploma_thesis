@@ -2,6 +2,7 @@
 Script used to implement the mean cvar model
 """
 import io
+import logging
 from typing import Callable
 
 import numpy as np
@@ -9,7 +10,6 @@ import pandas as pd
 from anytree import Node
 from gams import GamsWorkspace
 from tabulate import tabulate
-import logging
 
 specified_row_name_length = 20
 
@@ -27,7 +27,11 @@ def create_cvar_gams_model_str(root: Node, alpha: float) -> str:
                     index=[
                         f"stock{n+1}"
                         + " "
-                        * (specified_row_name_length - len(f"stock{n+1}") - len(f".T{node.depth - 1}"))
+                        * (
+                            specified_row_name_length
+                            - len(f"stock{n+1}")
+                            - len(f".T{node.depth - 1}")
+                        )
                         + f".T{node.depth -1 }"
                         for n in range(len(node.returns))
                     ],
@@ -40,24 +44,35 @@ def create_cvar_gams_model_str(root: Node, alpha: float) -> str:
     scenario_df = pd.concat(scenarios, axis=1)
     n_columns = scenario_df.shape[1]
     splits_by_cols = list(range(0, n_columns, 1500)) + [n_columns]
-    scenario_dfs_splitted_list = [scenario_df.iloc[:, i:j] for i, j in zip(splits_by_cols, splits_by_cols[1:])]
-    asset_yields_string = ''
+    scenario_dfs_splitted_list = [
+        scenario_df.iloc[:, i:j] for i, j in zip(splits_by_cols, splits_by_cols[1:])
+    ]
+    asset_yields_string = ""
     for i, df in enumerate(scenario_dfs_splitted_list):
-        asset_yields_string += tabulate(df, headers="keys", tablefmt="plain", numalign="right", showindex=True,
-                                        floatfmt=".4f")
+        asset_yields_string += tabulate(
+            df,
+            headers="keys",
+            tablefmt="plain",
+            numalign="right",
+            showindex=True,
+            floatfmt=".4f",
+        )
         asset_yields_string += "\n"
         if i + 1 != len(scenario_dfs_splitted_list):
             asset_yields_string += "+"
             asset_yields_string += "\n"
     scenario_probabilities = {
-        leaf.name: float(np.prod([node.probability for node in (leaf,) + leaf.ancestors]))
+        leaf.name: float(
+            np.prod([node.probability for node in (leaf,) + leaf.ancestors])
+        )
         for leaf in leaves
     }
     assert abs(sum(scenario_probabilities.values()) - 1) < 1e-4
+
     def get_siblings(root):
         if len(root.leaves) > 0:
             a = root.leaves[0]
-            siblings = [(a.name,root.depth, b.name) for b in root.leaves if a != b]
+            siblings = [(a.name, root.depth, b.name) for b in root.leaves if a != b]
         else:
             siblings = []
         if root.children is not None:
@@ -72,8 +87,12 @@ def create_cvar_gams_model_str(root: Node, alpha: float) -> str:
         if sibling[0] != sibling[2]
     ]
     siblings = pd.DataFrame(ssiblings)
-    siblings['sorted_row'] = [sorted([a, b]) for a, b in zip(siblings.node1, siblings.node2)]
-    siblings['sorted_row'] = siblings['time'].astype(str) + siblings['sorted_row'].astype(str)
+    siblings["sorted_row"] = [
+        sorted([a, b]) for a, b in zip(siblings.node1, siblings.node2)
+    ]
+    siblings["sorted_row"] = siblings["time"].astype(str) + siblings[
+        "sorted_row"
+    ].astype(str)
     siblings = siblings.drop_duplicates(subset="sorted_row")
     siblings = siblings.drop("sorted_row", axis=1)
 
@@ -87,10 +106,12 @@ def create_cvar_gams_model_str(root: Node, alpha: float) -> str:
     sib = sib.to_list()
 
     riskaversionparameter = 0.2
-    sib = [l + ' \n' * (n % 300 == 0) for n, l in enumerate(sib)]
-    scen_probs = ', \n'.join([str(k) + " " + "{:.7f}".format(v) for k, v in scenario_probabilities.items()])
+    sib = [l + " \n" * (n % 300 == 0) for n, l in enumerate(sib)]
+    scen_probs = ", \n".join(
+        [str(k) + " " + "{:.7f}".format(v) for k, v in scenario_probabilities.items()]
+    )
     set_s = ", \n".join([leaf.name for leaf in leaves])
-    set_siblings = ', \n'.join(sib)
+    set_siblings = ", \n".join(sib)
     _str = f"""Option LP=CPLEX;
 
 $onecho > cplex.opt
@@ -171,7 +192,10 @@ solve problem using LP minimising loss;
 
 
 def calculate_mean_cvar_over_leaves(
-    root: Node, alpha: float, gams_workspace: GamsWorkspace, create_model_str_func: Callable = create_cvar_gams_model_str
+    root: Node,
+    alpha: float,
+    gams_workspace: GamsWorkspace,
+    create_model_str_func: Callable = create_cvar_gams_model_str,
 ) -> float:
     gms = gams_workspace
     cvar_model_str = create_model_str_func(root, alpha)
@@ -191,7 +215,7 @@ def calculate_mean_cvar_over_leaves(
     return loss
 
 
-#3**8 scenarios - 50s in total
+# 3**8 scenarios - 50s in total
 # building tree - 4s, building model string - 12s (11s building asset yields table, 1s nonanticipativity constraints), 34s solving model (25s building model, 9s solving)
-#3**7 scenarios - 10s
+# 3**7 scenarios - 10s
 # 3s building tree, building model string takes 4s (3,5s creating asset yields table, 1s creating nonanticipativity constraints), 3s solve

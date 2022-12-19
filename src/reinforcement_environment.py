@@ -1,20 +1,25 @@
 """
 Implementation of the environment
 """
+import os
+import shutil
 from typing import Callable, List
+
 import gym
 import numpy as np
 from gams import GamsWorkspace
 from gym import spaces
+
+from src.configuration import (
+    MAX_NUMBER_LEAVES_IN_SCENARIO_TREE,
+    MIN_NUMBER_LEAVES_IN_SCENARIO_TREE,
+)
 from src.utils import get_cvar_value, get_necessary_data
-from src.configuration import MAX_NUMBER_LEAVES_IN_SCENARIO_TREE, MIN_NUMBER_LEAVES_IN_SCENARIO_TREE
-import os, shutil
 
 gams_tmpdir = "C:/Users/crash/Documents/Programming/diploma_thesis_merged/diploma_thesis_v2/gams_workdir/"
 
 # possible branching - width - 3 - 7
 # depth - 3 - 5
-
 
 
 def delete_files_in_temp_directory(seed):
@@ -27,11 +32,12 @@ def delete_files_in_temp_directory(seed):
             elif os.path.isdir(file_path):
                 shutil.rmtree(file_path)
         except Exception as e:
-            print('Failed to delete %s. Reason: %s' % (file_path, e))
+            print("Failed to delete %s. Reason: %s" % (file_path, e))
 
 
-
-def _get_predictors_from_data(data, random_number_generator: np.random.default_rng, defined_alpha: float=None):
+def _get_predictors_from_data(
+    data, random_number_generator: np.random.default_rng, defined_alpha: float = None
+):
     """
     Get predictors that might be useful from the data.
     Particularly:
@@ -41,14 +47,16 @@ def _get_predictors_from_data(data, random_number_generator: np.random.default_r
     """
     predictors = np.zeros(9)
     alphas = np.array([0.8, 0.85, 0.9, 0.95])
-    predictors[0] = random_number_generator.choice(alphas)  # randomly sample alpha 0.8 - 0.95
+    predictors[0] = random_number_generator.choice(
+        alphas
+    )  # randomly sample alpha 0.8 - 0.95
     if defined_alpha is not None:
-        predictors[0] = defined_alpha # alpha
+        predictors[0] = defined_alpha  # alpha
     print(f"Value of alpha is = {predictors[0]}")
     predictors[1] = len(data.columns)  # n_stocks
-    returns = data.iloc[[0,-1],:].pct_change().iloc[-1] + 1
-    predictors[2] = max(returns) #maximal return over whole period
-    predictors[3] = min(returns) #minimal return over the whole period
+    returns = data.iloc[[0, -1], :].pct_change().iloc[-1] + 1
+    predictors[2] = max(returns)  # maximal return over whole period
+    predictors[3] = min(returns)  # minimal return over the whole period
     predictors[4] = returns.quantile(0.75)
     predictors[5] = returns.quantile(0.5)
     predictors[6] = returns.quantile(0.25)
@@ -61,25 +69,32 @@ def _reward_func_pretraining(branching, data, alpha, train_or_test):
     raise NotImplementedError
     # return valid_action_reward
 
-penalty_func_none = lambda x:0
-#quadratic penalty - 0 at 300 scenarios, 0.1 at 100 and 700 scenarios
-penalty_func_quadratic = lambda x: (0.1/(550**2))*((x - 650)) ** 2
-penalty_func_linear = lambda x: 0.1*(x-MIN_NUMBER_LEAVES_IN_SCENARIO_TREE)/(MAX_NUMBER_LEAVES_IN_SCENARIO_TREE-MIN_NUMBER_LEAVES_IN_SCENARIO_TREE)
+
+penalty_func_none = lambda x: 0
+# quadratic penalty - 0 at 300 scenarios, 0.1 at 100 and 700 scenarios
+penalty_func_quadratic = lambda x: (0.1 / (550**2)) * ((x - 650)) ** 2
+penalty_func_linear = (
+    lambda x: 0.1
+    * (x - MIN_NUMBER_LEAVES_IN_SCENARIO_TREE)
+    / (MAX_NUMBER_LEAVES_IN_SCENARIO_TREE - MIN_NUMBER_LEAVES_IN_SCENARIO_TREE)
+)
+
 
 def _reward_func_v2(gams_workspace, branching, data, alpha, penalty_func):
     """Calculates reward from chosen branching."""
-    #the minus sign before the cvar value has to be added, since we
-    #calculate cvar-alpha of the loss distribution - thus the smaller the
-    #cvar value the better. But the reinforcement agent in fact maximises
-    #rewards - thus we need to give it a positive reward such that
-    #higher value -> better reward and that is exactly what the
-    #minus sign does here
+    # the minus sign before the cvar value has to be added, since we
+    # calculate cvar-alpha of the loss distribution - thus the smaller the
+    # cvar value the better. But the reinforcement agent in fact maximises
+    # rewards - thus we need to give it a positive reward such that
+    # higher value -> better reward and that is exactly what the
+    # minus sign does here
     num_scenarios = np.prod(branching)
     penalty_for_complexity = penalty_func(num_scenarios)
 
     value = get_cvar_value(gams_workspace, branching, data, alpha)
 
-    return - value - penalty_for_complexity
+    return -value - penalty_for_complexity
+
 
 class TreeBuildingEnv(gym.Env):
     """
@@ -91,7 +106,15 @@ class TreeBuildingEnv(gym.Env):
     the brachings in each level (again only valid 3-7).
     """
 
-    def __init__(self, reward_fn: Callable, train_or_test:str = "train", defined_tickers:List[str]=None, defined_alpha:float=None, train_or_test_time: str = "train", penalty_func: Callable = penalty_func_none):
+    def __init__(
+        self,
+        reward_fn: Callable,
+        train_or_test: str = "train",
+        defined_tickers: List[str] = None,
+        defined_alpha: float = None,
+        train_or_test_time: str = "train",
+        penalty_func: Callable = penalty_func_none,
+    ):
         super(TreeBuildingEnv, self).__init__()
 
         self.train_or_test = train_or_test
@@ -104,20 +127,27 @@ class TreeBuildingEnv(gym.Env):
         # first level in height is chosen depth of tree
         # next levels represent branching at each stage
         self.width = 8
-        self.observation_space = spaces.Dict(state=spaces.MultiDiscrete([2]*self.height*self.width), predictors=spaces.Box(shape=(9,), low=0, high=1000))
+        self.observation_space = spaces.Dict(
+            state=spaces.MultiDiscrete([2] * self.height * self.width),
+            predictors=spaces.Box(shape=(9,), low=0, high=1000),
+        )
         self.reward_fn = reward_fn
         self.defined_tickers = defined_tickers
-        #defined_tickers is a list of tickers to choose - do not apply random sampling, always choosing this set
-        #not used when training agent - only used for graphs
-        self.defined_alpha = defined_alpha #if you wish to fix alpha, use this paramater
-
+        # defined_tickers is a list of tickers to choose - do not apply random sampling, always choosing this set
+        # not used when training agent - only used for graphs
+        self.defined_alpha = (
+            defined_alpha  # if you wish to fix alpha, use this paramater
+        )
 
     def seed(self, seed):
         if seed is not None:
             self._seed = seed
             print(f"random seed is {seed} \n")
             self.random_generator = np.random.default_rng(seed)
-            self.gams_workspace = GamsWorkspace(system_directory=r"C:\GAMS\40", working_directory=gams_tmpdir + str(seed))
+            self.gams_workspace = GamsWorkspace(
+                system_directory=r"C:\GAMS\40",
+                working_directory=gams_tmpdir + str(seed),
+            )
         else:
             return self._seed
 
@@ -134,21 +164,37 @@ class TreeBuildingEnv(gym.Env):
         if self.done:
             raise NotImplementedError
         valid_actions = self.valid_actions()
-        if valid_actions[action]==0: #checks if action is valid
+        if valid_actions[action] == 0:  # checks if action is valid
             amax = np.argmax(valid_actions[::-1])
-            action =len(valid_actions) - amax - 1
+            action = len(valid_actions) - amax - 1
             assert action > 2 and action < 8
         x = action
         y = self.current_y
-        if y == 0: #first assignment chooses depth of tree
+        if y == 0:  # first assignment chooses depth of tree
             self.depth = x
         self.current_y += 1
         self.S[y, x] = 1
-        if self.current_y == np.argmax(self.S[0, :]) + 1: #all branchings have been chosen - end episode
+        if (
+            self.current_y == np.argmax(self.S[0, :]) + 1
+        ):  # all branchings have been chosen - end episode
             self.done = True
-            reward = self.reward_fn(self.gams_workspace, self.get_branching(), self.data, self.predictors[0], self.penalty_func)
+            reward = self.reward_fn(
+                self.gams_workspace,
+                self.get_branching(),
+                self.data,
+                self.predictors[0],
+                self.penalty_func,
+            )
             print(f"Done, got reward {reward}")
-            return self.get_current_observation_state(), reward, self.done, {"num_scen":self.current_num_scenarios, "terminal_observation":self.get_current_observation_state()}
+            return (
+                self.get_current_observation_state(),
+                reward,
+                self.done,
+                {
+                    "num_scen": self.current_num_scenarios,
+                    "terminal_observation": self.get_current_observation_state(),
+                },
+            )
         reward = 0
         return self.get_current_observation_state(), reward, self.done, {}
 
@@ -168,14 +214,20 @@ class TreeBuildingEnv(gym.Env):
         # return spaces.Discrete(9)
 
     def is_action_valid(self, action):
-        if action < 3 or action >= 8: #in other states permit only actions 3 - 7
+        if action < 3 or action >= 8:  # in other states permit only actions 3 - 7
             return False
-        if (self.action_space is not None) and (self.depth > 0) and self.remaining_depth > 0:
+        if (
+            (self.action_space is not None)
+            and (self.depth > 0)
+            and self.remaining_depth > 0
+        ):
             current_num_scenarios = self.current_num_scenarios
             if (
-                    (current_num_scenarios * action * (3 ** (self.remaining_depth - 1))
-                < MAX_NUMBER_LEAVES_IN_SCENARIO_TREE) and (current_num_scenarios * action * (7 ** (self.remaining_depth - 1))
-                > MIN_NUMBER_LEAVES_IN_SCENARIO_TREE)
+                current_num_scenarios * action * (3 ** (self.remaining_depth - 1))
+                < MAX_NUMBER_LEAVES_IN_SCENARIO_TREE
+            ) and (
+                current_num_scenarios * action * (7 ** (self.remaining_depth - 1))
+                > MIN_NUMBER_LEAVES_IN_SCENARIO_TREE
             ):
                 return True
         return False
@@ -197,12 +249,18 @@ class TreeBuildingEnv(gym.Env):
         self.current_y = 0
         self.S = np.zeros((self.height, self.width))
         self.depth = 0
-        self.data = get_necessary_data(self.random_generator, self.train_or_test, self.defined_tickers, self.train_or_test_time)
-        self.predictors = _get_predictors_from_data(self.data, self.random_generator, self.defined_alpha)
+        self.data = get_necessary_data(
+            self.random_generator,
+            self.train_or_test,
+            self.defined_tickers,
+            self.train_or_test_time,
+        )
+        self.predictors = _get_predictors_from_data(
+            self.data, self.random_generator, self.defined_alpha
+        )
         delete_files_in_temp_directory(self._seed)
 
         return self.get_current_observation_state()
-
 
     def get_branching(self):
         assert self.done
@@ -211,7 +269,6 @@ class TreeBuildingEnv(gym.Env):
 
     def get_current_observation_state(self):
         return {"state": self.S.reshape(-1), "predictors": self.predictors}
-
 
 
 #
