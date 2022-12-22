@@ -54,7 +54,7 @@
 \usepackage{algorithm}
 \usepackage{algpseudocode}
 \usepackage{subcaption}
-
+\usepackage[page,toc,titletoc,title]{appendix}
 
 
 \reversemarginpar
@@ -99,7 +99,7 @@ I dedicate this thesis to my grandmother and my mother, as without them, I would
 
 % Abstract (recommended length around 80-200 words; this is not a copy of your thesis assignment!)
 \def\Abstract{%
-Abstract.
+This thesis deals with multistage stochastic programs and explores the dependence of the obtained objective value on the chosen structure of the scenario tree. In particular, the scenario trees are built using the moment matching method, a multistage mean-CVaR model is formulated and a reinforcement learning agent is trained on a set of historical financial data to choose the best scenario tree structure. For this purpose, we implemented a custom reinforcement learning environment. Further an inclusion of a penalty term in the reward obtained by the agent is proposed to avoid scenario trees that are too complex. The reinforcement learning agent is then evaluated against an agent that chooses the scenario tree structure at random and outperforms the random agent. Further the structure of scenario trees chosen by the reinforcement learning agent is analyzed.
 }
 
 % 3 to 5 keywords (recommended), each enclosed in curly braces
@@ -164,9 +164,12 @@ Abstract.
 %%% source code, data files, interactive charts, etc.). Electronic attachments
 %%% should be uploaded to SIS and optionally also included in the thesis on a~CD/DVD.
 %%% Allowed file formats are specified in provision of the rector no. 72/2017.
+
 \appendix
-\chapter{Definitions of asset sets}
-%\section{Definitions of asset sets}
+\chapter*{Appendix}
+\stepcounter{chapter}
+\addcontentsline{toc}{chapter}{Appendix}
+\section{Definitions of asset sets}
 \begin{center}
 \begin{table}[H]
 \centering
@@ -233,5 +236,8 @@ Asset set 3 & WRB & BRO & L    & IVZ & BAC  & GS   & WFC & MTB  & MMC  & BEN \\
 \label{table:asset_sets}
 \end{table}
 \end{center}
+
+\section{Electronic attachment}
+The Python source code used to obtain the results in Chapter \ref{chapter4} is included in the electronic attachment.
 \openright
 \end{document}

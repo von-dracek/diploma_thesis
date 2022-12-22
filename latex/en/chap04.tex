@@ -48,11 +48,11 @@ The GridWorld environment is a well known introductory environment for training 
   \label{fig:gridworldenv_illustration}
 \end{figure}
 
-We designed and implemented a custom GridWorld environment, which we call TreeBuildingEnv.
+We designed and implemented a custom GridWorld environment, which we call \textit{Tree Building Environment}.
 
-\subsection{TreeBuildingEnv}
+\subsection{Tree Building Environment}
 \label{section:treebuildingenv}
-TreeBuildingEnv is an adaptation of the GridWorld environment to allow the agent to build scenario trees based on given predictors, which consist of return data of the assets that are used to build the scenario tree. 
+Tree Building Environment is an adaptation of the GridWorld environment to allow the agent to build scenario trees based on given predictors, which consist of return data of the assets that are used to build the scenario tree. 
 The state is given as a 8 by 8 tree building grid (which starts filled with zeros only in the initial state) and the set of 9 predictors. 
 
 At the beginning of each episode, between 7 and 10 assets are randomly chosen (with uniform probabilities for the number of assets) from the provided data (a set from $\kappa$) and the set of predictors is obtained at the beginning of each episode using the return data for the chosen assets for the whole time period and is constant throughout the episode. 
@@ -64,7 +64,7 @@ In each state, the agent can take any action in the set $\{3,4,5,6,7\}$, which w
 
 \begin{figure}[H]
   \includegraphics[width=\linewidth]{../img/Treebuildingenv_graph.pdf}
-  \caption{TreeBuildingEnv. State illustration when a 4 stage tree is generated with 5 children in the first stage, 6 in the second stage, 5 in the third stage and 4 in the fourth stage. Crosshatching represents invalid actions. Predictors are represented as an empty array, in reality they are populated with numerical data on the whole period returns, see Section \ref{subsection:predictors}.}
+  \caption{Tree Building Environment. State illustration when a 4 stage tree is generated with 5 children in the first stage, 6 in the second stage, 5 in the third stage and 4 in the fourth stage. Crosshatching represents invalid actions. Predictors are represented as an empty array, in reality they are populated with numerical data on the whole period returns, see Section \ref{subsection:predictors}.}
   \label{fig:treebuildingenv}
 \end{figure}
 
@@ -162,12 +162,11 @@ This means that we are generating stagewise independent balanced scenario trees,
 
 
 \subsection{Mean-CVaR model}
-The mean-CVaR model was implemented exactly as given in Equation \ref{eq:cvar_multistage_risk_aversion} using the scenario tree generated from the moment matching method, where we used the risk aversion parameter $\lambda=0.3.$ \todo{how to justify choice of 0.3? Chosen by expert? @Milos Kopa}
-
+The mean-CVaR model was implemented exactly as given in Equation \ref{eq:cvar_multistage_risk_aversion} using the scenario tree generated from the moment matching method, where we used the risk aversion parameter $\lambda=0.3.$
 \subsection{Reinforcement agent}
 We chose to use a tried and tested implementation of state of the art algorithms in the \textit{Stable Baselines 3} library (\cite{stable_baselines3}). We experimented with multiple architectures and algorithms implemented therein, particularly A2C and PPO, while eventually settling on using PPO in the results given in Section \ref{section:experimental_results}. Here we share our experience with training the reinforcement agent.
 
-We first experimented with the algorithms using a toy environment (TreeBuildingEnv with synthetic predictors and rewards) to obtain some semblance of how long it takes to obtain a reward better than random guessing. We experimented with several neural net architectures and found out that PPO usually outperformed A2C (converged much faster) with the same neural net architecture. 
+We first experimented with the algorithms using a toy environment (Tree Building Environment with synthetic predictors and rewards) to obtain some semblance of how long it takes to obtain a reward better than random guessing. We experimented with several neural net architectures and found out that PPO usually outperformed A2C (converged much faster) with the same neural net architecture. 
 
 We also experimented with neural net architectures and found that even for very simple tasks (such as learning a different action based on the value of a single predictor $p$), a very nontrivial number of neurons in the hidden layers is required for the model to be able to solve the environment. Particularly, for a deterministic toy example where $p$ was randomly sampled from the set $\{0.1, 0.2\}$ and based on the given $p$ the best number of stages to take was $3$ if $p=0.1$ and $5$ if $p=0.2$, the reinforcement agent didn't learn anything within hudreds of thousands of timesteps, unless we used an architecture with at least two hidden layers of 128 and 64 neurons respectively, where the second layer is separate for the actor and the critic (which estimate the policy and the action value). Furthermore, we used ReLu activations between each layer. 
 

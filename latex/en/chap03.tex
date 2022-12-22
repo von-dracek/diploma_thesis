@@ -20,10 +20,9 @@ As we mentioned, the agent operates in an environment. The agent is aware of the
 \end{figure}
 
 We now introduce the notion of a \textit{Markov decision process}, which is a formalisation of the agent environment interaction discussed above. The following is heavily inspired by \cite[Chapter 3]{sutton2018reinforcement}
-\begin{defn}{Markov decision process} 
+\begin{defn}{\normalfont Markov decision process} 
 \label{defn:markov_decision_process}
-\\
-\cite[Chapter 3]{sutton2018reinforcement}
+{\normalfont (\cite[Chapter 3]{sutton2018reinforcement})}
 
 A Markov decision process is a 5-tuple $(\mathcal{S}, \mathcal{A}, \mathcal{P}, \mathcal{R}, \gamma)$, where 
 \begin{enumerate}
@@ -39,9 +38,8 @@ where $S_t$, $A_t$ and $R_t$ are random variables representing the state, action
 
 The agent chooses an action based on the current state to maximise the expected cumulative reward. A function that maps states to probabilities of actions is termed \textit{policy}, see Definition \ref{defn:policy}.
 
-\begin{defn}{Policy} \label{defn:policy}
-\\
-\cite[Section 3.5]{sutton2018reinforcement} \\
+\begin{defn}{\normalfont Policy} \label{defn:policy}
+{\normalfont (\cite[Section 3.5]{sutton2018reinforcement})} \\
 Let $s \in \mathcal{S}$ and $a \in \mathcal{A}$. Then the policy is defined as
 \begin{equation*}
 \pi(a|s)=P(A_t=a|S_t=s).
@@ -49,9 +47,8 @@ Let $s \in \mathcal{S}$ and $a \in \mathcal{A}$. Then the policy is defined as
 \end{defn} 
 Another fundamental concept is the value function, see Definition \ref{defn:value_function}.
 
-\begin{defn}{Value function} \label{defn:value_function}
-\\
-\cite[Section 3.5]{sutton2018reinforcement}
+\begin{defn}{\normalfont Value function} \label{defn:value_function}
+{\normalfont (\cite[Section 3.5]{sutton2018reinforcement})}
 \\
 Let $\pi$ be a policy and $s \in \mathcal{S}$. Then we define the value function $v_{\pi}(s)$ as
 \begin{equation*}
@@ -63,9 +60,8 @@ The value function assigns each state the expected cumulative discounted reward 
 
 Another related notion is the \textit{action value function}, see Definition \ref{defn:action_value_function}.
 
-\begin{defn}{Action value function} \label{defn:action_value_function}
-\\
-\cite[Section 3.5]{sutton2018reinforcement}
+\begin{defn}{\normalfont Action value function} \label{defn:action_value_function}
+{\normalfont (\cite[Section 3.5]{sutton2018reinforcement})}
 \\
 Let $\pi$ be a policy and $s \in \mathcal{S}$ and $a \in \mathcal{A}$. Then we define the action value function $q_{\pi}(s,a)$ as
 \begin{equation*}
@@ -77,9 +73,8 @@ The action value function is much the same as value function, but it maps the ac
 The value function and action value functions must be learned by exploring the environment. Unfortunately, the plethora of theory about estimation of these functions (e.g. using the Bellman equations) is out of scope of this thesis. We refer the interested reader to \cite[Section 3.5.]{sutton2018reinforcement} and the references therein.
 
 Another related notion, which builds on the definitions given above is the \textit{advantage function}, see Defintion \ref{defn:advantage_function}.
-\begin{defn}{Advantage function} \label{defn:advantage_function}
-\\
-\cite[Section 3]{a3c_paper}
+\begin{defn}{\normalfont Advantage function} \label{defn:advantage_function}
+{\normalfont (\cite[Section 3]{a3c_paper})}
 \\
 Let $\pi$ be a policy and $s \in \mathcal{S}$ and $a \in \mathcal{A}$. Denote the value function as $v_{\pi}(s)$ and the action value function as $q_{\pi}(s,a)$. Then we define the advantage function  as
 \begin{equation*}
@@ -90,10 +85,10 @@ The advantage represents the gain that is obtained by taking action $a$ in state
 
 Our aim is to obtain a policy that maximises the expected cumulative discounted reward. We thus define the \textit{optimal policy}, \textit{optimal value function} and \textit{optimal action value function}, see Definition \ref{defn:optimal_definitions}.
 
-\begin{defn}{Optimal policy, value function and action value function} 
+\begin{defn}{\normalfont Optimal policy, value function and action value function} 
 \label{defn:optimal_definitions} 
 \\
-\cite[Section 3.6]{sutton2018reinforcement}
+{\normalfont (\cite[Section 3.6]{sutton2018reinforcement})}
 \\
 Let $R(\pi)$ be the expected cumulative discounted reward obtained by following policy $\pi$. Then we define the optimal policy as
 \begin{equation*}
@@ -141,7 +136,7 @@ The whole algorithm can be summarised as follows:
 
 \begin{algorithm}[H]
 \small
-\caption{Vanilla Q-learning \cite[p. 131]{sutton2018reinforcement}}\label{alg:q_learning}
+\caption{Vanilla Q-learning (\cite[p. 131]{sutton2018reinforcement})}\label{alg:q_learning}
 \begin{algorithmic}
 \Require{Choose the learning rate $\varphi \in (0,1]$ and exploration parameter $\epsilon>0$, number of episodes, initialise $Q(s, a) \, \mathrm{randomly}, s \in \{s \, \mathrm{for} \,  s \, \mathrm{in} \, \mathcal{S} \, \mathrm{if} \, s \, \mathrm{is \, not \, terminal}\}$ and $Q(s,a)=0$ for $s$ terminal, $a \in \mathcal{A}$ (terminal state of the environment means that the episode is finished).}
 \For{episode in $\{$1,...,number of episodes$\}$}
@@ -206,10 +201,11 @@ where the gradient is taken only with respect to the actor variables affecting t
 
 In the original paper, they made use of asynchronous updates to supposedly improve training stability. It was later shown in the paper \cite{a3c_asynchrony_not_necessary} that the asynchronicity provides no added benefit in performance.
 
+\newpage
 \subsection{Trust region policy optimization}
 The trust region policy optimization method, developed in \cite{TRPO}, is a special case of policy gradient methods, as it introduces a special constraint on the policy parameters, such that the change in the policy is not too large at each step. This is done by imposing the constraint that the Kullback-Leibler Divergence between the two policies is not too large. The Kullback-Leibler Divergence is defined in Definition \ref{defn:kl_divergence}.
 \begin{defn} \label{defn:kl_divergence}
-{Kullback-Leibler Divergence}
+{\normalfont Kullback-Leibler Divergence}
 \\
 Let $P$ and $Q$ be discrete random variables with the same support $\mathcal{S}$. Let $P(x)$ and $Q(x)$ denote the probability distribution functions of $P$ and $Q$, $x \in \mathcal{S}$. Then the Kullback-Leibler Divergence, denoted $D_{KL}(P,Q)$ is calculated is
 \begin{equation*}
@@ -228,9 +224,9 @@ where $\theta_{\tau+1}$ are the new parameters of the policy after the update an
 The objective function that is maximised here is a local approximation of a quantity that \textit{“represents the expected return
 of another policy $\pi(\cdot,\cdot|\theta_{\tau+1})$ in terms of the advantage over $\pi(\cdot,\cdot|\theta_{\tau})$”} \cite[Equation 1]{TRPO}. For details (such as how $\widehat{A}(a_b, s_b)$ is calculated\footnote{which we do not show, as it would require developing needlessly complex notation and it is not particularly relevant for our purposes}), see \cite[Section 2-4]{TRPO}.
 
+\newpage
 \subsection{Proximal policy optimization}
 The Proximal policy optimization algorithm (PPO) was developed in \cite{proximal_policy_optimization} by combining a neural network used for estimation of action value function and the policy approximation with the trust region idea (limiting the magnitude of change in KL diveregence) used in TRPO, we follow their exposition. Consider Equation \ref{eq:ppo}.
-\todo{Please verify this section is correct - the notation in the literature is kind of rough and I had a hard time bringing it all together to make sense. I think I did so correctly, but it would be great to double check.}
 
 \begin{equation}
 \label{eq:ppo}

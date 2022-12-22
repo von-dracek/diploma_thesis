@@ -38,8 +38,8 @@
 In this chapter, we give an introduction to the theory of stochastic programming with particular focus on multistage linear programs. Most of the content in this chapter is based on the material covered in \cite[Chapter 1]{stochasticprogrammingbible}, \cite[Chapters 1-3]{stochasticprogrammingbible2009} and \cite[Part~2]{dupacovastochasticprogramming} if not specified otherwise.
 
 \section{Basic definitions}
-\begin{defn}{Mathematical program in $\R^n$} \label{def:MathematicalProgramDef} \\
-\cite[p. 107]{dupacovastochasticprogramming} \\
+\begin{defn} {\normalfont Mathematical program in $\R^n$} \label{def:MathematicalProgramDef}
+ {\normalfont (\cite[p. 107]{dupacovastochasticprogramming})} \\
 Let $p,m,n \in \N$. A mathematical program in $\R^n$ is defined as
 \begin{equation*}
 \mathrm{min} \{f(\mathbf{x}), \mathbf{x} \in \mathbf{M}\},
@@ -110,9 +110,8 @@ where $T$ is the number of decision stages, $x=(x_1,\dots,x_T)$ is called the de
 Both processes $x$ and $\xi$ are random and thus depend on the realised $\omega \in \Omega$. In order for the program to be well defined, the decision process $x$ must not take into account future observations of either
 $\xi$ or decisions $x$, but only the past and present. This is formalised by the so called nonanticipativity constraints, which assure that the $x_t$ at time $t$ may depend only on $(x_1,\dots,x_{t-1})$ and $(\xi_1,...,\xi_{t})$.
 
-\begin{defn}{Nonanticipativity constraints} \label{def:nonanticipativity constraints}
-\\
-\cite[Ch. 1, Section 3.3., P. 35]{stochasticprogrammingbible} \\
+\begin{defn}{\normalfont Nonanticipativity constraints} \label{def:nonanticipativity constraints} 
+{\normalfont (\cite[Ch. 1, Section 3.3., P. 35]{stochasticprogrammingbible})} \\
 The decision process $x$ is termed nonanticipative if
 \begin{equation*}
 x_t=\mathbb{E}\left[x_t|\xi_1,\dots,\xi_t \right], t=1,\dots,T,
@@ -124,9 +123,8 @@ This is in contrast to general deterministic (multiperiod) programs, where all d
 \subsection{General multistage optimization problem formulation}
 Considering the single period optimization in each stage recursively (in the reverse order,  i.e. from the last stage to the first stage) leads to the following nested problem formulation, see Definition \ref{defn:generalmultistageprogrammingformulation}. This formulation is very similar to problems found in dynamic programming.
 
-\begin{defn}{Multistage nested problem formulation} \label{defn:generalmultistageprogrammingformulation}
-\\ 
-\cite[Section 3.1.1.]{stochasticprogrammingbible2009}
+\begin{defn}{\normalfont Multistage nested problem formulation} \label{defn:generalmultistageprogrammingformulation}
+{\normalfont (\cite[Section 3.1.1.]{stochasticprogrammingbible2009})}
  \\
 Let $\xi=(\xi_1,\dots,\xi_{T})$ be the data process as defined in the previous sections, \\ $x=(x_1,\dots,x_t)$ the decision vector, $n_t$, $d_t \in \N$ be the dimensions of $x_t$ and $\xi_t$ respectively, $f_t: \R^{n_t} \times \R^{d_t} \rightarrow \R$ be continuous functions and $
 \mathcal{X}_t$ be the sets of constraints at each stage $t=1,\dots,T$. The general multistage optimization problem is then formulated as follows:
@@ -146,9 +144,8 @@ where the multifunctions $\mathcal{X}_t(x_{t-1},\xi_t)$ are random, since they d
 \subsection{Linear programming formulation}
 If the functions $f_t$ and constraints defining the sets $\mathcal{X}_t$, $t=1,\dots,T$ are linear in Equation \ref{eq:generalmultistageprogrammingformulation}, then we say that the problem is a \textit{Multistage linear programming problem}, see Definition \ref{defn:nestedlinearmultistageprogrammingformulation}.
 
-\begin{defn}{Multistage nested linear problem formulation} \label{defn:nestedlinearmultistageprogrammingformulation}
-\\
-\cite[Ch. 1, p. 25]{stochasticprogrammingbible}
+\begin{defn}{\normalfont Multistage nested linear problem formulation} \label{defn:nestedlinearmultistageprogrammingformulation}
+{\normalfont (\cite[Ch. 1, p. 25]{stochasticprogrammingbible})}
  \\
 Considering the notation in Definition \ref{defn:generalmultistageprogrammingformulation}, let 
 \begin{center}
@@ -167,10 +164,9 @@ where the quantities $c_t, A_{t,t-1}, A_{t,t}, b_{t}$ are random, or according t
 
 If we view the decision process $x_t$ (at time $t$) as a function of the part of the data process $\xi$ known up to time $t$, i.e. $x_t=x_t(\xi_1,\dots,\xi_t)$, we can properly rewrite the multistage linear programming problem (Equation \ref{eq:nestedlinearmultistageprogrammingformulation}) in the same general form as other linear programming problems, see Definition \ref{defn:staircaselinearprogrammingformulation}.
 \begin{defn}
-{Multistage linear problem formulation} 
-\label{defn:staircaselinearprogrammingformulation}
-\\ 
-\cite[Ch. 1, p. 22]{stochasticprogrammingbible}
+{\normalfont Multistage linear problem formulation} 
+\label{defn:staircaselinearprogrammingformulation} \\
+{\normalfont (\cite[Ch. 1, p. 22]{stochasticprogrammingbible})}
 \\
 \footnotesize
 \begin{alignat}{10}
@@ -199,7 +195,7 @@ To obtain a solvable program, we must obtain a suitable approximation of the und
 Consider a multistage program with $T$ stages. In each of these stages, we need to find a discretization of the underlying distribution, particularly the marginal distribution in the first stage and the conditional distributions in the following stages. The number of atoms in each of these stages need not be the same. If the number of children is the same for each node in a given stage and this property holds for all stages, the scenario tree is termed \textit{balanced}, see Figure \ref{fig:balanced_scenario_tree}.
 
 \begin{figure}[H]
-  \includegraphics[width=\linewidth]{../img/scenario_tree_balanced.pdf}
+  \includegraphics[width=\linewidth]{../img/scenario_tree_plots/scenario_tree_balanced.pdf}
   \caption{Balanced scenario tree.}
   \label{fig:balanced_scenario_tree}
 \end{figure}
@@ -212,7 +208,7 @@ Consider a multistage program with $T$ stages. In each of these stages, we need 
 \end{figure}
 
 Define \textit{scenario at stage} $t$ as $\xi_{[:t]} = (\xi_1,\dots,\xi_t)$.
-Let $S_t(\xi_{[:t-1]})$ be the finite support of the conditional probability distribution of $\xi_t, \, t=3,\dots,T$ and denote $S_2(\xi_{1})$ the finite support of the marginal probability distribution of $\xi_2$. Naturally, we only want to consider sensible scenarios in the set 
+Let $S_t(\xi_{[:t-1]})$ be the finite support of the conditional probability distribution of $\xi_t, \, t=3,\dots,T$ and denote $S_2(\xi_{1})$ the finite support of the marginal probability distribution of $\xi_2$. Naturally, we only want to consider scenarios in the set 
 \begin{equation*}
 \mathcal{S}=\{\xi|\xi_t \in S_t(\xi_{[:t-1]}), t=2,\dots,T\}.
 \end{equation*} 
@@ -243,15 +239,14 @@ Having defined the necessary notation for the scenario tree structure, we can no
 This is best illustrated using Figure \ref{fig:balanced_scenario_tree_illustration_sets_kt}, where $\mathcal{K}_1=\{1\}$, $\mathcal{K}_2=\{2,3\}$ and $\mathcal{K}_3=\{4,5,6,7,8,9\}$. This leads to Definition \ref{defn:arborescent_linear_programming_formulation}.
 
 \begin{figure}
-  \includegraphics[width=\linewidth]{../img/scenario_tree_balanced_kt_enumeration.pdf}
+  \includegraphics[width=\linewidth]{../img/scenario_tree_plots/scenario_tree_balanced_kt_enumeration.pdf}
   \caption{Balanced scenario tree illustration for how sets $\mathcal{K}_t$ are constructed.}
   \label{fig:balanced_scenario_tree_illustration_sets_kt}
 \end{figure}
 
-\begin{defn}{Arborescent form of a scenario based linear program}
-\label{defn:arborescent_linear_programming_formulation}
-\\
-\cite[p. 3]{dupacova_scenarios_for_multistage_stochastic_programs}
+\begin{defn}{\normalfont Arborescent form of a scenario based linear program}
+\label{defn:arborescent_linear_programming_formulation} \\
+{\normalfont (\cite[p. 3]{dupacova_scenarios_for_multistage_stochastic_programs})}
 \\
 \footnotesize
 \begin{equation}
@@ -276,7 +271,8 @@ In definition \ref{defn:arborescent_linear_programming_formulation}, the nonanti
 \newpage
 \begin{defn}
 \label{eq:scenario_splitted_linear_programming_formulation}
-{Scenario splitted form of a scenario based linear program \\ \cite{defourny_scenario_trees_scenario_splitted_formulation}}.
+{\normalfont Scenario splitted form of a scenario based linear program
+{\normalfont (\cite{defourny_scenario_trees_scenario_splitted_formulation}})}
 \footnotesize
 \begin{equation*}
 \mathrm{min} \, \sum_{i=1}^S p_i \left[ (c_1^T)x_1^i + (c_2^i)^Tx_2^i + \dots + (c_T^i)^Tx_T^i  \right]
@@ -308,9 +304,8 @@ Prior to generating a scenario tree, we need to decide the structure of the tree
 \begin{rem}
 For the purposes of this thesis, we can restrict the theory only to this simple case, as we will be working with stagewise independent balanced scenario trees and thus use the moment matching method sequentially in each stage. Further details on how the moment matching method is used are described in Section \ref{subsection:moment_matching}. For the more complex case, where the whole tree is generated at once (which is in principle the same as presented here, only with more complex notation), see \cite{hoyland_wallace_moment_matching}.
 \end{rem}
-\begin{defn}{Moment matching \label{defn:moment_matching_method}
-\\
-\cite[p. 9]{moment_matching_agarwal}}
+\begin{defn}{\normalfont Moment matching} \label{defn:moment_matching_method}
+{\normalfont (\cite[p. 9]{moment_matching_agarwal})}
 \\
 Let the scenario tree consist of only one stage, i.e. a root and $N$ children. Let $I$ be the set of assets, $K$ be the number of moments to be matched, \\ $\mathcal{M}=\{1,\dots,K\}$, $M_{i,k}$ the $k$-th sample moment calculated from historical data of $i$-th asset, $C_{i,i'}$ be the sample correlation calculated from historical data between $i$-th and $i'$-th assets. Then the moment matching problem can be formulated as follows:
 \begin{alignat}{10}
