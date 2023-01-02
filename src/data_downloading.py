@@ -60,8 +60,9 @@ def load_data(filename: str) -> pd.DataFrame:
     with open(f"./data/{filename}_latest.parquet", "rb") as f:
         return pd.read_parquet(f)
 
-#deprecated function -- used before when we used pickle for storing the data
-#but it is not clean to put .pckl files in attachment of thesis
+
+# deprecated function -- used before when we used pickle for storing the data
+# but it is not clean to put .pckl files in attachment of thesis
 def load_data_pickle(filename: str) -> pd.DataFrame:
     with open(f"./data/{filename}_latest.pckl", "rb") as f:
         return pickle.load(f)
