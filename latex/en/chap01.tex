@@ -136,7 +136,6 @@ Let $\xi=(\xi_1,\dots,\xi_{T})$ be the data process as defined in the previous s
 \end{equation}
 \normalsize
 where the multifunctions $\mathcal{X}_t(x_{t-1},\xi_t)$ are random, since they dependend on $\xi_t$ and $x_{t-1}$, $t=2,\dots,T$.
-\todo{Please check this is all correct}
 \end{defn}
 
 
@@ -151,7 +150,7 @@ Considering the notation in Definition \ref{defn:generalmultistageprogrammingfor
 \begin{center}
 $f_1=c_1^Tx_1$, \\ $\mathcal{X}_1=\{x:A_{1,1}x_1=b_1, x \geq 0 \}$, \\ $f_t = {c_t}^T x_t$, \\ $\mathcal{X}_t=\{x:A_{t,t-1}x_{t-1}+A_{t,t}x_t=b_t\, , x \geq 0\}$,  \\  
 \end{center}
-$t=2,\dots,T$, where $A_{t,t}, A_{t,t-1}$ are matrices and $b_t, c_t$ are vectors of consistent dimensions with $x_t$ and $x_{t-1}$. \todo{is this "matrices and vectors of consistent dimensions" enough or should I specify explicitly?} Assuming that all infima are attained and all expectations exist, rewriting Equation \ref{eq:generalmultistageprogrammingformulation}, we obtain:
+$t=2,\dots,T$, where $A_{t,t}, A_{t,t-1}$ are matrices and $b_t, c_t$ are vectors of consistent dimensions with $x_t$ and $x_{t-1}$.  Assuming that all infima are attained and all expectations exist, rewriting Equation \ref{eq:generalmultistageprogrammingformulation}, we obtain:
 \scriptsize
 \begin{equation}
 \label{eq:nestedlinearmultistageprogrammingformulation}
@@ -302,7 +301,7 @@ Prior to generating a scenario tree, we need to decide the structure of the tree
 \subsubsection{Moment matching}
 \cite{hoyland_wallace_moment_matching} presented a novel method of generating a scenario tree from historical data that matches some statistical properties of the data, particularly by minimising the distance between moments and correlations calculated from historical data and the moments and correlations calculated from the scenario tree. They formulated a nonlinear optimization program to solve this task. In practical use, this method can be very time demanding and this led to development of a heuristic method for generating scenario trees using moment matching in \cite{hoyland_wallace_moment_matching_heuristic}.  \cite{moment_matching_agarwal} further improved on top of the non-heuristic method and proposed a way to also include empirical cumulative distribution function matching in the program. We will follow the notation established in \cite{moment_matching_agarwal} and describe the optimization program used for generating a simple one stage scenario tree that consists only of a root and $N$ child nodes using the moment matching method (without the cumulative distribution function matching).
 \begin{rem}
-For the purposes of this thesis, we can restrict the theory only to this simple case, as we will be working with stagewise independent balanced scenario trees and thus use the moment matching method sequentially in each stage. Further details on how the moment matching method is used are described in Section \ref{subsection:moment_matching}. For the more complex case, where the whole tree is generated at once (which is in principle the same as presented here, only with more complex notation), see \cite{hoyland_wallace_moment_matching}.
+For the purposes of this thesis, we can restrict the theory only to this simple case, as we will be working with stagewise independent balanced scenario trees and thus use the moment matching method sequentially in each stage. Further details on how the moment matching method is used are described in Section~\ref{subsection:moment_matching}. For the more complex case, where the whole tree is generated at once (which is in principle the same as presented here, only with more complex notation), see \cite{hoyland_wallace_moment_matching}.
 \end{rem}
 \begin{defn}{\normalfont Moment matching} \label{defn:moment_matching_method}
 {\normalfont (\cite[p. 9]{moment_matching_agarwal})}
@@ -367,8 +366,8 @@ After a sufficient number of paths generated from a parametric model are obtaine
 \end{figure}
 \subsection{Curse of dimensionality}
 \label{section:curse_od_dimensionality}
-The curse of dimensionality is a phenomenon where increasing the complexity (dimension) of a problem leads to much higher (often exponentially higher) computational and memory demands, many times so large that the problem becomes unsolvable. A particularly relevant example is dynamic programming, where all states of a system are (usually recursively) explored to obtain the optimal solution. This means that increasing the dimensionality of the problem exponentially increases the number of states, leading to a unsolvable problem.
+The curse of dimensionality is a phenomenon where increasing the complexity (dimension) of a problem leads to much higher (often exponentially higher) computational and memory demands, many times so large that the problem becomes unsolvable. A particularly relevant example is dynamic programming, where all states of a system are (usually recursively) explored to obtain the optimal solution. This means that increasing the dimensionality of the problem exponentially increases the number of states, leading to an unsolvable problem.
 
-The scenario tree approach to stochastic optimization suffers from the curse of dimensionality aswell, since the number of scenarios grows with the number of decision stages and the number of descendants in each stage. Many methods have been developed to reduce the number of scenarios (as explained in the previous section). However, \todo{is it true that the branching structure is predefined?} many of these methods take the already generated fan of scenarios as input and return a tree with predefined branching structure. The branching structure is usually chosen ad hoc or by an expert opinion. This may not be the optimal approach, as a different tree structure (different discretization of the randomness) may yield better results in terms of the objective function. Particularly choosing a tree with too many stages and many children in each stage leads to a computationally intractable problem.
+The scenario tree approach to stochastic optimization suffers from the curse of dimensionality as well, since the number of scenarios grows with the number of decision stages and the number of descendants in each stage. Many methods have been developed to reduce the number of scenarios (as explained in the previous section). However, many of these methods take the already generated fan of scenarios as input and return a tree with predefined branching structure. The branching structure is usually chosen ad hoc or by an expert opinion. This may not be the optimal approach, as a different tree structure (different discretization of the randomness) may yield better results in terms of the objective function. Particularly choosing a tree with too many stages and many children in each stage leads to a computationally intractable problem.
 
 This is the main question we explore in this thesis -- what is the dependence of the objective function on the tree structure and can we find a scenario tree structure that is optimal with regard to the objective function and potentially also with regard to the size of the scenario tree?

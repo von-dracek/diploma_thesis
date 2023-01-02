@@ -29,7 +29,7 @@ Let $\mathcal{V}$ be the set of real random variables. We say that a risk measur
 	\item Translation equivariance: $X \in \mathcal{V}, a \in \R \implies \rho(X+a)=\rho(X)-a$.
 \end{enumerate}
 \end{defn}
-The properties have a quite nice interpretation. The monotony property implies that a portfolio $Y$ that is more favourable in all possible scenarios should have smaller risk compared to the less favourable portfolio $X$. The subadditivity property pertains to the notion of diversification, as it says that if we combine two portfolios $X$ and $Y$, the resulting combined portfolio should not be riskier than the portfolios separately. The positive homogenity property implies that lowering/increasing the size of the portfolio by the factor $h \geq 0$, the risk lowers/increases proportionally to $h$. Last is the property of translation equivariance, which says that increasing the value of portfolio by risk free $a$, the risk is decreased by $a$. Unfortunately, neither variance not semivariance are coherent risk measures.
+The properties have a quite nice interpretation. The monotony property implies that a portfolio $Y$ that is more favourable in all possible scenarios should have smaller risk compared to the less favourable portfolio $X$. The subadditivity property pertains to the notion of diversification, as it says that if we combine two portfolios $X$ and $Y$, the resulting combined portfolio should not be riskier than the portfolios separately. The positive homogenity property implies that lowering/increasing the size of the portfolio by the factor $h \geq 0$, the risk lowers/increases proportionally to $h$. Last is the property of translation equivariance, which says that increasing the value of portfolio by risk free $a$, the risk is decreased by $a$. Unfortunately, neither variance nor semivariance are coherent risk measures.
 
 Let us now introduce another risk measure, the \textit{value at risk}.
 Using the notation developed in \cite{cornuejols_tutuncu_2006}, let $f(x,\Upsilon)$ be a loss function of a vector $x$ which may be considered as a portfolio and a random vector $\Upsilon$ which represents the unknown returns or other random aspects influencing the distribution of loss and denote the loss random variable $\mathcal{L}(x,\Upsilon)=f(x,\Upsilon)$. We assume that the probability distribution of $\Upsilon$ is known and for simplicity that $\Upsilon$ has a probability density $p(y)$. The cumulative distribution function of $\mathcal{L}(x,\Upsilon)$ is then defined as
@@ -44,7 +44,6 @@ VaR_{\alpha}(x)=q_{\alpha}(x)
 \end{equation*}
 where $q_{\alpha}(x)=\mathrm{min}\{\upsilon \in \R: \Psi(x,\upsilon) \geq \alpha \}$ is the lower $\alpha$ quantile of distribution of $\mathcal{L}(x,\Upsilon)$. $\alpha$ is usually chosen as $0.95$ or $0.99$.
 \end{defn}
-\todo{I adjusted the definition of CVaR to handle also the discrete case using the general CVaR defintion - please check it is correct.}
 
 
 
@@ -138,14 +137,14 @@ which is a linear programming problem.
 \subsection{Mean-CVaR formulation}
 In this section, we present a more precise formulation for practical use adopted from \cite{cvar_robust_mean_cvar_portfolio_optimization}, particularly when we want to choose a portfolio that minimises the conditional value at risk and also allows for controlling the minimum expected return or setting the degree of risk aversion.
 \subsubsection*{Formulation with prescribed minimal expected return}
-Let $x=(x_1,\dots,x_n)$ be a vector denoting of weights of each of $n$ assets in a portfolio and consider that $\mu=(\mu_1,\dots,\mu_n)$ is a random vector representing the returns of the assets. Consider $S$ scenarios, each with probability $p_s$ and let $r_s = (r_{1,s},\dots,r_{n,s})$ be the particular realisation of $\mu$ in scenario $s$ and let $r_0$ be the minimal required expected return. For simplicity, we do not allow short selling (condition $x_i \geq 0, i=1,\dots,n$). Then we can write
+Let $x=(x_1,\dots,x_n)$ be a vector denoting the weights of each of $n$ assets in a portfolio and consider that $\mu=(\mu_1,\dots,\mu_n)$ is a random vector representing the returns of the assets. Consider $S$ scenarios, each with probability $p_s$ and let $r_s = (r_{1,s},\dots,r_{n,s})$ be the particular realisation of $\mu$ in scenario $s$ and let $r_0$ be the minimal required expected return. For simplicity, we do not allow short selling (condition $x_i \geq 0, i=1,\dots,n$). Then we can write
 \begin{alignat}{10}
 & \underset{x_i \geq 0 , z_s \geq 0, \gamma}{\min}  \, \, \, && \gamma + \frac{1}{(1-\alpha)} \sum_{s=1}^S p_s z_s, \label{cvar_expected_return}  \\
 &s.t. && \, z_s \geq  -\sum_{i=1}^{n} x_i r_{i,s} -\gamma, s=1,\dots,S, \nonumber \\
 &  && \sum_{i=1}^{n} x_i \bar{R_i} \geq r_0, \label{eq:cvar_expected_return:min_return_equation} \\
 &  && \sum_{i=1}^{n} x_i = 1, \nonumber
 \end{alignat}
-where $\bar{R_i}=\sum_{s=1}^{S}p_s r_{i,s}$, which is still a linear programming problem. Equation \ref{eq:cvar_expected_return:min_return_equation} assures the minimal expected return.
+where $\bar{R_i}=\sum_{s=1}^{S}p_s r_{i,s}$, which is still a linear programming problem. Equation \ref{eq:cvar_expected_return:min_return_equation} assures the prescribed minimal expected return.
 \subsubsection*{Formulation using risk aversion}
 Another equivalent formulation might be useful when the decision maker does not require a prescribed minimal expected return explicitly, but rather wants to set his risk aversion expectations. This can be achieved by introducing a risk aversion parameter $\lambda \geq 0$ and writing
 \begin{alignat}{10}
@@ -162,7 +161,6 @@ In the multistage setting, the problem is a bit more complicated. Since the retu
 \begin{defn}{\normalfont End of horizon $CVaR$.} \\
 Consider Definition \ref{cvar_definition}. If we consider the $CVaR$ calculated from the last stage (at the end of the investment horizon), we call it end of horizon $CVaR$.
 \end{defn}
-\todo{Is this definition of end of horizon cvar enough?}
 The definition of \textit{end of horizon $CVaR$} is very similar to the definition of regular $CVaR$, with the small difference that the multistage formulation now allows the decision maker to reallocate funds during the investment period (in each stage). 
 
 \subsubsection{End of horizon CVaR - scenario formulation}
