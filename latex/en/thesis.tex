@@ -42,7 +42,7 @@
 \usepackage{bm}             % boldface symbols (\bm)
 \usepackage{graphicx}       % embedding of pictures
 \usepackage{fancyvrb}       % improved verbatim environment
-\usepackage{natbib}         % citation style AUTHOR (YEAR), or AUTHOR [NUMBER]
+\usepackage[numbers]{natbib}         % citation style AUTHOR (YEAR), or AUTHOR [NUMBER]
 \usepackage[nottoc]{tocbibind} % makes sure that bibliography and the lists
 			    % of figures/tables are included in the table
 			    % of contents
@@ -53,20 +53,21 @@
 \usepackage[textsize=tiny]{todonotes}
 \usepackage{algorithm}
 \usepackage{algpseudocode}
-
+\usepackage{subcaption}
+\usepackage[page,toc,titletoc,title]{appendix}
 
 
 \reversemarginpar
 %%% Basic information on the thesis
 
 % Thesis title in English (exactly as in the formal assignment)
-\def\ThesisTitle{Optimal choice of scenario tree using Reinforcement learning}
+\def\ThesisTitle{Optimal Choice of Scenario Tree using Reinforcement Learning}
 
 % Author of the thesis
 \def\ThesisAuthor{Bc. Jakub Vondráček}
 
 % Year when the thesis is submitted
-\def\YearSubmitted{2022}
+\def\YearSubmitted{2023}
 
 % Name of the department or institute, where the work was officially assigned
 % (according to the Organizational Structure of MFF UK in English,
@@ -84,19 +85,21 @@
 
 % Study programme and specialization
 \def\StudyProgramme{Probability, mathematical statistics and econometrics}
-\def\StudyBranch{\textcolor{red}{study branch}}
+\def\StudyBranch{MPSP}
 
 % An optional dedication: you can thank whomever you wish (your supervisor,
 % consultant, a person who lent the software, etc.)
 \def\Dedication{%
-I am infinitely grateful to my supervisor doc.~RNDr.~Ing.~Miloš~Kopa,~Ph.D. for his expertise, patience and all the time and effort spent supervising my thesis. I also thank my consultant RNDr.~Karel~Kozmík for always being ready to help whenever I needed guidance and infinitely many great ideas and suggestions.
+I am infinitely grateful to my supervisor doc.~RNDr.~Ing.~Miloš~Kopa,~Ph.D. for his expertise, patience and all the time and effort spent supervising my thesis and for providing the necessary GAMS license. 
+
+I am also deeply indebted to my consultant RNDr.~Karel~Kozmík for many great ideas, suggestions and always being ready to help whenever I needed guidance.
 
 I dedicate this thesis to my grandmother and my mother, as without them, I would be nowhere near as far along in life as I am today. Thank you.
 }
 
 % Abstract (recommended length around 80-200 words; this is not a copy of your thesis assignment!)
 \def\Abstract{%
-Abstract.
+This thesis deals with multistage stochastic programs and explores the dependence of the obtained objective value on the chosen structure of the scenario tree. In particular, the scenario trees are built using the moment matching method, a multistage mean-CVaR model is formulated and a reinforcement learning agent is trained on a set of historical financial data to choose the best scenario tree structure for the mean-CVaR model. For this purpose, we implemented a custom reinforcement learning environment. Further an inclusion of a penalty term in the reward obtained by the agent is proposed to avoid scenario trees that are too complex. The reinforcement learning agent is then evaluated against an agent that chooses the scenario tree structure at random and outperforms the random agent. Further the structure of scenario trees chosen by the reinforcement learning agent is analyzed.
 }
 
 % 3 to 5 keywords (recommended), each enclosed in curly braces
@@ -113,6 +116,11 @@ Abstract.
 % Definitions of macros (see description inside)
 \include{macros}
 
+\usepackage{sectsty}
+\allsectionsfont{\raggedright}
+
+\renewcommand*{\cite}{\citet}
+
 % Title page and various mandatory informational pages
 \begin{document}
 \include{title}
@@ -127,7 +135,6 @@ Abstract.
 \include{chap02}
 \include{chap03}
 \include{chap04}
-\include{chap05}
 
 
 \include{epilog}
@@ -157,10 +164,80 @@ Abstract.
 %%% source code, data files, interactive charts, etc.). Electronic attachments
 %%% should be uploaded to SIS and optionally also included in the thesis on a~CD/DVD.
 %%% Allowed file formats are specified in provision of the rector no. 72/2017.
+
 \appendix
-\chapter{Attachments}
+\chapter*{Appendix}
+\stepcounter{chapter}
+\addcontentsline{toc}{chapter}{Appendix}
+\section{Definitions of asset sets}
+\begin{center}
+\begin{table}[H]
+\centering
+\begin{tabular}{lllllll}
+\toprule
+ ACGL &   AFL &  AIG &   AJG &   ALL &   AON &   AXP \\
+  BAC &   BEN &   BK &   BLK &   BRO &     C &    CB \\
+ CINF &   CMA &  COF &   FDS &  FITB &    GL &    GS \\
+ HBAN &   HIG &  IVZ &   JPM &   KEY &     L &   LNC \\
+   MCO &   MMC &   MS &   MTB &  NTRS &   PGR &   PNC \\
+   RE &    RF &  RJF &  SCHW &  SIVB &  SPGI &   STT \\
+   TFC &  TROW &  TRV &   USB &   WFC &   WRB &  ZION \\
+   \bottomrule
+\end{tabular}
+\caption{Stock tickers used in Chapter \ref{chapter4}.}
+\label{table:stock_tickers_used}
+\end{table}
 
-\section{First Attachment}
+\begin{table}[H]
+\centering
+\begin{tabular}{llllll}
+\toprule
+ALL &   BK &  ACGL &  FDS &  ZION &  TROW \\
+ STT &  RJF &  SPGI &  AON &   LNC &   USB \\
+ AXP &  AIG &   AJG &  BLK &    RE &  SIVB \\
+ NTRS &   CB &   WRB &  BRO &     L &   IVZ \\
+  BAC &   GS &   WFC &  MTB &   MMC &   BEN \\
+  \bottomrule
+\end{tabular}
+\caption{Stock tickers in set $A$.}
+\label{table:stock_tickers_in_set_A}
+\end{table}
 
+
+\begin{table}[H]
+\centering
+\begin{tabular}{llll}
+\toprule
+ HBAN &   COF &  JPM &  AFL \\
+ PGR &   CMA &   RF &  TFC \\
+ CINF &   MCO &   MS &    C \\
+  HIG &  FITB &  TRV &   GL \\
+ SCHW &   PNC &  KEY &     \\
+ \bottomrule
+\end{tabular}
+\caption{Stock tickers in set $B$.}
+\label{table:stock_tickers_in_set_B}
+\end{table}
+
+\begin{table}[H]
+\centering
+\scalebox{0.75}{
+\begin{tabular}{l|llllllllll}
+\toprule
+Asset set 1 & ALL & BK  & ACGL & FDS & ZION & TROW & STT & RJF  & SPGI & AON \\
+\toprule
+Asset set 2 & LNC & USB & AXP  & AIG & AJG  & BLK  & RE  & SIVB & NTRS & CB  \\
+\toprule
+Asset set 3 & WRB & BRO & L    & IVZ & BAC  & GS   & WFC & MTB  & MMC  & BEN \\
+\bottomrule
+\end{tabular}
+}
+\caption{Specification of which stock tickers belong to which asset set.}
+\label{table:asset_sets}
+\end{table}
+\end{center}
+
+\section{Electronic attachment}
+The Python source code used to obtain the results in Chapter \ref{chapter4} is included in the electronic attachment.
 \openright
 \end{document}
